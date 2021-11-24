@@ -7,13 +7,14 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"io"
 	"math/big"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Seagate/kmip-go/internal/kmiputil"
+	"github.com/ansel1/merry"
 )
 
 //nolint:deadcode,varcheck

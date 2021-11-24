@@ -9,13 +9,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	_ "github.com/gemalto/kmip-go/kmip14"
-	_ "github.com/gemalto/kmip-go/kmip20"
-	"github.com/gemalto/kmip-go/ttlv"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	_ "github.com/Seagate/kmip-go/kmip14"
+	_ "github.com/Seagate/kmip-go/kmip20"
+	"github.com/Seagate/kmip-go/ttlv"
 )
 
 const FormatJSON = "json"

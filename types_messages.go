@@ -1,7 +1,7 @@
 package kmip
 
 import (
-	"github.com/gemalto/kmip-go/kmip14"
+	"github.com/Seagate/kmip-go/kmip14"
 	"time"
 )
 

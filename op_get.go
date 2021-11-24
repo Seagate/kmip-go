@@ -2,20 +2,21 @@ package kmip
 
 import (
 	"context"
-	"github.com/gemalto/kmip-go/kmip14"
+
+	"github.com/Seagate/kmip-go/kmip14"
 )
 
 // GetRequestPayload ////////////////////////////////////////
 //
 type GetRequestPayload struct {
-	UniqueIdentifier  string
+	UniqueIdentifier string
 }
 
-// GetResponsePayload 
+// GetResponsePayload
 type GetResponsePayload struct {
-	ObjectType        kmip14.ObjectType
-	UniqueIdentifier  string
-	Key               string
+	ObjectType       kmip14.ObjectType
+	UniqueIdentifier string
+	Key              string
 }
 
 type GetHandler struct {
@@ -29,7 +30,7 @@ func (h *GetHandler) HandleItem(ctx context.Context, req *Request) (*ResponseBat
 		return nil, err
 	}
 
-																respPayload, err := h.Get(ctx, &payload)
+	respPayload, err := h.Get(ctx, &payload)
 	if err != nil {
 		return nil, err
 	}

@@ -9,7 +9,7 @@
 package kmip14
 
 import (
-	"github.com/gemalto/kmip-go/ttlv"
+	"github.com/Seagate/kmip-go/ttlv"
 )
 
 // nolint:gochecknoinits

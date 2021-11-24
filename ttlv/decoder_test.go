@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/ansel1/merry"
-	. "github.com/gemalto/kmip-go/kmip14"
-	. "github.com/gemalto/kmip-go/ttlv"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"math"
 	"math/big"
 	"reflect"
 	"testing"
 	"time"
+
+	. "github.com/Seagate/kmip-go/kmip14"
+	. "github.com/Seagate/kmip-go/ttlv"
+	"github.com/ansel1/merry"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUnmarshal_known(t *testing.T) {
