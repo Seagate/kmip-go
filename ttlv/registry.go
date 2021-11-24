@@ -1,9 +1,10 @@
 package ttlv
 
 import (
-	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
 	"sort"
+
+	"github.com/Seagate/kmip-go/internal/kmiputil"
+	"github.com/ansel1/merry"
 )
 
 // DefaultRegistry holds the default mappings of types, tags, enums, and bitmasks

@@ -2,18 +2,17 @@ package kmip
 
 import (
 	"context"
-	//"github.com/gemalto/kmip-go/kmip14"
 )
 
 // DestroyRequestPayload ////////////////////////////////////////
 //
 type DestroyRequestPayload struct {
-	UniqueIdentifier  string
+	UniqueIdentifier string
 }
 
-// DestroyResponsePayload 
+// DestroyResponsePayload
 type DestroyResponsePayload struct {
-	UniqueIdentifier  string
+	UniqueIdentifier string
 }
 
 type DestroyHandler struct {
