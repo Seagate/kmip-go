@@ -1,5 +1,6 @@
 package kmip20
 
+// import "time"
 import "github.com/Seagate/kmip-go/ttlv"
 
 type Attributes struct {
@@ -31,3 +32,78 @@ type CreateKeyPairResponsePayload struct {
 	PrivateKeyUniqueIdentifier string
 	PublicKeyUniqueIdentifier  string
 }
+
+// GetRequestPayload
+type GetRequestPayload struct {
+	UniqueIdentifier  UniqueIdentifierValue
+}
+
+// GetResponsePayload 
+type GetResponsePayload struct {
+	ObjectType        ObjectType
+	UniqueIdentifier  UniqueIdentifierValue
+	Key               string
+}
+
+// ActivateRequestPayload ////////////////////////////////////////
+type ActivateRequestPayload struct {
+	UniqueIdentifier  UniqueIdentifierValue
+}
+
+// ActivateResponsePayload 
+type ActivateResponsePayload struct {
+	UniqueIdentifier  UniqueIdentifierValue
+}
+
+// DestroyRequestPayload ////////////////////////////////////////
+type DestroyRequestPayload struct {
+	UniqueIdentifier  UniqueIdentifierValue
+}
+
+// DestroyResponsePayload 
+type DestroyResponsePayload struct {
+	UniqueIdentifier  UniqueIdentifierValue
+}
+
+type RevocationReasonStruct struct {
+	RevocationReasonCode kmip14.RevocationReasonCode
+}
+
+// RevokeRequestPayload ////////////////////////////////////////
+type RevokeRequestPayload struct {
+	UniqueIdentifier  UniqueIdentifierValue
+	RevocationReason  RevocationReasonStruct
+	//CompromiseDate    time.Time
+}
+
+// RevokeResponsePayload 
+type RevokeResponsePayload struct {
+	UniqueIdentifier     UniqueIdentifierValue
+}
+
+// LocateRequestPayload ////////////////////////////////////////
+type LocateRequestPayload struct {
+	Attributes    interface{}
+}
+
+// LocateResponsePayload
+type LocateResponsePayload struct {
+    UniqueIdentifier  string
+}
+
+
+
+// SetAttributeRequestPayload ////////////////////////////////////////
+type SetAttributeRequestPayload struct {
+    UniqueIdentifier     UniqueIdentifierValue
+	AttributeName        string
+    AttributeValue       string
+}
+
+// AddAttributeResponsePayload
+	type SetAttributeResponsePayload struct {
+    UniqueIdentifier     UniqueIdentifierValue
+	AttributeName        string
+    AttributeValue       string
+}
+

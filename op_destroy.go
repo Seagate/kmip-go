@@ -32,6 +32,7 @@ func (h *DestroyHandler) HandleItem(ctx context.Context, req *Request) (*Respons
 	}
 
 	//req.Key = respPayload.Key
+	req.IDPlaceholder = respPayload.UniqueIdentifier
 
 	return &ResponseBatchItem{
 		ResponsePayload: respPayload,
