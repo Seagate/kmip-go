@@ -1,7 +1,9 @@
 package kmip20
 
 // import "time"
+import "github.com/Seagate/kmip-go"
 import "github.com/Seagate/kmip-go/ttlv"
+import "github.com/Seagate/kmip-go/kmip14"
 
 type Attributes struct {
 	Values ttlv.Values
@@ -41,8 +43,8 @@ type GetRequestPayload struct {
 // GetResponsePayload 
 type GetResponsePayload struct {
 	ObjectType        ObjectType
-	UniqueIdentifier  UniqueIdentifierValue
-	Key               string
+	UniqueIdentifier  string
+	SymmetricKey      kmip.SymmetricKey
 }
 
 // ActivateRequestPayload ////////////////////////////////////////
