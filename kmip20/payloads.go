@@ -54,7 +54,7 @@ type ActivateRequestPayload struct {
 
 // ActivateResponsePayload 
 type ActivateResponsePayload struct {
-	UniqueIdentifier  UniqueIdentifierValue
+	UniqueIdentifier  string
 }
 
 // DestroyRequestPayload ////////////////////////////////////////
@@ -64,7 +64,7 @@ type DestroyRequestPayload struct {
 
 // DestroyResponsePayload 
 type DestroyResponsePayload struct {
-	UniqueIdentifier  UniqueIdentifierValue
+	UniqueIdentifier  string
 }
 
 type RevocationReasonStruct struct {
@@ -80,7 +80,7 @@ type RevokeRequestPayload struct {
 
 // RevokeResponsePayload 
 type RevokeResponsePayload struct {
-	UniqueIdentifier     UniqueIdentifierValue
+	UniqueIdentifier     string
 }
 
 // LocateRequestPayload ////////////////////////////////////////
@@ -104,7 +104,7 @@ type SetAttributeRequestPayload struct {
 
 // AddAttributeResponsePayload
 	type SetAttributeResponsePayload struct {
-    UniqueIdentifier     UniqueIdentifierValue
+    UniqueIdentifier     string
 	AttributeName        string
     AttributeValue       string
 }

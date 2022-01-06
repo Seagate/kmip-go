@@ -50,7 +50,7 @@ type ResponseHeader struct {
 	BatchCount             int
 }
 
-																														type ResponseBatchItem struct {
+type ResponseBatchItem struct {
 	Operation                    Operation `ttlv:",omitempty"`
 	UniqueBatchItemID            []byte           `ttlv:",omitempty"`
 	ResultStatus                 kmip14.ResultStatus
