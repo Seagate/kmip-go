@@ -36,7 +36,8 @@ func (h *GetHandler) HandleItem(ctx context.Context, req *Request) (*ResponseBat
 	}
 
 	//req.Key = respPayload.Key
-
+	req.IDPlaceholder = respPayload.UniqueIdentifier
+	
 	return &ResponseBatchItem{
 		ResponsePayload: respPayload,
 	}, nil
