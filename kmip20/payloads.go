@@ -93,7 +93,15 @@ type LocateResponsePayload struct {
     UniqueIdentifier  string
 }
 
+// QueryRequestPayload ////////////////////////////////////////
+type QueryRequestPayload struct {
+	QueryFn    string
+}
 
+// LocateResponsePayload
+type QueryResponsePayload struct {
+    QueryData  string
+}
 
 // SetAttributeRequestPayload ////////////////////////////////////////
 type SetAttributeRequestPayload struct {
