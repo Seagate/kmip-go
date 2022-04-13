@@ -95,7 +95,7 @@ type LocateResponsePayload struct {
 
 // QueryRequestPayload ////////////////////////////////////////
 type QueryRequestPayload struct {
-	QueryFn    string
+	QueryFn    QueryFunction
 }
 
 // LocateResponsePayload
