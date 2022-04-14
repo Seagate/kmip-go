@@ -100,7 +100,7 @@ type QueryRequestPayload struct {
 
 // LocateResponsePayload
 type QueryResponsePayload struct {
-    QueryData  string
+	Operation        []kmip14.Operation
 }
 
 // SetAttributeRequestPayload ////////////////////////////////////////
