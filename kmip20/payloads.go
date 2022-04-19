@@ -93,7 +93,15 @@ type LocateResponsePayload struct {
     UniqueIdentifier  string
 }
 
+// QueryRequestPayload ////////////////////////////////////////
+type QueryRequestPayload struct {
+	QueryFunction    QueryFunction
+}
 
+// LocateResponsePayload
+type QueryResponsePayload struct {
+	Operation        []kmip14.Operation
+}
 
 // SetAttributeRequestPayload ////////////////////////////////////////
 type SetAttributeRequestPayload struct {
