@@ -19,12 +19,13 @@ import (
 	"github.com/Seagate/kmip-go/ttlv"
 )
 
-const FormatJSON = "json"
-const FormatXML = "xml"
-const FormatHex = "hex"
+const (
+	FormatJSON = "json"
+	FormatXML  = "xml"
+	FormatHex  = "hex"
+)
 
 func main() {
-
 	flag.Usage = func() {
 		s := `ppkmip - kmip pretty printer
 
@@ -101,6 +102,7 @@ xml format:
 	var inFormat string
 	var outFormat string
 	var inFile string
+
 	flag.StringVar(&inFormat, "i", "", "input format: hex|json|xml, defaults to auto detect")
 	flag.StringVar(&outFormat, "o", "", "output format: text|hex|prettyhex|json|xml, defaults to text")
 	flag.StringVar(&inFile, "f", "", "input file name, defaults to stdin")
@@ -114,6 +116,7 @@ xml format:
 		if err != nil {
 			fail("error reading input file", err)
 		}
+
 		buf = bytes.NewBuffer(file)
 	} else if inArg := flag.Arg(0); inArg != "" {
 		buf.WriteString(inArg)
@@ -151,9 +154,12 @@ xml format:
 	switch strings.ToLower(inFormat) {
 	case FormatJSON:
 		var raw ttlv.TTLV
+
 		decoder := json.NewDecoder(buf)
+
 		for {
 			err := decoder.Decode(&raw)
+
 			switch {
 			case errors.Is(err, io.EOF):
 				return
@@ -161,6 +167,7 @@ xml format:
 			default:
 				fail("error parsing JSON", err)
 			}
+
 			printTTLV(outFormat, raw, count)
 			count++
 		}
@@ -168,8 +175,10 @@ xml format:
 	case FormatXML:
 		var raw ttlv.TTLV
 		decoder := xml.NewDecoder(buf)
+
 		for {
 			err := decoder.Decode(&raw)
+
 			switch {
 			case errors.Is(err, io.EOF):
 				return
@@ -177,11 +186,13 @@ xml format:
 			default:
 				fail("error parsing XML", err)
 			}
+
 			printTTLV(outFormat, raw, count)
 			count++
 		}
 	case FormatHex:
 		raw := ttlv.TTLV(ttlv.Hex2bytes(buf.String()))
+
 		for len(raw) > 0 {
 			printTTLV(outFormat, raw, count)
 			count++
@@ -196,6 +207,7 @@ func printTTLV(outFormat string, raw ttlv.TTLV, count int) {
 	if count > 0 {
 		fmt.Println("")
 	}
+
 	switch outFormat {
 	case "text":
 		if err := ttlv.Print(os.Stdout, "", "  ", raw); err != nil {
@@ -206,12 +218,14 @@ func printTTLV(outFormat string, raw ttlv.TTLV, count int) {
 		if err != nil {
 			fail("error printing JSON", err)
 		}
+
 		fmt.Print(string(s))
 	case "xml":
 		s, err := xml.MarshalIndent(raw, "", "  ")
 		if err != nil {
 			fail("error printing XML", err)
 		}
+
 		fmt.Print(string(s))
 	case "hex":
 		fmt.Print(hex.EncodeToString(raw))
@@ -228,5 +242,6 @@ func fail(msg string, err error) {
 	} else {
 		_, _ = fmt.Fprintln(os.Stderr, msg)
 	}
+
 	os.Exit(1)
 }

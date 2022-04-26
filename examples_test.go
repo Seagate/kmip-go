@@ -13,7 +13,6 @@ import (
 )
 
 func Example_client() {
-
 	conn, err := net.DialTimeout("tcp", "localhost:5696", 3*time.Second)
 	if err != nil {
 		panic(err)
@@ -62,7 +61,6 @@ func Example_client() {
 
 	resp := ttlv.TTLV(buf)
 	fmt.Println(resp)
-
 }
 
 func ExampleServer() {
@@ -91,5 +89,4 @@ func ExampleServer() {
 	})
 	srv := kmip.Server{}
 	panic(srv.Serve(listener))
-
 }

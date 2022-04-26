@@ -3,7 +3,6 @@ package kmip
 import (
 	"errors"
 	"fmt"
-
 	"github.com/Seagate/kmip-go/kmip14"
 	"github.com/ansel1/merry"
 )
