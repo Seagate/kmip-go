@@ -1,31 +1,31 @@
-package kmip
+package kmip20
 
 import (
 	"context"
 
+	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
 )
 
 // GetRequestPayload ////////////////////////////////////////
 //
 type GetRequestPayload struct {
-	UniqueIdentifier string
+	UniqueIdentifier UniqueIdentifierValue
 }
 
 // GetResponsePayload
 type GetResponsePayload struct {
 	ObjectType       kmip14.ObjectType
 	UniqueIdentifier string
-	Key              string
+	Key              kmip.SymmetricKey
 }
 
 type GetHandler struct {
 	Get func(ctx context.Context, payload *GetRequestPayload) (*GetResponsePayload, error)
 }
 
-func (h *GetHandler) HandleItem(ctx context.Context, req *Request) (*ResponseBatchItem, error) {
+func (h *GetHandler) HandleItem(ctx context.Context, req *kmip.Request) (*kmip.ResponseBatchItem, error) {
 	var payload GetRequestPayload
-
 	err := req.DecodePayload(&payload)
 	if err != nil {
 		return nil, err
@@ -36,9 +36,10 @@ func (h *GetHandler) HandleItem(ctx context.Context, req *Request) (*ResponseBat
 		return nil, err
 	}
 
-	// req.Key = respPayload.Key
+	//req.Key = respPayload.Key
+	req.IDPlaceholder = respPayload.UniqueIdentifier
 
-	return &ResponseBatchItem{
+	return &kmip.ResponseBatchItem{
 		ResponsePayload: respPayload,
 	}, nil
 }

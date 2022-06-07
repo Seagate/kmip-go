@@ -1,16 +1,21 @@
-package kmip
+package kmip20
 
 import (
 	"context"
+
+	"github.com/Seagate/kmip-go"
 )
 
-// DestroyRequestPayload ////////////////////////////////////////
-//
+// 6.1.15 Destroy
+
+// Table 193
+
 type DestroyRequestPayload struct {
-	UniqueIdentifier string
+	UniqueIdentifier UniqueIdentifierValue
 }
 
-// DestroyResponsePayload
+// Table 194
+
 type DestroyResponsePayload struct {
 	UniqueIdentifier string
 }
@@ -19,7 +24,7 @@ type DestroyHandler struct {
 	Destroy func(ctx context.Context, payload *DestroyRequestPayload) (*DestroyResponsePayload, error)
 }
 
-func (h *DestroyHandler) HandleItem(ctx context.Context, req *Request) (*ResponseBatchItem, error) {
+func (h *DestroyHandler) HandleItem(ctx context.Context, req *kmip.Request) (*kmip.ResponseBatchItem, error) {
 	var payload DestroyRequestPayload
 
 	err := req.DecodePayload(&payload)
@@ -34,7 +39,7 @@ func (h *DestroyHandler) HandleItem(ctx context.Context, req *Request) (*Respons
 
 	// req.Key = respPayload.Key
 
-	return &ResponseBatchItem{
+	return &kmip.ResponseBatchItem{
 		ResponsePayload: respPayload,
 	}, nil
 }
