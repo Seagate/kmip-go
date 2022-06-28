@@ -2,17 +2,11 @@ package kmip
 
 import (
 	"context"
-
-	//"github.com/Seagate/kmip-go/kmip14"
 )
-
-
 
 type ReKeyRequestPayload struct {
 	UniqueIdentifier string
 }
-
-
 
 type ReKeyResponsePayload struct {
 	UniqueIdentifier string
@@ -34,7 +28,7 @@ func (h *ReKeyHandler) HandleItem(ctx context.Context, req *Request) (*ResponseB
 	if err != nil {
 		return nil, err
 	}
-	req.IDPlaceholder = respPayload.UniqueIdentifier
+
 	// req.Key = respPayload.Key
 
 	return &ResponseBatchItem{

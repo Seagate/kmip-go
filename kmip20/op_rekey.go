@@ -6,13 +6,9 @@ import (
 	"github.com/Seagate/kmip-go"
 )
 
-
-
 type ReKeyRequestPayload struct {
 	UniqueIdentifier UniqueIdentifierValue
 }
-
-
 
 type ReKeyResponsePayload struct {
 	UniqueIdentifier string
@@ -34,7 +30,7 @@ func (h *ReKeyHandler) HandleItem(ctx context.Context, req *kmip.Request) (*kmip
 	if err != nil {
 		return nil, err
 	}
-	req.IDPlaceholder = respPayload.UniqueIdentifier
+
 	// req.Key = respPayload.Key
 
 	return &kmip.ResponseBatchItem{
