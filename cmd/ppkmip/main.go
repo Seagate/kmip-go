@@ -192,17 +192,19 @@ xml format:
 			count++
 		}
 	case FormatHex:
-		raw := ttlv.TTLV(ttlv.Hex2bytes(buf.String()))
 
-		for len(raw) > 0 {
-			printTTLV(outFormat, raw, count)
-			count++
-			if count > MaximumResponseSize {
-				fail(fmt.Sprintf("TTLV buffer exceeds maximum count, count=%d", count), nil)
-				break
+		if len(buf.String()) <= MaximumResponseSize {
+			raw := ttlv.TTLV(ttlv.Hex2bytes(buf.String()))
+			for len(raw) > 0 {
+				printTTLV(outFormat, raw, count)
+				count++
+				raw = raw.Next()
 			}
-			raw = raw.Next()
+		} else {
+			fail(fmt.Sprintf("TTLV buffer exceeds maximum response size, len=%d", len(buf.String())), nil)
+			break
 		}
+
 	default:
 		fail("invalid input format: "+inFormat, nil)
 	}
