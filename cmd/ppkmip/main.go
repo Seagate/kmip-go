@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	FormatJSON = "json"
-	FormatXML  = "xml"
-	FormatHex  = "hex"
+	FormatJSON          = "json"
+	FormatXML           = "xml"
+	FormatHex           = "hex"
+	MaximumResponseSize = 4325456
 )
 
 func main() {
@@ -196,6 +197,10 @@ xml format:
 		for len(raw) > 0 {
 			printTTLV(outFormat, raw, count)
 			count++
+			if count > MaximumResponseSize {
+				fail(fmt.Sprintf("TTLV buffer exceeds maximum count, count=%d", count), nil)
+				break
+			}
 			raw = raw.Next()
 		}
 	default:
