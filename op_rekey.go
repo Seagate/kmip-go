@@ -4,10 +4,13 @@ import (
 	"context"
 )
 
+// ReKeyRequestPayload ////////////////////////////////////////
+//
 type ReKeyRequestPayload struct {
 	UniqueIdentifier string
 }
 
+// ReKeyResponsePayload
 type ReKeyResponsePayload struct {
 	UniqueIdentifier string
 }
