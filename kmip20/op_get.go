@@ -13,11 +13,22 @@ type GetRequestPayload struct {
 	UniqueIdentifier UniqueIdentifierValue
 }
 
+// Example:
+// ObjectType (Enumeration/4): SymmetricKey
+// UniqueIdentifier (TextString/4): 5976
+// SymmetricKey (Structure/104):
+//   KeyBlock (Structure/96):
+//     KeyFormatType (Enumeration/4): Raw
+//     KeyValue (Structure/40):
+//       KeyMaterial (ByteString/32): 0x1645497fb8ca4f568aba750c7b764ce2700696a5918b2acc9857fae2b1b9f764
+//     CryptographicAlgorithm (Enumeration/4): AES
+//     CryptographicLength (Integer/4): 256 MessageExtension:<nil>}
+
 // GetResponsePayload
 type GetResponsePayload struct {
 	ObjectType       kmip14.ObjectType
 	UniqueIdentifier string
-	Key              kmip.SymmetricKey
+	SymmetricKey     kmip.SymmetricKey
 }
 
 type GetHandler struct {
