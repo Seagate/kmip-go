@@ -11,11 +11,11 @@ import (
 // Table 190
 
 type LocateRequestPayload struct {
-	MaximumItems      uint32                   // Required: No
-	OffsetItems       uint32                   // Required: No
-	StorageStatusMask kmip14.StorageStatusMask // Required: No
-	ObjectGroupMember kmip14.ObjectGroupMember // Required: No
-	Attributes        interface{}              // Required: No
+	//MaximumItems      uint32                   // Required: No
+	//OffsetItems       uint32                   // Required: No
+	//StorageStatusMask kmip14.StorageStatusMask // Required: No
+	//ObjectGroupMember kmip14.ObjectGroupMember // Required: No
+	Attribute        []Attribute              // Required: No
 }
 
 // Table 191
