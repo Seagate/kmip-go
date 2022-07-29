@@ -3,7 +3,7 @@ package kmip
 import (
 	"context"
 
-	"github.com/Seagate/kmip-go/kmip14"
+	//"github.com/Seagate/kmip-go/kmip14"
 )
 
 // 4.9 Locate
