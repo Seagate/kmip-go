@@ -15,7 +15,7 @@ type LocateRequestPayload struct {
 	OffsetItems       uint32                   // Required: No
 	StorageStatusMask kmip14.StorageStatusMask // Required: No
 	ObjectGroupMember kmip14.ObjectGroupMember // Required: No
-	Attributes        interface{}              // Required: No
+	Attributes        []Attribute              // Required: No
 }
 
 // Table 191
