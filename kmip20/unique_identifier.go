@@ -1,8 +1,8 @@
 package kmip20
 
 import (
+	"github.com/Seagate/kmip-go/ttlv"
 	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/ttlv"
 )
 
 type UniqueIdentifierValue struct {

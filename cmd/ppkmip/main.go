@@ -13,9 +13,9 @@ import (
 	"os"
 	"strings"
 
-	_ "github.com/gemalto/kmip-go/kmip14"
-	_ "github.com/gemalto/kmip-go/kmip20"
-	"github.com/gemalto/kmip-go/ttlv"
+	_ "github.com/Seagate/kmip-go/kmip14"
+	_ "github.com/Seagate/kmip-go/kmip20"
+	"github.com/Seagate/kmip-go/ttlv"
 )
 
 const (

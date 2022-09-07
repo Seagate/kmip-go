@@ -4,7 +4,7 @@ package kmip20
 import (
 	"context"
 
-	"github.com/gemalto/kmip-go"
+	"github.com/Seagate/kmip-go"
 )
 
 // 4.19 Activate

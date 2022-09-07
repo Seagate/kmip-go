@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/gemalto/kmip-go/kmip14"
-	. "github.com/gemalto/kmip-go/ttlv"
+	. "github.com/Seagate/kmip-go/kmip14"
+	. "github.com/Seagate/kmip-go/ttlv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

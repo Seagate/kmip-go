@@ -5,7 +5,7 @@ import (
 
 	"github.com/ansel1/merry"
 
-	"github.com/gemalto/kmip-go/kmip14"
+	"github.com/Seagate/kmip-go/kmip14"
 )
 
 // TODO: should request and response payloads implement validation?

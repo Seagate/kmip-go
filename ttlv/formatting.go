@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Seagate/kmip-go/internal/kmiputil"
 	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
 )
 
 // FormatType formats a byte as a KMIP Type string,

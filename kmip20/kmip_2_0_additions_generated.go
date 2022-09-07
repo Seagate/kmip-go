@@ -2,7 +2,7 @@
 package kmip20
 
 import (
-	"github.com/gemalto/kmip-go/ttlv"
+	"github.com/Seagate/kmip-go/ttlv"
 )
 
 const (

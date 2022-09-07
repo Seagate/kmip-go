@@ -15,8 +15,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/Seagate/kmip-go/internal/kmiputil"
 	"github.com/ansel1/merry"
-	"github.com/gemalto/kmip-go/internal/kmiputil"
 )
 
 // Specifications is the struct which the specifications JSON is unmarshaled into.
@@ -211,7 +211,7 @@ func prepareInput(s *Specifications) (*inputs, error) {
 
 	// prepare imports
 	if s.Package != "ttlv" {
-		in.Imports = append(in.Imports, "github.com/gemalto/kmip-go/ttlv")
+		in.Imports = append(in.Imports, "github.com/Seagate/kmip-go/ttlv")
 		in.TTLVPackage = "ttlv."
 	}
 

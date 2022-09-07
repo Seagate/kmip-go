@@ -3,7 +3,7 @@ package kmip20
 import (
 	"context"
 
-	"github.com/gemalto/kmip-go"
+	"github.com/Seagate/kmip-go"
 )
 
 // 6.1.27 Locate

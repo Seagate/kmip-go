@@ -5,7 +5,6 @@ go 1.18
 require (
 	github.com/ansel1/merry v1.6.2
 	github.com/gemalto/flume v0.13.0
-	github.com/gemalto/kmip-go v0.0.8
 	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/text v0.3.7
@@ -24,5 +23,3 @@ require (
 	golang.org/x/sys v0.0.0-20220906165534-d0df966e6959 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/gemalto/kmip-go => github.com/Seagate/kmip-go v0.1.1
