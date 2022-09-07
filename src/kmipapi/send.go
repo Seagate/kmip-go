@@ -1,0 +1,115 @@
+package kmipapi
+
+import (
+	"bufio"
+	"bytes"
+	"context"
+	"fmt"
+
+	"github.com/Seagate/kmip-go"
+	"github.com/Seagate/kmip-go/kmip14"
+	"github.com/Seagate/kmip-go/src/common"
+	"github.com/Seagate/kmip-go/ttlv"
+	"github.com/google/uuid"
+	"k8s.io/klog/v2"
+)
+
+const (
+	DefaultBufferSize = 4096
+)
+
+// SendRequestMessage: Send a KMIP request message
+func SendRequestMessage(ctx context.Context, settings *common.ConfigurationSettings, operation uint32, payload interface{}) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
+	logger := klog.FromContext(ctx)
+	biID := uuid.New()
+
+	logger.V(4).Info("(1) create request message")
+	logger.V(5).Info("send request message", "CurrentProtocolVersionMajor", settings.ProtocolVersionMajor, "CurrentProtocolVersionMinor", settings.ProtocolVersionMinor)
+
+	msg := kmip.RequestMessage{
+		RequestHeader: kmip.RequestHeader{
+			ProtocolVersion: kmip.ProtocolVersion{
+				ProtocolVersionMajor: settings.ProtocolVersionMajor,
+				ProtocolVersionMinor: settings.ProtocolVersionMinor,
+			},
+			BatchCount: 1,
+		},
+		BatchItem: []kmip.RequestBatchItem{
+			{
+				UniqueBatchItemID: biID[:],
+				Operation:         kmip14.Operation(operation),
+				RequestPayload:    payload,
+			},
+		},
+	}
+
+	logger.V(4).Info("(2) marshal message and print request")
+	kmipreq, err := ttlv.Marshal(msg)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal message, error: %v", err)
+	}
+	logger.V(5).Info("KMIP message", "request", kmipreq)
+
+	if settings.Connection != nil {
+
+		logger.V(4).Info("(3) write message")
+		_, err = settings.Connection.Write(kmipreq)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to write message, error: %v", err)
+		}
+
+		logger.V(4).Info("(4) read response 1")
+		buf := make([]byte, DefaultBufferSize)
+		_, err = bufio.NewReader(settings.Connection).Read(buf)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to read buffer from response, error: %v", err)
+		}
+
+		logger.V(4).Info("(5) extract response from TTLV buffer")
+		resp := ttlv.TTLV(buf)
+		logger.V(5).Info("ttlv", "response", resp)
+
+		// Create a TTLV decoder from a new reader
+		decoder := ttlv.NewDecoder(bytes.NewReader(resp))
+		if decoder == nil {
+			return nil, nil, fmt.Errorf("failed to create decoder, error: nil")
+		}
+
+		// Extract the KMIP response message
+		var respMsg kmip.ResponseMessage
+		err = decoder.DecodeValue(&respMsg, resp)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to decode response message, error: %v", err)
+		}
+
+		// TODO: Need to handle more than more batch item in the future.
+
+		logger.V(4).Info("(6) extract batch item from response message", "BatchCount", respMsg.ResponseHeader.BatchCount)
+		logger.V(5).Info("response", "message", respMsg)
+		if len(respMsg.BatchItem) == 0 {
+			return nil, nil, fmt.Errorf("response message had not batch items")
+		}
+
+		// Check the status of the batch item
+		if respMsg.ResponseHeader.BatchCount >= 0 {
+			if respMsg.BatchItem[0].ResultStatus != kmip14.ResultStatusSuccess {
+				logger.V(4).Info("send message results", "ResultStatus", respMsg.BatchItem[0].ResultStatus, "ResultReason",
+					respMsg.BatchItem[0].ResultReason, "ResultMessage", respMsg.BatchItem[0].ResultMessage)
+				return nil, nil, fmt.Errorf("send operation (%s) status (%s) reason (%s) message (%s)",
+					operation, respMsg.BatchItem[0].ResultStatus, respMsg.BatchItem[0].ResultReason, respMsg.BatchItem[0].ResultMessage)
+			}
+		}
+
+		if respMsg.ResponseHeader.BatchCount >= 0 && respMsg.BatchItem[0].ResultStatus == kmip14.ResultStatusSuccess {
+			logger.V(4).Info("(7) returning decoder and the first batch item", "items", len(respMsg.BatchItem))
+			return decoder, &respMsg.BatchItem[0], nil
+		} else {
+			return nil, nil, fmt.Errorf(
+				"Server status (%s) reason (%s) message (%s)",
+				respMsg.BatchItem[0].ResultStatus, respMsg.BatchItem[0].ResultReason, respMsg.BatchItem[0].ResultMessage)
+		}
+
+	} else {
+		return nil, nil, fmt.Errorf("TLS connection is <nil>")
+	}
+}
