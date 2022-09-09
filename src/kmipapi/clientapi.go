@@ -4,13 +4,95 @@ package kmipapi
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/Seagate/kmip-go/kmip14"
 	"github.com/Seagate/kmip-go/src/common"
 	"k8s.io/klog/v2"
 )
+
+// OpenSession: Read PEM files and establish a TLS connection with the KMS server
+func OpenSession(ctx context.Context, settings *common.ConfigurationSettings) error {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("Open TLS session", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
+
+	// Open a session
+	certificate, err := ioutil.ReadFile(settings.CertAuthFile)
+	if err != nil {
+		return fmt.Errorf("Failed to read CA (%s)", settings.CertAuthFile)
+	}
+
+	certificatePool := x509.NewCertPool()
+	ok := certificatePool.AppendCertsFromPEM(certificate)
+	if !ok {
+		return fmt.Errorf("Failed to append certificate from PEM")
+	}
+
+	// Load client cert
+	cert, err := tls.LoadX509KeyPair(settings.CertFile, settings.KeyFile)
+	if err != nil {
+		return fmt.Errorf("Failed to create x509 key pair")
+	}
+
+	tlsConfig := &tls.Config{
+		Certificates:             []tls.Certificate{cert},
+		RootCAs:                  certificatePool,
+		InsecureSkipVerify:       true,
+		PreferServerCipherSuites: true,
+		CipherSuites: []uint16{
+			tls.TLS_RSA_WITH_RC4_128_SHA,
+			tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
+			tls.TLS_RSA_WITH_AES_128_CBC_SHA,
+			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+			tls.TLS_RSA_WITH_AES_128_CBC_SHA256,
+			tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+			tls.TLS_ECDHE_RSA_WITH_RC4_128_SHA,
+			tls.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+			tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
+		},
+	}
+
+	settings.Connection, err = tls.Dial("tcp", settings.KmsServerIp+":"+settings.KmsServerPort, tlsConfig)
+	if err != nil {
+		return fmt.Errorf("TLS Dial failure: %v", err)
+	}
+
+	logger.V(2).Info("TLS Connection opened", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
+	return nil
+}
+
+// CloseSession: Close the TLS connection with the KMS Server
+func CloseSession(ctx context.Context, settings *common.ConfigurationSettings) error {
+	logger := klog.FromContext(ctx)
+
+	if settings.Connection != nil {
+		err := settings.Connection.Close()
+		if err != nil {
+			return fmt.Errorf("TLS close failure: %v", err)
+		}
+		settings.Connection = nil
+	}
+
+	logger.V(2).Info("TLS Connection closed", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
+	return nil
+}
 
 // CreateKey: Create a unique identifier for a id and return that uid
 func CreateKey(ctx context.Context, settings *common.ConfigurationSettings, id string) (string, error) {
@@ -19,7 +101,6 @@ func CreateKey(ctx context.Context, settings *common.ConfigurationSettings, id s
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
-		logger.Error(err, "CreateKey create new KMIP interface")
 		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
 	}
 
@@ -52,7 +133,6 @@ func ActivateKey(ctx context.Context, settings *common.ConfigurationSettings, ui
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
-		logger.Error(err, "ActivateKey create new KMIP interface")
 		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
 	}
 
@@ -76,11 +156,10 @@ func ActivateKey(ctx context.Context, settings *common.ConfigurationSettings, ui
 // GetKey: Retrieve a key for a specified UID
 func GetKey(ctx context.Context, settings *common.ConfigurationSettings, uid string) (key string, err error) {
 	logger := klog.FromContext(ctx)
-	logger.V(3).Info("++ get key", "uid", uid)
+	logger.V(2).Info("++ get key", "uid", uid)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
-		logger.Error(err, "failed to initialize KMIP service", "type", settings.ServiceType)
 		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
 	}
 
@@ -90,12 +169,10 @@ func GetKey(ctx context.Context, settings *common.ConfigurationSettings, uid str
 
 	kmipResp, err := kmipops.GetKey(ctx, settings, &req)
 	if err != nil {
-		logger.Error(err, "GetKey low-level operation failed for uid", "uid", uid)
 		return "", fmt.Errorf("failed to get key using (%s), err: %v", settings.ServiceType, err)
 	}
 
 	if kmipResp == nil {
-		logger.Error(err, "GetKey low-level operation failed for uid", "uid", uid)
 		return "", errors.New("failed to get key, KMIP Response was null")
 	}
 
@@ -103,14 +180,13 @@ func GetKey(ctx context.Context, settings *common.ConfigurationSettings, uid str
 	return kmipResp.KeyValue, nil
 }
 
-// Locate: retrieve a UID for a ID
-func Locate(ctx context.Context, settings *common.ConfigurationSettings, id string) (string, error) {
+// LocateUid: retrieve a UID for a ID
+func LocateUid(ctx context.Context, settings *common.ConfigurationSettings, id string) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ locate uid", "id", id)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
-		logger.Error(err, "Locate create new KMIP interface")
 		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
 	}
 
@@ -126,6 +202,61 @@ func Locate(ctx context.Context, settings *common.ConfigurationSettings, id stri
 
 	if kmipResp == nil {
 		return "", errors.New("failed to locate, KMIP Response was null")
+	}
+
+	return kmipResp.UniqueIdentifier, nil
+}
+
+// RevokeKey: revoke a key based on UID
+func RevokeKey(ctx context.Context, settings *common.ConfigurationSettings, uid string, reason uint32) (string, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("++ revoke key", "uid", uid)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	req := RevokeKeyRequest{
+		UniqueIdentifier: uid,
+		RevocationReason: reason,
+	}
+
+	kmipResp, err := kmipops.RevokeKey(ctx, settings, &req)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to revoke key for uid (%s), err: %v", uid, err)
+	}
+
+	if kmipResp == nil {
+		return "", errors.New("failed to revoke key, KMIP response was nil")
+	}
+
+	return kmipResp.UniqueIdentifier, nil
+}
+
+// DestroyKey: destroy a key based on UID
+func DestroyKey(ctx context.Context, settings *common.ConfigurationSettings, uid string) (string, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("++ destroy key", "uid", uid)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	req := DestroyKeyRequest{
+		UniqueIdentifier: uid,
+	}
+
+	kmipResp, err := kmipops.DestroyKey(ctx, settings, &req)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to destroy key for uid (%s), err: %v", uid, err)
+	}
+
+	if kmipResp == nil {
+		return "", errors.New("failed to destroy key, KMIP response was nil")
 	}
 
 	return kmipResp.UniqueIdentifier, nil

@@ -17,14 +17,17 @@ func Initialize() {
 		"help":     Help,
 		"env":      Env,
 		"version":  Version,
-		"load":     Load,
+		"run":      Run,
 		"certs":    Certs,
 		"open":     Open,
+		"set":      Set,
+		"load":     Load,
 		"close":    Close,
 		"create":   CreateKey,
 		"activate": ActivateKey,
 		"get":      GetKey,
 		"locate":   LocateKey,
+		"revoke":   RevokeKey,
 		"destroy":  DestroyKey,
 	}
 }

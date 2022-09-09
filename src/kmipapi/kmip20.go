@@ -4,6 +4,7 @@ package kmipapi
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/Seagate/kmip-go"
@@ -30,7 +31,6 @@ func (kmips *kmip20service) Discover(ctx context.Context, settings *common.Confi
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationDiscoverVersions), &payload)
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
 	}
 
@@ -50,20 +50,16 @@ func (kmips *kmip20service) Discover(ctx context.Context, settings *common.Confi
 
 	// If server supports does not support KMIP 2.0 or higher, set Client version to KMIP 2.0
 	if (PVMajor*10 + PVMinor) == (MaxSupportedProtocolVersionMajor*10 + MaxSupportedProtocolVersionMinor) {
-		logger.V(0).Info("KMIP Server supports max version", "MaxSupportedProtocolVersionMajor", MaxSupportedProtocolVersionMajor, "MaxSupportedProtocolVersionMinor", MaxSupportedProtocolVersionMinor)
-		// common.Auditor().Log(common.Discover, fmt.Sprintf("Set Client ProtocolVersion to (%d.%d)", MaxSupportedProtocolVersionMajor, MaxSupportedProtocolVersionMinor))
+		logger.V(1).Info("KMIP Server supports max version", "MaxSupportedProtocolVersionMajor", MaxSupportedProtocolVersionMajor, "MaxSupportedProtocolVersionMinor", MaxSupportedProtocolVersionMinor)
 		settings.ServiceType = KMIP20Service
 	} else if (PVMajor*10 + PVMinor) > (MaxSupportedProtocolVersionMajor*10 + MaxSupportedProtocolVersionMinor) {
-		logger.V(0).Info("WARNING: KMIP Server supports a higher version", "MaxSupportedProtocolVersionMajor", MaxSupportedProtocolVersionMajor, "MaxSupportedProtocolVersionMinor", MaxSupportedProtocolVersionMinor)
-		// common.Auditor().Log(common.Discover, fmt.Sprintf("Set Client ProtocolVersion to (%d.%d)", MaxSupportedProtocolVersionMajor, MaxSupportedProtocolVersionMinor))
+		logger.V(1).Info("WARNING: KMIP Server supports a higher version", "MaxSupportedProtocolVersionMajor", MaxSupportedProtocolVersionMajor, "MaxSupportedProtocolVersionMinor", MaxSupportedProtocolVersionMinor)
 		settings.ServiceType = KMIP20Service
 	} else if (PVMajor*10 + PVMinor) >= (MinSupportedProtocolVersionMajor*10 + MinSupportedProtocolVersionMinor) {
-		logger.V(0).Info("KMIP Server supports min version", "MinSupportedProtocolVersionMajor", MinSupportedProtocolVersionMajor, "MinSupportedProtocolVersionMinor", MinSupportedProtocolVersionMinor)
-		// common.Auditor().Log(common.Discover, fmt.Sprintf("Set Client ProtocolVersion to (%d.%d)", MinSupportedProtocolVersionMajor, MinSupportedProtocolVersionMinor))
+		logger.V(1).Info("KMIP Server supports min version", "MinSupportedProtocolVersionMajor", MinSupportedProtocolVersionMajor, "MinSupportedProtocolVersionMinor", MinSupportedProtocolVersionMinor)
 		settings.ServiceType = KMIP14Service
 	} else {
-		logger.V(0).Info("WARNING: KMIP Server does not support minimal version", "MinSupportedProtocolVersionMajor", MinSupportedProtocolVersionMajor, "MinSupportedProtocolVersionMinor", MinSupportedProtocolVersionMinor)
-		// common.Auditor().Log(common.Discover, fmt.Sprintf("Set Client ProtocolVersion to (%d.%d)", MinSupportedProtocolVersionMajor, MinSupportedProtocolVersionMinor))
+		logger.V(1).Info("WARNING: KMIP Server does not support minimal version", "MinSupportedProtocolVersionMajor", MinSupportedProtocolVersionMajor, "MinSupportedProtocolVersionMinor", MinSupportedProtocolVersionMinor)
 		settings.ServiceType = KMIP14Service
 	}
 
@@ -95,7 +91,6 @@ func (kmips *kmip20service) Query(ctx context.Context, settings *common.Configur
 		}
 
 		if err != nil {
-			logger.Error(err, "The call to SendRequestMessage failed")
 			return nil, err
 		}
 
@@ -150,7 +145,6 @@ func (kmips *kmip20service) CreateKey(ctx context.Context, settings *common.Conf
 	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip20.OperationCreate), &payload)
 
 	if err != nil {
-		logger.Error(err, "create key call to SendRequestMessage failed")
 		return nil, err
 	}
 
@@ -159,17 +153,16 @@ func (kmips *kmip20service) CreateKey(ctx context.Context, settings *common.Conf
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 
 	if err != nil {
-		logger.Error(err, "create key decode value failed")
 		return nil, fmt.Errorf("create key decode value failed, error:%v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("create key success", "uid", uid)
-	// common.Auditor().Log(common.Create, fmt.Sprintf("create key successful for id (%s) uid (%s)", req.Id, uid))
+
 	return &CreateKeyResponse{UniqueIdentifier: uid}, nil
 }
 
-// GetKey: Send a KMIP OperationGet message
+// GetKey: Send a KMIP OperationGet message to retrieve key material based on a uid
 func (kmips *kmip20service) GetKey(ctx context.Context, settings *common.ConfigurationSettings, req *GetKeyRequest) (*GetKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== get key ======", "uid", req.UniqueIdentifier)
@@ -186,7 +179,6 @@ func (kmips *kmip20service) GetKey(ctx context.Context, settings *common.Configu
 	logger.V(5).Info("get key response item", "item", item)
 
 	if err != nil {
-		logger.Error(err, "get key call to SendRequestMessage failed")
 		return nil, err
 	}
 
@@ -196,19 +188,39 @@ func (kmips *kmip20service) GetKey(ctx context.Context, settings *common.Configu
 	logger.V(5).Info("get key decode value", "response", respPayload)
 
 	if err != nil {
-		logger.Error(err, "get key decode value failed")
 		return nil, fmt.Errorf("get key decode value failed, error: %v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("get key success", "uid", uid)
 
-	// common.Auditor().Log(common.GetKey, fmt.Sprintf("get key successful for uid (%s)", uid))
+	// Example:
+	// ResponsePayload (Structure/144):
+	// ObjectType (Enumeration/4): SymmetricKey
+	// UniqueIdentifier (TextString/4): 6307
+	// SymmetricKey (Structure/104):
+	//   KeyBlock (Structure/96):
+	//     KeyFormatType (Enumeration/4): Raw
+	//     KeyValue (Structure/40):
+	//       KeyMaterial (ByteString/32): 0x8a8767b44a422e018cd37db0462330bdac8f2c78a66d91e433b2f39a904ab524
+	//     CryptographicAlgorithm (Enumeration/4): AES
+	//     CryptographicLength (Integer/4): 256
 
 	response := GetKeyResponse{
 		Type:             respPayload.ObjectType,
 		UniqueIdentifier: respPayload.UniqueIdentifier,
-		KeyValue:         "FIXME", // hex.EncodeToString(respPayload.Key.KeyBlock.KeyValue.KeyMaterial),
+	}
+
+	if respPayload.SymmetricKey != nil {
+		if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
+			if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
+				// convert byes to an encoded string
+				response.KeyValue = hex.EncodeToString(bytes)
+			} else {
+				// No bytes to to encode
+				response.KeyValue = ""
+			}
+		}
 	}
 
 	return &response, nil
@@ -229,7 +241,6 @@ func (kmips *kmip20service) DestroyKey(ctx context.Context, settings *common.Con
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationDestroy), &payload)
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
 	}
 
@@ -243,8 +254,6 @@ func (kmips *kmip20service) DestroyKey(ctx context.Context, settings *common.Con
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("XXX DestroyKey response payload", "uid", uid)
-
-	// common.Auditor().Log(common.Destroy, fmt.Sprintf("destroy key successful for uid (%s)", uid))
 
 	return &DestroyKeyResponse{UniqueIdentifier: uid}, nil
 }
@@ -264,7 +273,6 @@ func (kmips *kmip20service) ActivateKey(ctx context.Context, settings *common.Co
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationActivate), &payload)
 	if err != nil {
-		logger.Error(err, "activate key call to SendRequestMessage failed")
 		return nil, err
 	}
 
@@ -273,14 +281,11 @@ func (kmips *kmip20service) ActivateKey(ctx context.Context, settings *common.Co
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 
 	if err != nil {
-		logger.Error(err, "activate key decode value failed")
 		return nil, fmt.Errorf("activate key decode value failed, error: %v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("activate key success", "uid", uid)
-
-	// common.Auditor().Log(common.Activate, fmt.Sprintf("activate key successful for uid (%s)", uid))
 
 	return &ActivateKeyResponse{UniqueIdentifier: uid}, nil
 }
@@ -303,7 +308,6 @@ func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *common.Conf
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationRevoke), &payload)
 	if err != nil {
-		logger.Error(err, "revoke key call to SendRequestMessage failed")
 		return nil, err
 	}
 
@@ -317,8 +321,6 @@ func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *common.Conf
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("XXX RevokeKey response payload", "uid", uid)
-
-	// common.Auditor().Log(common.Revoke, fmt.Sprintf("revoke key successful for uid (%s)", uid))
 
 	return &RevokeKeyResponse{UniqueIdentifier: uid}, nil
 }
@@ -348,7 +350,6 @@ func (kmips *kmip20service) Locate(ctx context.Context, settings *common.Configu
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationLocate), &payload)
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
 	}
 
@@ -384,7 +385,6 @@ func (kmips *kmip20service) SetAttribute(ctx context.Context, settings *common.C
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationSetAttribute), &payload)
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
 	}
 
@@ -419,7 +419,6 @@ func (kmips *kmip20service) ReKey(ctx context.Context, settings *common.Configur
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationReKey), &payload)
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
 	}
 

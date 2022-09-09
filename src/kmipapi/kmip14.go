@@ -195,13 +195,24 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *common.Configu
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("get key success", "uid", uid)
 
-	// common.Auditor().Log(common.GetKey, fmt.Sprintf("get key successful for uid (%s)", uid))
-	keystr := ""
-	if key, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
-		keystr = hex.EncodeToString(key)
+	response := GetKeyResponse{
+		Type:             respPayload.ObjectType,
+		UniqueIdentifier: respPayload.UniqueIdentifier,
 	}
 
-	return &GetKeyResponse{KeyValue: keystr}, nil
+	if respPayload.SymmetricKey != nil {
+		if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
+			if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
+				// convert byes to an encoded string
+				response.KeyValue = hex.EncodeToString(bytes)
+			} else {
+				// No bytes to to encode
+				response.KeyValue = ""
+			}
+		}
+	}
+
+	return &response, nil
 }
 
 // DestroyKey:

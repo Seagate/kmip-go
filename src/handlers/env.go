@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"strconv"
@@ -26,6 +27,9 @@ func Env(ctx context.Context, settings *common.ConfigurationSettings, line strin
 	col1 := 30
 
 	fmt.Println("")
+	fmt.Printf("  %*s  %-v\n", col1, key("SettingsFile"), value(settings.SettingsFile))
+
+	fmt.Println("")
 	if settings.Connection == nil {
 		fmt.Printf("  %*s  %-v\n", col1, key("Connection"), value(settings.Connection))
 	} else {
@@ -33,6 +37,7 @@ func Env(ctx context.Context, settings *common.ConfigurationSettings, line strin
 	}
 
 	fmt.Println("")
+	fmt.Printf("  %*s  %-v\n", col1, key("KmsServerName"), value(settings.KmsServerName))
 	fmt.Printf("  %*s  %-v\n", col1, key("KmsServerIp"), value(settings.KmsServerIp))
 	fmt.Printf("  %*s  %-v\n", col1, key("KmsServerPort"), value(settings.KmsServerPort))
 	fmt.Printf("  %*s  %-v\n", col1, key("CertAuthFile"), value(settings.CertAuthFile))
@@ -70,6 +75,7 @@ func Version(ctx context.Context, settings *common.ConfigurationSettings, line s
 	}
 
 	fmt.Printf("kmip protocol version %s.%s\n", major, minor)
+	common.Store(ctx, settings)
 }
 
 // Certs: usage 'certs [ca=<value>] [key=<value>] [cert=<value>]' to set certificate PEM files
@@ -77,6 +83,7 @@ func Certs(ctx context.Context, settings *common.ConfigurationSettings, line str
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Certs:", "line", line)
 
+	updated := false
 	keys := [3]string{"ca", "key", "cert"}
 
 	for _, key := range keys {
@@ -86,21 +93,28 @@ func Certs(ctx context.Context, settings *common.ConfigurationSettings, line str
 			case "ca":
 				settings.CertAuthFile = value
 				fmt.Printf("CertAuthFile set to: %s\n", value)
+				updated = true
 			case "key":
 				settings.KeyFile = value
 				fmt.Printf("KeyFile set to: %s\n", value)
+				updated = true
 			case "cert":
 				settings.CertFile = value
 				fmt.Printf("CertFile set to: %s\n", value)
+				updated = true
 			}
 		}
 	}
+
+	if updated {
+		common.Store(ctx, settings)
+	}
 }
 
-// Load: usage 'load file=<value>' to execute all commands in a file
-func Load(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+// Run: usage 'run file=<value>' to execute all commands in a file
+func Run(ctx context.Context, settings *common.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
-	logger.V(2).Info("Load:", "line", line)
+	logger.V(2).Info("Run:", "line", line)
 
 	filename := common.GetValue(line, "file")
 
@@ -126,4 +140,54 @@ func Load(ctx context.Context, settings *common.ConfigurationSettings, line stri
 	}
 
 	file.Close()
+}
+
+// Set: usage 'set [level=<value>] [ip=<value>] [port=<value>] [name=<value>]' to change a configuration setting
+func Set(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("Set:", "line", line)
+
+	// set the log level
+	level := common.GetValue(line, "level")
+	if level != "" {
+		flag.Lookup("v").Value.Set(level)
+	}
+
+	// set the KMS Server name
+	name := common.GetValue(line, "name")
+	if name != "" {
+		settings.KmsServerName = name
+		fmt.Printf("KmsServerName set to: %s\n", name)
+	}
+
+	// set the KMS Server IP Address
+	ip := common.GetValue(line, "ip")
+	if ip != "" {
+		settings.KmsServerIp = ip
+		fmt.Printf("KmsServerIp set to: %s\n", ip)
+	}
+
+	// set the KMS Server Port
+	port := common.GetValue(line, "port")
+	if port != "" {
+		settings.KmsServerPort = port
+		fmt.Printf("KmsServerPort set to: %s\n", port)
+	}
+
+	common.Store(ctx, settings)
+}
+
+// Load: usage 'load file=<value>' to load configuration settings from a file
+func Load(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("Load:", "line", line)
+
+	filename := common.GetValue(line, "file")
+	if filename != "" {
+		err := common.Restore(ctx, settings, filename)
+		if err == nil {
+			settings.SettingsFile = filename
+			fmt.Printf("configuration settings read from (%s)\n", settings.SettingsFile)
+		}
+	}
 }

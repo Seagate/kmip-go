@@ -5,10 +5,10 @@ APP_NAME := kms
 help:
 	@echo ""
 	@echo "-----------------------------------------------------------------------------------"
-	@echo "make local        - build a local executable"
 	@echo "make clean        - remove all"
+	@echo "make local        - build a local executable"
+	@echo "make install      - install the executable"
 	@echo "make run          - build a local executable and run it"
-	@echo "make debug        - build a local executable and run it with verbose logging"
 	@echo ""
 
 clean:
@@ -21,10 +21,10 @@ local: clean
 	go build -o $(APP_NAME) -ldflags "-X main.buildTime=`date -u '+%Y-%m-%dT%H:%M:%S'`"
 	ls -lh $(APP_NAME)
 
+install:
+	@echo "Installing local executable..."
+	install ./kms /usr/local/bin
+
 run: local
 	@echo "Running $(APP_NAME)..."
 	./$(APP_NAME) -v=0
-
-debug: local
-	@echo "Running $(APP_NAME) with pykmip..."
-	./$(APP_NAME) -v=5

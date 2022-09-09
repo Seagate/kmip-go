@@ -4,3 +4,4 @@ build
 vendor
 /pykmip-server/server.log
 /pykmip-server/server.db
+cmd/kms/kms

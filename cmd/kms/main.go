@@ -55,6 +55,12 @@ func main() {
 
 	ctx := context.Background()
 
+	// Restore any previously stored configuration settings
+	filename := "kms.json"
+	if _, err := os.Stat(filename); err == nil {
+		common.Restore(ctx, &settings, filename)
+	}
+
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("kms) ")
