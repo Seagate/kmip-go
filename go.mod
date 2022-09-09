@@ -4,15 +4,18 @@ go 1.18
 
 require (
 	github.com/ansel1/merry v1.6.2
+	github.com/fatih/color v1.13.0
 	github.com/gemalto/flume v0.13.0
 	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/text v0.3.7
+	k8s.io/klog/v2 v2.80.0
 )
 
 require (
 	github.com/ansel1/merry/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
