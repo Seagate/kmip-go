@@ -23,7 +23,7 @@ func Store(ctx context.Context, settings *ConfigurationSettings) (err error) {
 
 	// Write report to file
 	// Set permissions so that owner can read/write (6), group can read (first 4), all others can read (second 4)
-	err = os.WriteFile(settings.SettingsFile, js, 0644)
+	err = os.WriteFile(settings.SettingsFile, js, 0o644)
 	if err != nil {
 		fmt.Printf("unable to write configuration settings to storage, error: %v\n", err)
 		return fmt.Errorf("unable to write configuration settings to storage, error: %v", err)
@@ -39,7 +39,6 @@ func Restore(ctx context.Context, settings *ConfigurationSettings, filename stri
 	logger.V(4).Info("Restore configuration settings", "config", filename)
 
 	file2, err := os.ReadFile(filename)
-
 	if err != nil {
 		fmt.Printf("unable to restore configuration settings from (%s), error: %v\n", filename, err)
 		return fmt.Errorf("unable to restore configuration settings from (%s), error: %v", filename, err)

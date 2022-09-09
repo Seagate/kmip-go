@@ -113,7 +113,6 @@ func CreateKey(ctx context.Context, settings *common.ConfigurationSettings, id s
 	}
 
 	kmipResp, err := kmipops.CreateKey(ctx, settings, &req)
-
 	if err != nil {
 		return "", fmt.Errorf("failed to create key using (%s), err: %v", settings.ServiceType, err)
 	}
@@ -141,7 +140,6 @@ func ActivateKey(ctx context.Context, settings *common.ConfigurationSettings, ui
 	}
 
 	kmipResp, err := kmipops.ActivateKey(ctx, settings, &req)
-
 	if err != nil {
 		return "", fmt.Errorf("failed to activate key using (%s), err: %v", settings.ServiceType, err)
 	}
@@ -195,7 +193,6 @@ func LocateUid(ctx context.Context, settings *common.ConfigurationSettings, id s
 	}
 
 	kmipResp, err := kmipops.Locate(ctx, settings, &req)
-
 	if err != nil {
 		return "", fmt.Errorf("failed to locate using (%s), err: %v", settings.ServiceType, err)
 	}
@@ -223,7 +220,6 @@ func RevokeKey(ctx context.Context, settings *common.ConfigurationSettings, uid 
 	}
 
 	kmipResp, err := kmipops.RevokeKey(ctx, settings, &req)
-
 	if err != nil {
 		return "", fmt.Errorf("failed to revoke key for uid (%s), err: %v", uid, err)
 	}
@@ -250,7 +246,6 @@ func DestroyKey(ctx context.Context, settings *common.ConfigurationSettings, uid
 	}
 
 	kmipResp, err := kmipops.DestroyKey(ctx, settings, &req)
-
 	if err != nil {
 		return "", fmt.Errorf("failed to destroy key for uid (%s), err: %v", uid, err)
 	}

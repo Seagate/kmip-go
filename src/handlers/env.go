@@ -124,7 +124,6 @@ func Run(ctx context.Context, settings *common.ConfigurationSettings, line strin
 	}
 
 	file, err := os.Open(filename)
-
 	if err != nil {
 		fmt.Println(err)
 	}

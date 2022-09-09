@@ -379,8 +379,8 @@ func (kmips *kmip20service) SetAttribute(ctx context.Context, settings *common.C
 			Enum:  0,
 			Index: 0,
 		},
-		//FIXME		AttributeName:  req.AttributeName,
-		//FIXME		AttributeValue: req.AttributeValue,
+		// FIXME		AttributeName:  req.AttributeName,
+		// FIXME		AttributeValue: req.AttributeValue,
 	}
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationSetAttribute), &payload)
@@ -409,13 +409,14 @@ func (kmips *kmip20service) ReKey(ctx context.Context, settings *common.Configur
 	logger.V(4).Info("====== rekey ======", "uid", req.UniqueIdentifier)
 
 	payload := kmip.ReKeyRequestPayload{
-		UniqueIdentifier: "FIXME"}
-	//FIXME		UniqueIdentifier: kmip20.UniqueIdentifierValue{
-	//FIXME			Text:  req.UniqueIdentifier,
-	//FIXME			Enum:  0,
-	//FIXME			Index: 0,
-	//FIXME		},
-	//FIXME	}
+		UniqueIdentifier: "FIXME",
+	}
+	// FIXME		UniqueIdentifier: kmip20.UniqueIdentifierValue{
+	// FIXME			Text:  req.UniqueIdentifier,
+	// FIXME			Enum:  0,
+	// FIXME			Index: 0,
+	// FIXME		},
+	// FIXME	}
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationReKey), &payload)
 	if err != nil {

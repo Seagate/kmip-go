@@ -28,7 +28,6 @@ func CreateKey(ctx context.Context, settings *common.ConfigurationSettings, line
 	}
 
 	uid, err := kmipapi.CreateKey(ctx, settings, id)
-
 	if err != nil {
 		fmt.Printf("create key failed for id (%s) with error: %v\n", id, err)
 		return
@@ -49,7 +48,6 @@ func ActivateKey(ctx context.Context, settings *common.ConfigurationSettings, li
 	}
 
 	uid, err := kmipapi.ActivateKey(ctx, settings, uid)
-
 	if err != nil {
 		fmt.Printf("activate key failed for uid (%s) with error: %v\n", uid, err)
 		return
@@ -71,7 +69,6 @@ func GetKey(ctx context.Context, settings *common.ConfigurationSettings, line st
 	}
 
 	key, err := kmipapi.GetKey(ctx, settings, uid)
-
 	if err != nil {
 		fmt.Printf("get key failed for uid (%s) with error: %v\n", uid, err)
 		return
@@ -93,7 +90,6 @@ func LocateKey(ctx context.Context, settings *common.ConfigurationSettings, line
 	}
 
 	uid, err := kmipapi.LocateUid(ctx, settings, id)
-
 	if err != nil {
 		fmt.Printf("locate failed for id (%s) with error: %v\n", id, err)
 		return
@@ -134,7 +130,6 @@ func DestroyKey(ctx context.Context, settings *common.ConfigurationSettings, lin
 	}
 
 	uid, err := kmipapi.DestroyKey(ctx, settings, uid)
-
 	if err != nil {
 		fmt.Printf("destroy key failed for uid (%s) with error: %v\n", uid, err)
 		return
