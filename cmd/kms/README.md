@@ -84,6 +84,38 @@ those configuration settings. Once a session is opened, use `kms) help` to list 
 | kms-vault.json     | Contains ip, port, and certificates for a HashiCorp Vault KMS server |
 | kms-vaultcore.json | Contains ip, port, and certificates for a Fornetix VaultCore KMS server  |
 
+### Sample KMS Configuration File
+
+The parameters that should be filled in for a KMS server are listed below. This can be done using the `kms)` tool listed in the **kms server** section.
+After you are happy with your settings, you can copy the default **kms.json** file to your file to save, such as **kms-pykmip.json**.
+
+- kms_server_name
+- kms_server_ip
+- kms_server_port
+- cert_auth_file
+- key_file
+- cert_file
+- protocol_version_major
+- protocol_version_minor
+- service_type
+
+```
+{
+    "settings_file": "kms-pykmip.json",
+    "kms_server_name": "pykmip",
+    "kms_server_ip": "localhost",
+    "kms_server_port": "5696",
+    "cert_auth_file": "./server/pykmip/lco-sw-pykmip.colo.seagate.com.crt",
+    "key_file": "./server/pykmip/client1.key",
+    "cert_file": "./server/pykmip/client1.crt",
+    "connection": null,
+    "protocol_version_major": 2,
+    "protocol_version_minor": 0,
+    "service_type": "kmip20"
+}
+```
+
+### Sample Tool Output
 
 ```
 $ kms
