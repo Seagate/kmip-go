@@ -26,15 +26,14 @@ This tool provides:
 
 ## Roadmap
 
-| Version | Notes                                                              |
-| :------- | :---------------------------------------------------------------------- |
-| 1.0.0     | First release |
-| 1.1.0     | Add Discover and Query |
-| 1.2.0     | Add ReKey |
-| 1.3.0     | Handle command history, up arrow down arrow, back arrow, and forward arrow |
-| 1.4.0     | Add Register |
-| 1.5.0     | Add SetAttribute |
-
+| Version   | Status   | Notes                                                              |
+| :-------- | :--------| :---------------------------------------------------------------------- |
+| 1.0.0     | Released | First release |
+| 1.1.0     | Released | Add Discover and Query |
+| 1.2.0     |          | Add ReKey |
+| 1.3.0     |          | Handle command history, up arrow down arrow, back arrow, and forward arrow |
+| 1.4.0     |          | Add Register |
+| 1.5.0     |          | Add SetAttribute |
 
 [//]: <> (================================================================================================================================================================)
 ## <a name="section1">(1) building kms</a>
@@ -83,7 +82,7 @@ those configuration settings. Once a session is opened, use `kms) help` to list 
 | :----------------- | -------------------------------------------------------------------- |
 | kms-pykmip.json    | Contains ip, port, and certificates for a PyKMIP KMS server          |
 | kms-vault.json     | Contains ip, port, and certificates for a HashiCorp Vault KMS server |
-| kms-vaultcore.json | Contains ip, port, and certificates for a Fornetix Vault KMS server  |
+| kms-vaultcore.json | Contains ip, port, and certificates for a Fornetix VaultCore KMS server  |
 
 
 ```
