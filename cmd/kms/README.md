@@ -314,31 +314,31 @@ return errors and let the higher level user interface print messages. Logging is
 
 `cmd/kms/main.go`:
 - The main program.
-- Initializes and processes flags and creates a context.
-- Initializes a map of function pointers called handlers.
-- Reads `kms.json` if it exists and stores all configuration settings in this file.
-- Then creates a `kms)` prompt and scans user input.
-- For each command entered after `kms) `, the handlers.Execute() is called passing in the context, settings, and the input text line.
+  - Initializes and processes flags and creates a context.
+  - Initializes a map of function pointers called handlers.
+  - Reads `kms.json` if it exists and stores all configuration settings changes to this file.
+  - Creates a `kms)` prompt and scans user input.
+  - For each command entered after the `kms) ` prompt, the handlers.Execute() is called passing in the context, settings, and the input text line.
 
 `src/common`:
-- `config.go` to **Store** and **Restore** the configuration settings file.
-- `parsers.go` to handle parsing **key=value** pairs from the command line string.
-- `types.go` to store common types such as **ConfigurationSettings**.
+- `config.go` to **Store** and **Restore** the configuration settings file, writes and reads JSON data to and from a file.
+- `parsers.go` to handle parsing **key=value** pairs from the command line string entered by a user.
+- `types.go` to declare common types such as **ConfigurationSettings**.
 
 `src/handlers`:
 - The `handlers.go` file initializes a map of function pointers. All functions must take the same arguments.
-- Update `g_handlers` to add a new row which is a command string and function pointer.
-- The `Execute()` does not require changes.
-- `env.go` to execute environmental commands.
+- Update `g_handlers` to add a new row which with a command string and function pointer.
+- The `Execute()` function does not require changes, only the map.
+- `env.go` to execute environmental or configuration settings commands.
 - `help.go` to display help for commands. This needs to be updated when a new command is added.
 - `key.go` to execute KMIP key related operations such as create, activate, get, locate, revoke, destroy.
-- `server.go` to execute KMS server operations to open and close a session.
+- `server.go` to execute KMS server operations such as open, close, discover and query.
 
 `src/kmipapi`:
-- A Go interface to executing various versions of KMIP commands.
+- A Go interface for executing various versions of KMIP commands.
 - `kmipservice.go` is used to extract a pointer the correct KMIP protocol version instantiation.
-- `clientops.go` contains the Request and Response message definitions for all KMIP operations.
+- `clientops.go` contains the Request and Response message definitions for all supported KMIP operations.
 - `clientapi.go` contains all of the KMS and KMIP functions needed for KMIP operations. These are called by the handlers.
-- `send.go` provides a common SendRequestMessage function used by all version.
-- `kmip14.go` provides KMIP 1.4 version commands, the actual code for the interface
-- `kmip20.go` provides KMIP 2.0 version commands, the actual code for the interface
+- `send.go` provides a common SendRequestMessage function used by all versions.
+- `kmip14.go` provides KMIP 1.4 version commands, the actual code for the interface.
+- `kmip20.go` provides KMIP 2.0 version commands, the actual code for the interface.
