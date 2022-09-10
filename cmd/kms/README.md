@@ -127,6 +127,8 @@ Use `kms) help` to display all kms commands and associated options.
 ## <a name="section4">(4) kms server</a>
 [//]: <> (================================================================================================================================================================)
 
+### open, version, set
+
 The `open` command is used to attempt to establish a TLS connection with a KMS Server. Use `kms) env` to display current settings and the following commands to update
 KMS server settings. Once your settings are correct using `set` commands, or the `load` command, use `open` to establish a KMS server connection. A valid connection is
 required to perform KMIP key operations.
@@ -155,6 +157,46 @@ CertFile set to: ./server/pykmip/client1.crt
 kms) open
 TLS Connection opened with (10.235.164.214:5696)
 ```
+
+### discover
+
+Use the `discover` command to discover one or more KMIP protocol versions supported by a KMS server. If no major/minor version is 
+specified, all supported versions are returned by the KMS server. If a single version is provided, then the server either returns
+that version as supported, or returns an empty list.
+
+#### KMS Server 1 Testing
+
+```
+kms) open
+TLS Connection opened with (10.235.164.214:5696)
+
+kms) discover
+Discover results: [{2 0} {1 4} {1 3} {1 2} {1 1} {1 0}]
+
+kms) discover major=1 minor=2
+Discover results: [{1 2}]
+
+kms) discover major=2 minor=0
+Discover results: [{2 0}]
+```
+
+#### KMS Server 2 Testing
+
+```
+kms) open
+TLS Connection opened with (10.235.164.211:5696)
+
+kms) discover
+Discover results: [{1 4} {1 3} {1 2} {1 1} {1 0}]
+
+kms) discover major=1 minor=2
+Discover results: [{1 2}]
+
+kms) discover major=1 minor=5
+Discover results: []
+```
+
+### query
 
 Use the `query` command to extract information from a KMS Server.
 
@@ -231,7 +273,13 @@ Debugging is accomplished by turning up the logging level. Use `kms) set level=<
 ## <a name="section6">(6) kms design</a>
 [//]: <> (================================================================================================================================================================)
 
-The `kms` tool is build using a fairly straightforward design.
+The `kms` tool is built using a fairly straightforward design. The main program uses handlers to link command line strings to functions. Each single word command is
+linked to a function. The main user interface is in the handlers, which is expected to print text to the console so the user can view results.
+
+At the a lower level of the design is the KMIP API, which has a high level interface with instantiations for KMIP 1.4 and KMIP 2.0 commands. More versions can be added withoput changing.
+The `kms` use sets the KMIP protocol version using ``version major=<value? minor=<value>` which in turns sets a string to kmip14 or kmip20 and is used to retrieve the correct
+instantiation of the interface based on version. Each version of the KMIP commands are stored in separate files: kmip14.go and kmip20.go. At this level, the design is to only
+return errors and let the higher level user interface print messages. Logging is implemented at this level to add additional debug when the level is 2 or greater.
 
 `cmd/kms/main.go`:
 - The main program.
@@ -253,11 +301,13 @@ The `kms` tool is build using a fairly straightforward design.
 - `env.go` to execute environmental commands.
 - `help.go` to display help for commands. This needs to be updated when a new command is added.
 - `key.go` to execute KMIP key related operations such as create, activate, get, locate, revoke, destroy.
-- `session.go` to execute KMS server operations to open and close a session.
+- `server.go` to execute KMS server operations to open and close a session.
 
 `src/kmipapi`:
 - A Go interface to executing various versions of KMIP commands.
+- `kmipservice.go` is used to extract a pointer the correct KMIP protocol version instantiation.
+- `clientops.go` contains the Request and Response message definitions for all KMIP operations.
 - `clientapi.go` contains all of the KMS and KMIP functions needed for KMIP operations. These are called by the handlers.
-- `clientapi.go`
-
-
+- `send.go` provides a common SendRequestMessage function used by all version.
+- `kmip14.go` provides KMIP 1.4 version commands, the actual code for the interface
+- `kmip20.go` provides KMIP 2.0 version commands, the actual code for the interface

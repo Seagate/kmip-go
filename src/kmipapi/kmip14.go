@@ -17,20 +17,15 @@ import (
 // Discover: Send a KMIP OperationDiscoverVersion message
 func (kmips *kmip14service) Discover(ctx context.Context, settings *common.ConfigurationSettings, req *DiscoverRequest) (*DiscoverResponse, error) {
 	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== kmips discover ======")
+	logger.V(4).Info("====== kmip discover ======")
 
-	var PV []kmip.ProtocolVersion
-
-	// proceed to discover the Server supported protocol version
-
-	// leave the payload empty to get all supported versions from server
+	// Leave the payload empty to get all supported versions from server
 	payload := kmip.DiscoverVersionsRequestPayload{
-		ProtocolVersion: req.ProtocolVersion,
+		ProtocolVersion: req.ClientVersions,
 	}
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationDiscoverVersions), &payload)
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
 	}
 
@@ -43,31 +38,8 @@ func (kmips *kmip14service) Discover(ctx context.Context, settings *common.Confi
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode DiscoverResponsePayload, error: %v", err)
 	}
-	PV = respPayload.ProtocolVersion
-	PVMajor := respPayload.ProtocolVersion[0].ProtocolVersionMajor
-	PVMinor := respPayload.ProtocolVersion[0].ProtocolVersionMinor
-	logger.V(4).Info("response payload", "ProtocolVersion", PV, "Major", PVMajor, "Minor", PVMinor)
 
-	// Determine the best version to use based on the supported version
-	if (PVMajor*10 + PVMinor) == (MaxSupportedProtocolVersionMajor*10 + MaxSupportedProtocolVersionMinor) {
-		logger.V(0).Info("KMIP Server supports max version", "MaxSupportedProtocolVersionMajor", MaxSupportedProtocolVersionMajor, "MaxSupportedProtocolVersionMinor", MaxSupportedProtocolVersionMinor)
-		// common.Auditor().Log(common.KMS, fmt.Sprintf("Set Client ProtocolVersion to (%d.%d)", MaxSupportedProtocolVersionMajor, MaxSupportedProtocolVersionMinor))
-		settings.ServiceType = KMIP20Service
-	} else if (PVMajor*10 + PVMinor) > (MaxSupportedProtocolVersionMajor*10 + MaxSupportedProtocolVersionMinor) {
-		logger.V(0).Info("WARNING: KMIP Server supports a higher version", "MaxSupportedProtocolVersionMajor", MaxSupportedProtocolVersionMajor, "MaxSupportedProtocolVersionMinor", MaxSupportedProtocolVersionMinor)
-		// common.Auditor().Log(common.Discover, fmt.Sprintf("Set Client ProtocolVersion to (%d.%d)", MaxSupportedProtocolVersionMajor, MaxSupportedProtocolVersionMinor))
-		settings.ServiceType = KMIP20Service
-	} else if (PVMajor*10 + PVMinor) >= (MinSupportedProtocolVersionMajor*10 + MinSupportedProtocolVersionMinor) {
-		logger.V(0).Info("KMIP Server supports min version", "MinSupportedProtocolVersionMajor", MinSupportedProtocolVersionMajor, "MinSupportedProtocolVersionMinor", MinSupportedProtocolVersionMinor)
-		// common.Auditor().Log(common.Discover, fmt.Sprintf("Set Client ProtocolVersion to (%d.%d)", MinSupportedProtocolVersionMajor, MinSupportedProtocolVersionMinor))
-		settings.ServiceType = KMIP14Service
-	} else {
-		logger.V(0).Info("WARNING: KMIP Server does not support minimal version", "MinSupportedProtocolVersionMajor", MinSupportedProtocolVersionMajor, "MinSupportedProtocolVersionMinor", MinSupportedProtocolVersionMinor)
-		// common.Auditor().Log(common.Discover, fmt.Sprintf("Set Client ProtocolVersion to (%d.%d)", MinSupportedProtocolVersionMajor, MinSupportedProtocolVersionMinor))
-		settings.ServiceType = KMIP14Service
-	}
-
-	return &DiscoverResponse{ProtocolVersion: PV}, nil
+	return &DiscoverResponse{SupportedVersions: respPayload.ProtocolVersion}, nil
 }
 
 // Query: Retrieve info about KMIP server

@@ -149,14 +149,23 @@ type SetAttributeResponse struct {
 	AttributeValue   string
 }
 
+// Discover:
+// The response payload contains a list of protocol versions that are supported by the server.
+// The protocol versions are ranked in decreasing order of preference.
+// If the client provides the server with a list of supported protocol versions in the request payload,
+// the server SHALL return only the protocol versions that are supported by both the client and server.
+// The server SHOULD list all the protocol versions supported by both client and server.
+// If the protocol version specified in the request header is not specified in the request payload and
+// the server does not support any protocol version specified in the request payload,
+// the server SHALL return an empty list in the response payload.
+// If no protocol versions are specified in the request payload,
+// the server SHOULD return all the protocol versions that are supported by the server.
 type DiscoverRequest struct {
-	// Contains all attributes of a caller request to discover support protocol version.
-	ProtocolVersion []kmip.ProtocolVersion
+	ClientVersions []kmip.ProtocolVersion
 }
 
 type DiscoverResponse struct {
-	// Contains all attributes of the discover support protocol version operation that are relevant to the caller.
-	ProtocolVersion []kmip.ProtocolVersion
+	SupportedVersions []kmip.ProtocolVersion
 }
 
 type ReKeyRequest struct {

@@ -23,6 +23,7 @@ func Initialize() {
 		"load":     Load,
 		"open":     Open,
 		"close":    Close,
+		"discover": Discover,
 		"query":    Query,
 		"create":   CreateKey,
 		"activate": ActivateKey,

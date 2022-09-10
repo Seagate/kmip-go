@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
 	"github.com/Seagate/kmip-go/src/common"
 	"k8s.io/klog/v2"
@@ -95,8 +96,36 @@ func CloseSession(ctx context.Context, settings *common.ConfigurationSettings) e
 	return nil
 }
 
+// Discover: Perform a discover operation to retrieve KMIP protocol versions supported.
+func DiscoverServer(ctx context.Context, settings *common.ConfigurationSettings, clientVersions []kmip.ProtocolVersion) ([]kmip.ProtocolVersion, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("   ++ discover server", "clientVersions", clientVersions)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return nil, fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	req := DiscoverRequest{
+		ClientVersions: clientVersions,
+	}
+
+	kmipResp, err := kmipops.Discover(ctx, settings, &req)
+	logger.V(4).Info("discover response", "kmipResp", kmipResp, "error", err)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to discover server using (%s), err: %v", settings.ServiceType, err)
+	}
+
+	if kmipResp == nil {
+		return nil, errors.New("failed to discover server, KMIP Response was null")
+	}
+
+	return kmipResp.SupportedVersions, nil
+}
+
 // QueryServer: Perform a query operation.
-func QueryServer(ctx context.Context, settings *common.ConfigurationSettings, operation string) (QueryD string, err error) {
+func QueryServer(ctx context.Context, settings *common.ConfigurationSettings, operation string) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("   ++ querying server", "operation", operation)
 

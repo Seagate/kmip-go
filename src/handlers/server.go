@@ -3,7 +3,9 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"strconv"
 
+	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/src/common"
 	"github.com/Seagate/kmip-go/src/kmipapi"
 	"k8s.io/klog/v2"
@@ -45,6 +47,31 @@ func Close(ctx context.Context, settings *common.ConfigurationSettings, line str
 		fmt.Printf("TLS Connection closed with (%s:%s)\n", settings.KmsServerIp, settings.KmsServerPort)
 	} else {
 		fmt.Printf("TLS Connection failed to close, error: %v\n", err)
+	}
+}
+
+// Discover: Discover versions supported by a KMS Server
+func Discover(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("Discover:", "line", line)
+
+	// Read command line arguments
+	major := common.GetValue(line, "major")
+	minor := common.GetValue(line, "minor")
+
+	versions := []kmip.ProtocolVersion{}
+
+	if major != "" && minor != "" {
+		majorInt, _ := strconv.Atoi(major)
+		minorInt, _ := strconv.Atoi(minor)
+		versions = append(versions, kmip.ProtocolVersion{ProtocolVersionMajor: majorInt, ProtocolVersionMinor: minorInt})
+	}
+
+	results, err := kmipapi.DiscoverServer(ctx, settings, versions)
+	if err == nil {
+		fmt.Printf("Discover results: %v\n", results)
+	} else {
+		fmt.Printf("Discover failed, error: %v\n", err)
 	}
 }
 
