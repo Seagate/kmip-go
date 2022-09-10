@@ -47,3 +47,19 @@ func Close(ctx context.Context, settings *common.ConfigurationSettings, line str
 		fmt.Printf("TLS Connection failed to close, error: %v\n", err)
 	}
 }
+
+// Query: Query the KMS Server with a specified operation
+func Query(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("Query:", "line", line)
+
+	// Read command line arguments
+	operation := common.GetValue(line, "op")
+
+	results, err := kmipapi.QueryServer(ctx, settings, operation)
+	if err == nil {
+		fmt.Printf("Query results: %s\n", results)
+	} else {
+		fmt.Printf("Query failed, error: %v\n", err)
+	}
+}

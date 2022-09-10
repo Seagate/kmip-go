@@ -68,48 +68,44 @@ func (kmips *kmip20service) Discover(ctx context.Context, settings *common.Confi
 
 // Query: Retrieve info about KMIP server
 func (kmips *kmip20service) Query(ctx context.Context, settings *common.ConfigurationSettings, req *QueryRequest) (*QueryResponse, error) {
-	return &QueryResponse{}, fmt.Errorf("Query command is not supported")
-	/*
-		logger := klog.FromContext(ctx)
-		logger.V(4).Info("query server", "id", req.Id)
+	logger := klog.FromContext(ctx)
+	logger.V(4).Info("====== query server ======", "id", req.Id)
 
-		var err error
-		var decoder *ttlv.Decoder
-		var item *kmip.ResponseBatchItem
+	var err error
+	var decoder *ttlv.Decoder
+	var item *kmip.ResponseBatchItem
 
-		if req.Id == "" || req.Id == QueryOpsOperation {
-			payload := kmip20.QueryRequestPayload{
-				QueryFunction: kmip20.QueryFunctionQueryOperations,
-			}
-			decoder, item, err = SendRequestMessage(ctx, settings, kmip20.OperationQuery, &payload)
-
-		} else if req.Id == QueryOpsServerInfo {
-			payload := kmip20.QueryRequestPayload{
-				QueryFunction: kmip20.QueryFunctionQueryServerInformation,
-			}
-			decoder, item, err = SendRequestMessage(ctx, settings, kmip20.OperationQuery, &payload)
+	if req.Id == "" || req.Id == QueryOpsOperation {
+		payload := kmip.QueryRequestPayload{
+			QueryFunction: kmip14.QueryFunctionQueryOperations,
 		}
+		decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload)
 
-		if err != nil {
-			return nil, err
+	} else if req.Id == QueryOpsServerInfo {
+		payload := kmip.QueryRequestPayload{
+			QueryFunction: kmip14.QueryFunctionQueryServerInformation,
 		}
+		decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload)
+	}
 
-		// Extract the QueryResponsePayload type of message
-		var respPayload struct {
-			Operation            []kmip20.Operation
-			VendorIdentification string
-		}
-		err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+	if err != nil {
+		return nil, err
+	}
 
-		if err != nil {
-			return nil, fmt.Errorf("unable to decode QueryResponsePayload, error: %v", err)
-		}
+	// Extract the QueryResponsePayload type of message
+	var respPayload struct {
+		Operation            []kmip14.Operation
+		VendorIdentification string
+	}
+	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 
-		logger.V(4).Info("xxxQueryData", "Payload", respPayload)
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode QueryResponsePayload, error: %v", err)
+	}
 
-		//common.Auditor().Log(common.Query, fmt.Sprintf("Query Server with id=%s VendorIdentification=%s", req.Id, respPayload.VendorIdentification))
-		return &QueryResponse{Operation: respPayload.Operation, VendorIdentification: respPayload.VendorIdentification}, nil
-	*/
+	logger.V(4).Info("Query", "Payload", respPayload)
+
+	return &QueryResponse{Operation: respPayload.Operation, VendorIdentification: respPayload.VendorIdentification}, nil
 }
 
 // CreateKey: Send a KMIP OperationCreate message

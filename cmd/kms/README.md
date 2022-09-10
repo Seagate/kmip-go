@@ -20,7 +20,7 @@ This tool provides:
 * [(1) building kms](#section1)
 * [(2) running kms](#section2)
 * [(3) kms help](#section3)
-* [(4) kms sessions](#section4)
+* [(4) kms server](#section4)
 * [(5) kms key operations](#section5)
 * [(6) kms design](#section6)
 
@@ -124,7 +124,7 @@ Use `kms) help` to display all kms commands and associated options.
 
 
 [//]: <> (================================================================================================================================================================)
-## <a name="section4">(4) kms sessions</a>
+## <a name="section4">(4) kms server</a>
 [//]: <> (================================================================================================================================================================)
 
 The `open` command is used to attempt to establish a TLS connection with a KMS Server. Use `kms) env` to display current settings and the following commands to update
@@ -154,6 +154,64 @@ CertFile set to: ./server/pykmip/client1.crt
 
 kms) open
 TLS Connection opened with (10.235.164.214:5696)
+```
+
+Use the `query` command to extract information from a KMS Server.
+
+```
+kms) open
+TLS Connection opened with (10.235.164.211:5696)
+
+kms) query op=1
+Query results: {
+    "Operation": [
+        "Query",
+        "Locate",
+        "Destroy",
+        "Get",
+        "Create",
+        "Register",
+        "GetAttributes",
+        "GetAttributeList",
+        "AddAttribute",
+        "ModifyAttribute",
+        "DeleteAttribute",
+        "Activate",
+        "Revoke",
+        "Poll",
+        "Cancel",
+        "Check",
+        "GetUsageAllocation",
+        "CreateKeyPair",
+        "ReKey",
+        "Archive",
+        "Recover",
+        "ObtainLease",
+        "ReKeyKeyPair",
+        "Certify",
+        "ReCertify",
+        "DiscoverVersions",
+        "Notify",
+        "Put",
+        "RNGRetrieve",
+        "RNGSeed",
+        "Encrypt",
+        "Decrypt",
+        "Sign",
+        "SignatureVerify",
+        "MAC",
+        "MACVerify",
+        "Hash",
+        "CreateSplitKey",
+        "JoinSplitKey",
+        "DeriveKey"
+    ]
+}
+
+kms) query op=3
+Query results: {
+    "Vendor Identification": "Fornetix"
+}
 ```
 
 [//]: <> (================================================================================================================================================================)

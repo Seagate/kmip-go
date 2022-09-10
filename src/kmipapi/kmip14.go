@@ -93,7 +93,6 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *common.Configur
 	}
 
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
 	}
 
@@ -108,9 +107,8 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *common.Configur
 		return nil, fmt.Errorf("unable to decode QueryResponsePayload, error: %v", err)
 	}
 
-	logger.V(4).Info("xxxQueryData", "Payload", respPayload)
+	logger.V(4).Info("Query", "Payload", respPayload)
 
-	// common.Auditor().Log(common.Query, fmt.Sprintf("Query Server with id=%s VendorIdentification=%s", req.Id, respPayload.VendorIdentification))
 	return &QueryResponse{Operation: respPayload.Operation, VendorIdentification: respPayload.VendorIdentification}, nil
 }
 

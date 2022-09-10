@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -92,6 +93,40 @@ func CloseSession(ctx context.Context, settings *common.ConfigurationSettings) e
 
 	logger.V(2).Info("TLS Connection closed", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
 	return nil
+}
+
+// QueryServer: Perform a query operation.
+func QueryServer(ctx context.Context, settings *common.ConfigurationSettings, operation string) (QueryD string, err error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("   ++ querying server", "operation", operation)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	req := QueryRequest{
+		Id:            operation,
+		QueryFunction: kmip14.QueryFunctionQueryOperations,
+	}
+
+	kmipResp, err := kmipops.Query(ctx, settings, &req)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to query server using (%s), err: %v", settings.ServiceType, err)
+	}
+
+	if kmipResp == nil {
+		return "", errors.New("failed to query server, KMIP Response was null")
+	}
+
+	// Translate response to JSON data
+	js, err := json.MarshalIndent(kmipResp, "", "    ")
+	if err != nil {
+		return "", fmt.Errorf("unable to translate Query data, error: %v", err)
+	}
+
+	return string(js), nil
 }
 
 // CreateKey: Create a unique identifier for a id and return that uid
