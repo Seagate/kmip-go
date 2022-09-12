@@ -6,10 +6,12 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 
+	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
 	"github.com/Seagate/kmip-go/src/common"
 	"k8s.io/klog/v2"
@@ -92,6 +94,68 @@ func CloseSession(ctx context.Context, settings *common.ConfigurationSettings) e
 
 	logger.V(2).Info("TLS Connection closed", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
 	return nil
+}
+
+// Discover: Perform a discover operation to retrieve KMIP protocol versions supported.
+func DiscoverServer(ctx context.Context, settings *common.ConfigurationSettings, clientVersions []kmip.ProtocolVersion) ([]kmip.ProtocolVersion, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("   ++ discover server", "clientVersions", clientVersions)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return nil, fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	req := DiscoverRequest{
+		ClientVersions: clientVersions,
+	}
+
+	kmipResp, err := kmipops.Discover(ctx, settings, &req)
+	logger.V(4).Info("discover response", "kmipResp", kmipResp, "error", err)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to discover server using (%s), err: %v", settings.ServiceType, err)
+	}
+
+	if kmipResp == nil {
+		return nil, errors.New("failed to discover server, KMIP Response was null")
+	}
+
+	return kmipResp.SupportedVersions, nil
+}
+
+// QueryServer: Perform a query operation.
+func QueryServer(ctx context.Context, settings *common.ConfigurationSettings, operation string) (string, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("   ++ querying server", "operation", operation)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	req := QueryRequest{
+		Id:            operation,
+		QueryFunction: kmip14.QueryFunctionQueryOperations,
+	}
+
+	kmipResp, err := kmipops.Query(ctx, settings, &req)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to query server using (%s), err: %v", settings.ServiceType, err)
+	}
+
+	if kmipResp == nil {
+		return "", errors.New("failed to query server, KMIP Response was null")
+	}
+
+	// Translate response to JSON data
+	js, err := json.MarshalIndent(kmipResp, "", "    ")
+	if err != nil {
+		return "", fmt.Errorf("unable to translate Query data, error: %v", err)
+	}
+
+	return string(js), nil
 }
 
 // CreateKey: Create a unique identifier for a id and return that uid

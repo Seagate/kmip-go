@@ -36,6 +36,8 @@ func Help(ctx context.Context, settings *common.ConfigurationSettings, line stri
 	fmt.Println("")
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("open"), col2, options("[ip=<value>] [port=<value>]"), comment("// open a TLS session, ip and port are optional"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("close"), col2, options(""), comment("// close the TLS session"))
+	fmt.Printf("  %*s  %-*s  %s\n", col1, command("discover"), col2, options("[major=<value> minor=<value>]"), comment("// discover versions supported by a KMS Server"))
+	fmt.Printf("  %*s  %-*s  %s\n", col1, command("query"), col2, options("[op=<value>] [port=<value>]"), comment("// query a KMS Server, operations supported: 1, 3"))
 
 	fmt.Println("")
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("create"), col2, options("id=<value>"), comment("// create a key based on a id, corresponding uid is displayed"))

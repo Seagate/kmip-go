@@ -1,3 +1,10 @@
+# [1.1.0] (2022-09-12)
+
+### Features
+
+- Added `query op=[1|3]` to query a KMS server, both KMIP 1.4 and 2.0 working
+- Added `discover [major=<value> minor=<value>]` to discover versions supported by a server
+
 # [1.0.0] (2022-09-18)
 
 ### Features

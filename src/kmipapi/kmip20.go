@@ -20,13 +20,9 @@ func (kmips *kmip20service) Discover(ctx context.Context, settings *common.Confi
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== kmips discover ======")
 
-	var PV []kmip.ProtocolVersion
-
-	// proceed to discover the Server supported protocol version
-
-	// leave the payload empty to get all supported versions from server
+	// Leave the payload empty to get all supported versions from server
 	payload := kmip.DiscoverVersionsRequestPayload{
-		ProtocolVersion: req.ProtocolVersion,
+		ProtocolVersion: req.ClientVersions,
 	}
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationDiscoverVersions), &payload)
@@ -43,73 +39,50 @@ func (kmips *kmip20service) Discover(ctx context.Context, settings *common.Confi
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode DiscoverResponsePayload, error: %v", err)
 	}
-	PV = respPayload.ProtocolVersion
-	PVMajor := respPayload.ProtocolVersion[0].ProtocolVersionMajor
-	PVMinor := respPayload.ProtocolVersion[0].ProtocolVersionMinor
-	logger.V(4).Info("response payload", "ProtocolVersion", PV, "Major", PVMajor, "Minor", PVMinor)
 
-	// If server supports does not support KMIP 2.0 or higher, set Client version to KMIP 2.0
-	if (PVMajor*10 + PVMinor) == (MaxSupportedProtocolVersionMajor*10 + MaxSupportedProtocolVersionMinor) {
-		logger.V(1).Info("KMIP Server supports max version", "MaxSupportedProtocolVersionMajor", MaxSupportedProtocolVersionMajor, "MaxSupportedProtocolVersionMinor", MaxSupportedProtocolVersionMinor)
-		settings.ServiceType = KMIP20Service
-	} else if (PVMajor*10 + PVMinor) > (MaxSupportedProtocolVersionMajor*10 + MaxSupportedProtocolVersionMinor) {
-		logger.V(1).Info("WARNING: KMIP Server supports a higher version", "MaxSupportedProtocolVersionMajor", MaxSupportedProtocolVersionMajor, "MaxSupportedProtocolVersionMinor", MaxSupportedProtocolVersionMinor)
-		settings.ServiceType = KMIP20Service
-	} else if (PVMajor*10 + PVMinor) >= (MinSupportedProtocolVersionMajor*10 + MinSupportedProtocolVersionMinor) {
-		logger.V(1).Info("KMIP Server supports min version", "MinSupportedProtocolVersionMajor", MinSupportedProtocolVersionMajor, "MinSupportedProtocolVersionMinor", MinSupportedProtocolVersionMinor)
-		settings.ServiceType = KMIP14Service
-	} else {
-		logger.V(1).Info("WARNING: KMIP Server does not support minimal version", "MinSupportedProtocolVersionMajor", MinSupportedProtocolVersionMajor, "MinSupportedProtocolVersionMinor", MinSupportedProtocolVersionMinor)
-		settings.ServiceType = KMIP14Service
-	}
-
-	return &DiscoverResponse{ProtocolVersion: PV}, nil
+	return &DiscoverResponse{SupportedVersions: respPayload.ProtocolVersion}, nil
 }
 
 // Query: Retrieve info about KMIP server
 func (kmips *kmip20service) Query(ctx context.Context, settings *common.ConfigurationSettings, req *QueryRequest) (*QueryResponse, error) {
-	return &QueryResponse{}, fmt.Errorf("Query command is not supported")
-	/*
-		logger := klog.FromContext(ctx)
-		logger.V(4).Info("query server", "id", req.Id)
+	logger := klog.FromContext(ctx)
+	logger.V(4).Info("====== query server ======", "id", req.Id)
 
-		var err error
-		var decoder *ttlv.Decoder
-		var item *kmip.ResponseBatchItem
+	var err error
+	var decoder *ttlv.Decoder
+	var item *kmip.ResponseBatchItem
 
-		if req.Id == "" || req.Id == QueryOpsOperation {
-			payload := kmip20.QueryRequestPayload{
-				QueryFunction: kmip20.QueryFunctionQueryOperations,
-			}
-			decoder, item, err = SendRequestMessage(ctx, settings, kmip20.OperationQuery, &payload)
-
-		} else if req.Id == QueryOpsServerInfo {
-			payload := kmip20.QueryRequestPayload{
-				QueryFunction: kmip20.QueryFunctionQueryServerInformation,
-			}
-			decoder, item, err = SendRequestMessage(ctx, settings, kmip20.OperationQuery, &payload)
+	if req.Id == "" || req.Id == QueryOpsOperation {
+		payload := kmip.QueryRequestPayload{
+			QueryFunction: kmip14.QueryFunctionQueryOperations,
 		}
+		decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload)
 
-		if err != nil {
-			return nil, err
+	} else if req.Id == QueryOpsServerInfo {
+		payload := kmip.QueryRequestPayload{
+			QueryFunction: kmip14.QueryFunctionQueryServerInformation,
 		}
+		decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload)
+	}
 
-		// Extract the QueryResponsePayload type of message
-		var respPayload struct {
-			Operation            []kmip20.Operation
-			VendorIdentification string
-		}
-		err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+	if err != nil {
+		return nil, err
+	}
 
-		if err != nil {
-			return nil, fmt.Errorf("unable to decode QueryResponsePayload, error: %v", err)
-		}
+	// Extract the QueryResponsePayload type of message
+	var respPayload struct {
+		Operation            []kmip14.Operation
+		VendorIdentification string
+	}
+	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 
-		logger.V(4).Info("xxxQueryData", "Payload", respPayload)
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode QueryResponsePayload, error: %v", err)
+	}
 
-		//common.Auditor().Log(common.Query, fmt.Sprintf("Query Server with id=%s VendorIdentification=%s", req.Id, respPayload.VendorIdentification))
-		return &QueryResponse{Operation: respPayload.Operation, VendorIdentification: respPayload.VendorIdentification}, nil
-	*/
+	logger.V(4).Info("Query", "Payload", respPayload)
+
+	return &QueryResponse{Operation: respPayload.Operation, VendorIdentification: respPayload.VendorIdentification}, nil
 }
 
 // CreateKey: Send a KMIP OperationCreate message
