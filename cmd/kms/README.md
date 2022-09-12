@@ -5,16 +5,16 @@
 ## Introduction
 
 ***kms*** is a command line tool to connect to a KMS Server and execute KMIP operations. This is an interactive tool
-providing feedback both as console output as well ad multi-level logging using structured and contextual logging.
+providing feedback both as console output as well as multi-level logging using structured and contextual logging.
 
 This tool provides:
 - support for KMIP 1.4 and 2.0 versions
-- variable configuration settings
+- dynamic configuration settings
 - loading and storing json-file-based configuration settings
 - executing open and close KMS server sessions
 - executing create, activate, get, locate, revoke, and destroy key operations
 - running a script file
-- dynamic multi-level logging
+- multi-level logging adjustable from the prompt
 
 ## Table of Contents
 * [(1) building kms](#section1)
@@ -30,10 +30,10 @@ This tool provides:
 | :-------- | :--------| :---------------------------------------------------------------------- |
 | 1.0.0     | Released | First release |
 | 1.1.0     | Released | Add Discover and Query |
-| 1.2.0     |          | Add ReKey |
-| 1.3.0     |          | Handle command history, up arrow down arrow, back arrow, and forward arrow |
+| 1.2.0     |          | Add Re-key |
+| 1.3.0     |          | Handle command history, up arrow, down arrow, back arrow, and forward arrow |
 | 1.4.0     |          | Add Register |
-| 1.5.0     |          | Add SetAttribute |
+| 1.5.0     |          | Add Set Attribute |
 
 [//]: <> (================================================================================================================================================================)
 ## <a name="section1">(1) building kms</a>
@@ -75,7 +75,7 @@ install ./kms /usr/local/bin
 [//]: <> (================================================================================================================================================================)
 
 It is suggested to run `kms` from a location where you can store configuration files that point to various KMS servers. Run `sudo make install` to add the executable
-to your go path. For example, the following table describes a set of potential configuration files for a few KMS servers. Use the `kms) load file=<value>` option to load
+to your path. For example, the following table describes a set of potential configuration files for a few KMS servers. Use the `kms) load file=<value>` option to load
 those configuration settings. Once a session is opened, use `kms) help` to list commands and perform key operations.
 
 | File               | Description                                                          |
@@ -86,8 +86,8 @@ those configuration settings. Once a session is opened, use `kms) help` to list 
 
 ### Sample KMS Configuration File
 
-The parameters that should be filled in for a KMS server are listed below. This can be done using the `kms)` tool listed in the **kms server** section.
-After you are happy with your settings, you can copy the default **kms.json** file to your file to save, such as **kms-pykmip.json**.
+The parameters that should be filled in for a KMS server are listed below. This can be done using the `kms)` tool and commands listed in the **kms server** section.
+After you are happy with your settings, you can copy the default **kms.json** file to a file that you wish to save, such as **kms-pykmip.json**.
 
 - kms_server_name
 - kms_server_ip
@@ -307,27 +307,28 @@ Debugging is accomplished by turning up the logging level. Use `kms) set level=<
 The `kms` tool is built using a fairly straightforward design. The main program uses handlers to link command line strings to functions. Each single word command is
 linked to a function. The main user interface is in the handlers, which is expected to print text to the console so the user can view results.
 
-At the a lower level of the design is the KMIP API, which has a high level interface with instantiations for KMIP 1.4 and KMIP 2.0 commands. More versions can be added withoput changing.
-The `kms` use sets the KMIP protocol version using ``version major=<value? minor=<value>` which in turns sets a string to kmip14 or kmip20 and is used to retrieve the correct
-instantiation of the interface based on version. Each version of the KMIP commands are stored in separate files: kmip14.go and kmip20.go. At this level, the design is to only
+At the a lower level of the design is the KMIP API, which has a high level interface with instantiations for KMIP 1.4 and KMIP 2.0 commands. More versions can be added
+with changes isolated to a few KMIP API files. The `kms` tool executes KMIP commands using the user specified KMIP protocol version which is set using 
+`version major=<value> minor=<value>`. This in turns sets a string to **kmip14** or **kmip20** and is used to retrieve the correct instantiation of the interface based
+on the specified version. Each version of the KMIP commands are stored in separate files: kmip14.go and kmip20.go. At this level, the design is to only
 return errors and let the higher level user interface print messages. Logging is implemented at this level to add additional debug when the level is 2 or greater.
 
 `cmd/kms/main.go`:
 - The main program.
   - Initializes and processes flags and creates a context.
   - Initializes a map of function pointers called handlers.
-  - Reads `kms.json` if it exists and stores all configuration settings changes to this file.
-  - Creates a `kms)` prompt and scans user input.
-  - For each command entered after the `kms) ` prompt, the handlers.Execute() is called passing in the context, settings, and the input text line.
+  - Reads `kms.json` if it exists and stores all configuration setting changes to this file.
+  - Creates a `kms) ` prompt and scans user input.
+  - For each command entered after the `kms) ` prompt, the **handlers.Execute()** is called passing in context, settings, and the input text line.
 
 `src/common`:
-- `config.go` to **Store** and **Restore** the configuration settings file, writes and reads JSON data to and from a file.
+- `config.go` to **Store** and **Restore** the configuration settings file - writes and reads JSON data to and from a file.
 - `parsers.go` to handle parsing **key=value** pairs from the command line string entered by a user.
 - `types.go` to declare common types such as **ConfigurationSettings**.
 
 `src/handlers`:
-- The `handlers.go` file initializes a map of function pointers. All functions must take the same arguments.
-- Update `g_handlers` to add a new row which with a command string and function pointer.
+- The `handlers.go` file initializes a map of function pointers. All functions must take the same list and types of parameters.
+- Update `g_handlers` to add a new row with a command string and function pointer.
 - The `Execute()` function does not require changes, only the map.
 - `env.go` to execute environmental or configuration settings commands.
 - `help.go` to display help for commands. This needs to be updated when a new command is added.

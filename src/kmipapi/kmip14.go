@@ -131,7 +131,7 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, settings *common.Conf
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("create key success", "uid", uid)
-	// common.Auditor().Log(common.Create, fmt.Sprintf("create key successful for id (%s) uid (%s)", req.Id, uid))
+
 	return &CreateKeyResponse{UniqueIdentifier: uid}, nil
 }
 
@@ -209,8 +209,6 @@ func (kmips *kmip14service) DestroyKey(ctx context.Context, settings *common.Con
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("XXX DestroyKey response payload", "uid", uid)
 
-	// common.Auditor().Log(common.Destroy, fmt.Sprintf("destroy key successful for uid (%s)", uid))
-
 	return &DestroyKeyResponse{UniqueIdentifier: uid}, nil
 }
 
@@ -237,8 +235,6 @@ func (kmips *kmip14service) ActivateKey(ctx context.Context, settings *common.Co
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("activate key success", "uid", uid)
-
-	// common.Auditor().Log(common.Activate, fmt.Sprintf("activate key successful for uid (%s)", uid))
 
 	return &ActivateKeyResponse{UniqueIdentifier: uid}, nil
 }
@@ -272,8 +268,6 @@ func (kmips *kmip14service) RevokeKey(ctx context.Context, settings *common.Conf
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("XXX RevokeKey response payload", "uid", uid)
 
-	// common.Auditor().Log(common.Revoke, fmt.Sprintf("revoke key successful for uid (%s)", uid))
-
 	return &RevokeKeyResponse{UniqueIdentifier: uid}, nil
 }
 
@@ -292,7 +286,7 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *common.Configu
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	}
 	payload := kmip.LocateRequestPayload{}
-	payload.Attributes = append(payload.Attributes, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
+	payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationLocate), &payload)
 	if err != nil {
@@ -311,7 +305,6 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *common.Configu
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("XXX Locate response payload", "uid", respPayload.UniqueIdentifier)
 
-	// common.Auditor().Log(common.Locate, fmt.Sprintf("uid=%s", uid))
 	return &LocateResponse{UniqueIdentifier: uid}, nil
 }
 
@@ -343,8 +336,6 @@ func (kmips *kmip14service) ReKey(ctx context.Context, settings *common.Configur
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("xxx ReKey Response Payload", "uid", uid)
-
-	// common.Auditor().Log(common.ReKey, fmt.Sprintf("uid=%s", req.UniqueIdentifier))
 
 	return &ReKeyResponse{UniqueIdentifier: uid}, nil
 }

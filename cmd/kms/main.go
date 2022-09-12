@@ -13,7 +13,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-const version string = "1.1.0"
+const version string = "1.1.1"
 
 // init: called once during program execution
 func init() {

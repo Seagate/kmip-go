@@ -337,7 +337,6 @@ func (kmips *kmip20service) Locate(ctx context.Context, settings *common.Configu
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("XXX Locate response payload", "uid", respPayload.UniqueIdentifier)
 
-	// common.Auditor().Log(common.Locate, fmt.Sprintf("uid=%s", uid))
 	return &LocateResponse{UniqueIdentifier: uid}, nil
 }
 
@@ -370,8 +369,6 @@ func (kmips *kmip20service) SetAttribute(ctx context.Context, settings *common.C
 	}
 
 	logger.V(4).Info("XXX SetAttribute response payload", "uid", respPayload.UniqueIdentifier)
-
-	// common.Auditor().Log(common.SetAttribute, fmt.Sprintf("id=%s DriveSN=%s", req.UniqueIdentifier, req.AttributeValue))
 
 	return &SetAttributeResponse{}, nil
 }
@@ -406,8 +403,6 @@ func (kmips *kmip20service) ReKey(ctx context.Context, settings *common.Configur
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("xxx ReKey Response Payload", "uid", uid)
-
-	// common.Auditor().Log(common.ReKey, fmt.Sprintf("uid=%s", req.UniqueIdentifier))
 
 	return &ReKeyResponse{UniqueIdentifier: uid}, nil
 }
