@@ -1,3 +1,10 @@
+# [1.1.1] (2022-09-12)
+
+### Fix
+
+- Locate Request/Response corrections for KMIP 1.4
+- README corrections
+
 # [1.1.0] (2022-09-12)
 
 ### Features
