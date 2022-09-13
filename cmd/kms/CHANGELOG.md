@@ -1,3 +1,9 @@
+# [1.1.2] (2022-09-13)
+
+### Chore
+
+- Move common package files under the src/kmipapi package
+
 # [1.1.1] (2022-09-12)
 
 ### Fix

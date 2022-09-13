@@ -8,7 +8,6 @@ import (
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
-	"github.com/Seagate/kmip-go/src/common"
 	"github.com/Seagate/kmip-go/ttlv"
 	"github.com/google/uuid"
 	"k8s.io/klog/v2"
@@ -19,7 +18,7 @@ const (
 )
 
 // SendRequestMessage: Send a KMIP request message
-func SendRequestMessage(ctx context.Context, settings *common.ConfigurationSettings, operation uint32, payload interface{}) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
+func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, operation uint32, payload interface{}) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
 	logger := klog.FromContext(ctx)
 	biID := uuid.New()
 

@@ -7,13 +7,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Seagate/kmip-go/src/common"
 	"github.com/Seagate/kmip-go/src/handlers"
 	"github.com/Seagate/kmip-go/src/kmipapi"
 	"k8s.io/klog/v2"
 )
 
-const version string = "1.1.1"
+const version string = "1.1.2"
 
 // init: called once during program execution
 func init() {
@@ -47,7 +46,7 @@ func main() {
 
 	fmt.Printf("[] kms (version=%s)\n\n", version)
 
-	settings := common.ConfigurationSettings{
+	settings := kmipapi.ConfigurationSettings{
 		ProtocolVersionMajor: 1,
 		ProtocolVersionMinor: 4,
 		ServiceType:          kmipapi.KMIP14Service,
@@ -58,7 +57,7 @@ func main() {
 	// Restore any previously stored configuration settings
 	filename := "kms.json"
 	if _, err := os.Stat(filename); err == nil {
-		common.Restore(ctx, &settings, filename)
+		kmipapi.Restore(ctx, &settings, filename)
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)

@@ -321,11 +321,6 @@ return errors and let the higher level user interface print messages. Logging is
   - Creates a `kms) ` prompt and scans user input.
   - For each command entered after the `kms) ` prompt, the **handlers.Execute()** is called passing in context, settings, and the input text line.
 
-`src/common`:
-- `config.go` to **Store** and **Restore** the configuration settings file - writes and reads JSON data to and from a file.
-- `parsers.go` to handle parsing **key=value** pairs from the command line string entered by a user.
-- `types.go` to declare common types such as **ConfigurationSettings**.
-
 `src/handlers`:
 - The `handlers.go` file initializes a map of function pointers. All functions must take the same list and types of parameters.
 - Update `g_handlers` to add a new row with a command string and function pointer.
@@ -337,6 +332,9 @@ return errors and let the higher level user interface print messages. Logging is
 
 `src/kmipapi`:
 - A Go interface for executing various versions of KMIP commands.
+- `config.go` to **Store** and **Restore** the configuration settings file - writes and reads JSON data to and from a file.
+- `parsers.go` to handle parsing **key=value** pairs from the command line string entered by a user.
+- `types.go` to declare common types such as **ConfigurationSettings**.
 - `kmipservice.go` is used to extract a pointer the correct KMIP protocol version instantiation.
 - `clientops.go` contains the Request and Response message definitions for all supported KMIP operations.
 - `clientapi.go` contains all of the KMS and KMIP functions needed for KMIP operations. These are called by the handlers.

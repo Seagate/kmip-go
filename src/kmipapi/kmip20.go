@@ -10,13 +10,12 @@ import (
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
 	"github.com/Seagate/kmip-go/kmip20"
-	"github.com/Seagate/kmip-go/src/common"
 	"github.com/Seagate/kmip-go/ttlv"
 	"k8s.io/klog/v2"
 )
 
 // Discover: Send a KMIP OperationDiscoverVersion message
-func (kmips *kmip20service) Discover(ctx context.Context, settings *common.ConfigurationSettings, req *DiscoverRequest) (*DiscoverResponse, error) {
+func (kmips *kmip20service) Discover(ctx context.Context, settings *ConfigurationSettings, req *DiscoverRequest) (*DiscoverResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== kmips discover ======")
 
@@ -44,7 +43,7 @@ func (kmips *kmip20service) Discover(ctx context.Context, settings *common.Confi
 }
 
 // Query: Retrieve info about KMIP server
-func (kmips *kmip20service) Query(ctx context.Context, settings *common.ConfigurationSettings, req *QueryRequest) (*QueryResponse, error) {
+func (kmips *kmip20service) Query(ctx context.Context, settings *ConfigurationSettings, req *QueryRequest) (*QueryResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== query server ======", "id", req.Id)
 
@@ -86,7 +85,7 @@ func (kmips *kmip20service) Query(ctx context.Context, settings *common.Configur
 }
 
 // CreateKey: Send a KMIP OperationCreate message
-func (kmips *kmip20service) CreateKey(ctx context.Context, settings *common.ConfigurationSettings, req *CreateKeyRequest) (*CreateKeyResponse, error) {
+func (kmips *kmip20service) CreateKey(ctx context.Context, settings *ConfigurationSettings, req *CreateKeyRequest) (*CreateKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 
 	type createReqAttrs struct {
@@ -136,7 +135,7 @@ func (kmips *kmip20service) CreateKey(ctx context.Context, settings *common.Conf
 }
 
 // GetKey: Send a KMIP OperationGet message to retrieve key material based on a uid
-func (kmips *kmip20service) GetKey(ctx context.Context, settings *common.ConfigurationSettings, req *GetKeyRequest) (*GetKeyResponse, error) {
+func (kmips *kmip20service) GetKey(ctx context.Context, settings *ConfigurationSettings, req *GetKeyRequest) (*GetKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== get key ======", "uid", req.UniqueIdentifier)
 
@@ -200,7 +199,7 @@ func (kmips *kmip20service) GetKey(ctx context.Context, settings *common.Configu
 }
 
 // DestroyKey:
-func (kmips *kmip20service) DestroyKey(ctx context.Context, settings *common.ConfigurationSettings, req *DestroyKeyRequest) (*DestroyKeyResponse, error) {
+func (kmips *kmip20service) DestroyKey(ctx context.Context, settings *ConfigurationSettings, req *DestroyKeyRequest) (*DestroyKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== destroy key ======", "uid", req.UniqueIdentifier)
 
@@ -232,7 +231,7 @@ func (kmips *kmip20service) DestroyKey(ctx context.Context, settings *common.Con
 }
 
 // ActivateKey:
-func (kmips *kmip20service) ActivateKey(ctx context.Context, settings *common.ConfigurationSettings, req *ActivateKeyRequest) (*ActivateKeyResponse, error) {
+func (kmips *kmip20service) ActivateKey(ctx context.Context, settings *ConfigurationSettings, req *ActivateKeyRequest) (*ActivateKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== activate key ======", "uid", req.UniqueIdentifier)
 
@@ -264,7 +263,7 @@ func (kmips *kmip20service) ActivateKey(ctx context.Context, settings *common.Co
 }
 
 // RevokeKey:
-func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *common.ConfigurationSettings, req *RevokeKeyRequest) (*RevokeKeyResponse, error) {
+func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *ConfigurationSettings, req *RevokeKeyRequest) (*RevokeKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== revoke key ======", "uid", req.UniqueIdentifier)
 
@@ -299,12 +298,12 @@ func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *common.Conf
 }
 
 // Register:
-func (kmips *kmip20service) Register(ctx context.Context, settings *common.ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
+func (kmips *kmip20service) Register(ctx context.Context, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
 	return &RegisterResponse{}, fmt.Errorf("ERROR command is not implemented")
 }
 
 // Locate:
-func (kmips *kmip20service) Locate(ctx context.Context, settings *common.ConfigurationSettings, req *LocateRequest) (*LocateResponse, error) {
+func (kmips *kmip20service) Locate(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) (*LocateResponse, error) {
 	type createReqAttrs struct {
 		Name kmip.Name
 	}
@@ -341,7 +340,7 @@ func (kmips *kmip20service) Locate(ctx context.Context, settings *common.Configu
 }
 
 // SetAttribute:
-func (kmips *kmip20service) SetAttribute(ctx context.Context, settings *common.ConfigurationSettings, req *SetAttributeRequest) (*SetAttributeResponse, error) {
+func (kmips *kmip20service) SetAttribute(ctx context.Context, settings *ConfigurationSettings, req *SetAttributeRequest) (*SetAttributeResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== set attribute ======", "uid", req.UniqueIdentifier, "value", req.AttributeValue)
 
@@ -374,7 +373,7 @@ func (kmips *kmip20service) SetAttribute(ctx context.Context, settings *common.C
 }
 
 // ReKey:
-func (kmips *kmip20service) ReKey(ctx context.Context, settings *common.ConfigurationSettings, req *ReKeyRequest) (*ReKeyResponse, error) {
+func (kmips *kmip20service) ReKey(ctx context.Context, settings *ConfigurationSettings, req *ReKeyRequest) (*ReKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== rekey ======", "uid", req.UniqueIdentifier)
 

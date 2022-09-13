@@ -10,14 +10,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Seagate/kmip-go/src/common"
 	"github.com/Seagate/kmip-go/src/kmipapi"
 	"github.com/fatih/color"
 	"k8s.io/klog/v2"
 )
 
 // Env: usage 'env' to display all configuration settings
-func Env(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+func Env(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Env:", "line", line)
 
@@ -51,16 +50,16 @@ func Env(ctx context.Context, settings *common.ConfigurationSettings, line strin
 }
 
 // Version: usage 'version [major=<value>] [minor=<value>]' to set KMIP protocol version
-func Version(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+func Version(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Version:", "line", line)
 
-	major := common.GetValue(line, "major")
+	major := kmipapi.GetValue(line, "major")
 	if major == "" {
 		major = "1"
 	}
 
-	minor := common.GetValue(line, "minor")
+	minor := kmipapi.GetValue(line, "minor")
 	if minor == "" {
 		minor = "4"
 	}
@@ -75,11 +74,11 @@ func Version(ctx context.Context, settings *common.ConfigurationSettings, line s
 	}
 
 	fmt.Printf("kmip protocol version %s.%s\n", major, minor)
-	common.Store(ctx, settings)
+	kmipapi.Store(ctx, settings)
 }
 
 // Certs: usage 'certs [ca=<value>] [key=<value>] [cert=<value>]' to set certificate PEM files
-func Certs(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+func Certs(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Certs:", "line", line)
 
@@ -87,7 +86,7 @@ func Certs(ctx context.Context, settings *common.ConfigurationSettings, line str
 	keys := [3]string{"ca", "key", "cert"}
 
 	for _, key := range keys {
-		value := common.GetValue(line, key)
+		value := kmipapi.GetValue(line, key)
 		if value != "" {
 			switch key {
 			case "ca":
@@ -107,16 +106,16 @@ func Certs(ctx context.Context, settings *common.ConfigurationSettings, line str
 	}
 
 	if updated {
-		common.Store(ctx, settings)
+		kmipapi.Store(ctx, settings)
 	}
 }
 
 // Run: usage 'run file=<value>' to execute all commands in a file
-func Run(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+func Run(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Run:", "line", line)
 
-	filename := common.GetValue(line, "file")
+	filename := kmipapi.GetValue(line, "file")
 
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
 		fmt.Printf("File (%s) does not exist\n", filename)
@@ -142,48 +141,48 @@ func Run(ctx context.Context, settings *common.ConfigurationSettings, line strin
 }
 
 // Set: usage 'set [level=<value>] [ip=<value>] [port=<value>] [name=<value>]' to change a configuration setting
-func Set(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+func Set(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Set:", "line", line)
 
 	// set the log level
-	level := common.GetValue(line, "level")
+	level := kmipapi.GetValue(line, "level")
 	if level != "" {
 		flag.Lookup("v").Value.Set(level)
 	}
 
 	// set the KMS Server name
-	name := common.GetValue(line, "name")
+	name := kmipapi.GetValue(line, "name")
 	if name != "" {
 		settings.KmsServerName = name
 		fmt.Printf("KmsServerName set to: %s\n", name)
 	}
 
 	// set the KMS Server IP Address
-	ip := common.GetValue(line, "ip")
+	ip := kmipapi.GetValue(line, "ip")
 	if ip != "" {
 		settings.KmsServerIp = ip
 		fmt.Printf("KmsServerIp set to: %s\n", ip)
 	}
 
 	// set the KMS Server Port
-	port := common.GetValue(line, "port")
+	port := kmipapi.GetValue(line, "port")
 	if port != "" {
 		settings.KmsServerPort = port
 		fmt.Printf("KmsServerPort set to: %s\n", port)
 	}
 
-	common.Store(ctx, settings)
+	kmipapi.Store(ctx, settings)
 }
 
 // Load: usage 'load file=<value>' to load configuration settings from a file
-func Load(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+func Load(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Load:", "line", line)
 
-	filename := common.GetValue(line, "file")
+	filename := kmipapi.GetValue(line, "file")
 	if filename != "" {
-		err := common.Restore(ctx, settings, filename)
+		err := kmipapi.Restore(ctx, settings, filename)
 		if err == nil {
 			settings.SettingsFile = filename
 			fmt.Printf("configuration settings read from (%s)\n", settings.SettingsFile)

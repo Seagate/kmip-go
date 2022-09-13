@@ -6,23 +6,22 @@ import (
 	"strconv"
 
 	"github.com/Seagate/kmip-go"
-	"github.com/Seagate/kmip-go/src/common"
 	"github.com/Seagate/kmip-go/src/kmipapi"
 	"k8s.io/klog/v2"
 )
 
 // Open: Read PEM files and establish a TLS connection with the KMS server
-func Open(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+func Open(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Open:", "line", line)
 
 	// Read command line arguments
-	ip := common.GetValue(line, "ip")
+	ip := kmipapi.GetValue(line, "ip")
 	if ip != "" {
 		settings.KmsServerIp = ip
 		fmt.Printf("KmsServerIp set to: %s\n", ip)
 	}
-	port := common.GetValue(line, "port")
+	port := kmipapi.GetValue(line, "port")
 	if port != "" {
 		settings.KmsServerPort = port
 		fmt.Printf("KmsServerPort set to: %s\n", port)
@@ -38,7 +37,7 @@ func Open(ctx context.Context, settings *common.ConfigurationSettings, line stri
 }
 
 // Close: Close the TLS connection
-func Close(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+func Close(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Close:", "line", line)
 
@@ -51,13 +50,13 @@ func Close(ctx context.Context, settings *common.ConfigurationSettings, line str
 }
 
 // Discover: Discover versions supported by a KMS Server
-func Discover(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+func Discover(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Discover:", "line", line)
 
 	// Read command line arguments
-	major := common.GetValue(line, "major")
-	minor := common.GetValue(line, "minor")
+	major := kmipapi.GetValue(line, "major")
+	minor := kmipapi.GetValue(line, "minor")
 
 	versions := []kmip.ProtocolVersion{}
 
@@ -76,12 +75,12 @@ func Discover(ctx context.Context, settings *common.ConfigurationSettings, line 
 }
 
 // Query: Query the KMS Server with a specified operation
-func Query(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+func Query(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Query:", "line", line)
 
 	// Read command line arguments
-	operation := common.GetValue(line, "op")
+	operation := kmipapi.GetValue(line, "op")
 
 	results, err := kmipapi.QueryServer(ctx, settings, operation)
 	if err == nil {
