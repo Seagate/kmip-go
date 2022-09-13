@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Seagate/kmip-go/src/common"
+	"github.com/Seagate/kmip-go/src/kmipapi"
 	"github.com/fatih/color"
 	"k8s.io/klog/v2"
 )
 
-func Help(ctx context.Context, settings *common.ConfigurationSettings, line string) {
+func Help(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Help:", "line", line)
 

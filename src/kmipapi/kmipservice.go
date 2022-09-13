@@ -5,22 +5,20 @@ package kmipapi
 import (
 	"context"
 	"errors"
-
-	"github.com/Seagate/kmip-go/src/common"
 )
 
 type KMIPOperations interface {
-	CreateKey(context.Context, *common.ConfigurationSettings, *CreateKeyRequest) (*CreateKeyResponse, error)
-	GetKey(context.Context, *common.ConfigurationSettings, *GetKeyRequest) (*GetKeyResponse, error)
-	DestroyKey(context.Context, *common.ConfigurationSettings, *DestroyKeyRequest) (*DestroyKeyResponse, error)
-	ActivateKey(context.Context, *common.ConfigurationSettings, *ActivateKeyRequest) (*ActivateKeyResponse, error)
-	RevokeKey(context.Context, *common.ConfigurationSettings, *RevokeKeyRequest) (*RevokeKeyResponse, error)
-	Register(context.Context, *common.ConfigurationSettings, *RegisterRequest) (*RegisterResponse, error)
-	Locate(context.Context, *common.ConfigurationSettings, *LocateRequest) (*LocateResponse, error)
-	Query(context.Context, *common.ConfigurationSettings, *QueryRequest) (*QueryResponse, error)
-	SetAttribute(context.Context, *common.ConfigurationSettings, *SetAttributeRequest) (*SetAttributeResponse, error)
-	Discover(context.Context, *common.ConfigurationSettings, *DiscoverRequest) (*DiscoverResponse, error)
-	ReKey(context.Context, *common.ConfigurationSettings, *ReKeyRequest) (*ReKeyResponse, error)
+	CreateKey(context.Context, *ConfigurationSettings, *CreateKeyRequest) (*CreateKeyResponse, error)
+	GetKey(context.Context, *ConfigurationSettings, *GetKeyRequest) (*GetKeyResponse, error)
+	DestroyKey(context.Context, *ConfigurationSettings, *DestroyKeyRequest) (*DestroyKeyResponse, error)
+	ActivateKey(context.Context, *ConfigurationSettings, *ActivateKeyRequest) (*ActivateKeyResponse, error)
+	RevokeKey(context.Context, *ConfigurationSettings, *RevokeKeyRequest) (*RevokeKeyResponse, error)
+	Register(context.Context, *ConfigurationSettings, *RegisterRequest) (*RegisterResponse, error)
+	Locate(context.Context, *ConfigurationSettings, *LocateRequest) (*LocateResponse, error)
+	Query(context.Context, *ConfigurationSettings, *QueryRequest) (*QueryResponse, error)
+	SetAttribute(context.Context, *ConfigurationSettings, *SetAttributeRequest) (*SetAttributeResponse, error)
+	Discover(context.Context, *ConfigurationSettings, *DiscoverRequest) (*DiscoverResponse, error)
+	ReKey(context.Context, *ConfigurationSettings, *ReKeyRequest) (*ReKeyResponse, error)
 }
 
 type commonservice struct {

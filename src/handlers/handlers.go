@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Seagate/kmip-go/src/common"
+	"github.com/Seagate/kmip-go/src/kmipapi"
 )
 
-type CommandHandler func(context.Context, *common.ConfigurationSettings, string)
+type CommandHandler func(context.Context, *kmipapi.ConfigurationSettings, string)
 
 var g_handlers map[string]CommandHandler
 
@@ -35,8 +35,8 @@ func Initialize() {
 }
 
 // Execute: execute a handler with the text line
-func Execute(ctx context.Context, settings *common.ConfigurationSettings, line string) {
-	f, ok := g_handlers[common.GetCommand(line)]
+func Execute(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
+	f, ok := g_handlers[kmipapi.GetCommand(line)]
 	if ok {
 		f(ctx, settings, line)
 	} else {

@@ -13,12 +13,11 @@ import (
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
-	"github.com/Seagate/kmip-go/src/common"
 	"k8s.io/klog/v2"
 )
 
 // OpenSession: Read PEM files and establish a TLS connection with the KMS server
-func OpenSession(ctx context.Context, settings *common.ConfigurationSettings) error {
+func OpenSession(ctx context.Context, settings *ConfigurationSettings) error {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Open TLS session", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
 
@@ -81,7 +80,7 @@ func OpenSession(ctx context.Context, settings *common.ConfigurationSettings) er
 }
 
 // CloseSession: Close the TLS connection with the KMS Server
-func CloseSession(ctx context.Context, settings *common.ConfigurationSettings) error {
+func CloseSession(ctx context.Context, settings *ConfigurationSettings) error {
 	logger := klog.FromContext(ctx)
 
 	if settings.Connection != nil {
@@ -97,7 +96,7 @@ func CloseSession(ctx context.Context, settings *common.ConfigurationSettings) e
 }
 
 // Discover: Perform a discover operation to retrieve KMIP protocol versions supported.
-func DiscoverServer(ctx context.Context, settings *common.ConfigurationSettings, clientVersions []kmip.ProtocolVersion) ([]kmip.ProtocolVersion, error) {
+func DiscoverServer(ctx context.Context, settings *ConfigurationSettings, clientVersions []kmip.ProtocolVersion) ([]kmip.ProtocolVersion, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("   ++ discover server", "clientVersions", clientVersions)
 
@@ -125,7 +124,7 @@ func DiscoverServer(ctx context.Context, settings *common.ConfigurationSettings,
 }
 
 // QueryServer: Perform a query operation.
-func QueryServer(ctx context.Context, settings *common.ConfigurationSettings, operation string) (string, error) {
+func QueryServer(ctx context.Context, settings *ConfigurationSettings, operation string) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("   ++ querying server", "operation", operation)
 
@@ -159,7 +158,7 @@ func QueryServer(ctx context.Context, settings *common.ConfigurationSettings, op
 }
 
 // CreateKey: Create a unique identifier for a id and return that uid
-func CreateKey(ctx context.Context, settings *common.ConfigurationSettings, id string) (string, error) {
+func CreateKey(ctx context.Context, settings *ConfigurationSettings, id string) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ create key", "id", id)
 
@@ -190,7 +189,7 @@ func CreateKey(ctx context.Context, settings *common.ConfigurationSettings, id s
 }
 
 // ActivateKey: Activate a key created using a unique identifier
-func ActivateKey(ctx context.Context, settings *common.ConfigurationSettings, uid string) (string, error) {
+func ActivateKey(ctx context.Context, settings *ConfigurationSettings, uid string) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ activate key", "uid", uid)
 
@@ -216,7 +215,7 @@ func ActivateKey(ctx context.Context, settings *common.ConfigurationSettings, ui
 }
 
 // GetKey: Retrieve a key for a specified UID
-func GetKey(ctx context.Context, settings *common.ConfigurationSettings, uid string) (key string, err error) {
+func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (key string, err error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ get key", "uid", uid)
 
@@ -243,7 +242,7 @@ func GetKey(ctx context.Context, settings *common.ConfigurationSettings, uid str
 }
 
 // LocateUid: retrieve a UID for a ID
-func LocateUid(ctx context.Context, settings *common.ConfigurationSettings, id string) (string, error) {
+func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ locate uid", "id", id)
 
@@ -269,7 +268,7 @@ func LocateUid(ctx context.Context, settings *common.ConfigurationSettings, id s
 }
 
 // RevokeKey: revoke a key based on UID
-func RevokeKey(ctx context.Context, settings *common.ConfigurationSettings, uid string, reason uint32) (string, error) {
+func RevokeKey(ctx context.Context, settings *ConfigurationSettings, uid string, reason uint32) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ revoke key", "uid", uid)
 
@@ -296,7 +295,7 @@ func RevokeKey(ctx context.Context, settings *common.ConfigurationSettings, uid 
 }
 
 // DestroyKey: destroy a key based on UID
-func DestroyKey(ctx context.Context, settings *common.ConfigurationSettings, uid string) (string, error) {
+func DestroyKey(ctx context.Context, settings *ConfigurationSettings, uid string) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ destroy key", "uid", uid)
 
