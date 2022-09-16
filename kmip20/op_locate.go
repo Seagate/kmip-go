@@ -17,7 +17,7 @@ type LocateRequestPayload struct {
 // Table 230
 
 type LocateResponsePayload struct {
-	UniqueIdentifier string
+	UniqueIdentifier []string
 }
 
 type LocateHandler struct {
