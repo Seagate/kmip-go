@@ -301,8 +301,15 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
 
-	uid := respPayload.UniqueIdentifier
+	logger.V(4).Info("XXX Locate response payload", "respPayload", respPayload)
+
+	uids := respPayload.UniqueIdentifier
 	logger.V(4).Info("XXX Locate response payload", "uid", respPayload.UniqueIdentifier)
+
+	uid := ""
+	if len(uids) > 0 {
+		uid = uids[0]
+	}
 
 	return &LocateResponse{UniqueIdentifier: uid}, nil
 }
