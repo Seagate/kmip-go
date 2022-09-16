@@ -48,4 +48,6 @@ func Help(ctx context.Context, settings *kmipapi.ConfigurationSettings, line str
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("locate"), col2, options("id=<value>"), comment("// locate a uid based on a id"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("revoke"), col2, options("uid=<value>"), comment("// revoke a key based on a uid"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("destroy"), col2, options("uid=<value>"), comment("// destroy a key based on a uid"))
+
+	fmt.Printf("  %*s  %-*s  %s\n", col1, command("register"), col2, options("type=<value> value=<value>"), comment("// Register a new value"))
 }

@@ -89,3 +89,27 @@ func Query(ctx context.Context, settings *kmipapi.ConfigurationSettings, line st
 		fmt.Printf("Query failed, error: %v\n", err)
 	}
 }
+
+// Register:
+func Register(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("Register:", "line", line)
+
+	// Read command line arguments
+	typestr := kmipapi.GetValue(line, "type")
+	if typestr != "" {
+		fmt.Printf("type set to: %s\n", typestr)
+	}
+	value := kmipapi.GetValue(line, "value")
+	if value != "" {
+		fmt.Printf("value set to: %s\n", value)
+	}
+
+	// // Execute the Register command
+	// err := kmipapi.Register(ctx, typestr, value)
+	// if err == nil {
+	// 	fmt.Printf("Register passed\n")
+	// } else {
+	// 	fmt.Printf("Register failed, error: %v\n", err)
+	// }
+}
