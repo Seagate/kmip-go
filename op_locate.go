@@ -19,8 +19,8 @@ type LocateRequestPayload struct {
 // Table 191
 
 type LocateResponsePayload struct {
-	LocatedItems     uint32 // Required: No
-	UniqueIdentifier string // Required: No
+	LocatedItems     uint32   // Required: No
+	UniqueIdentifier []string // Required: No
 }
 
 type LocateHandler struct {
