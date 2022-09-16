@@ -139,7 +139,6 @@ func QueryServer(ctx context.Context, settings *ConfigurationSettings, operation
 	}
 
 	kmipResp, err := kmipops.Query(ctx, settings, &req)
-
 	if err != nil {
 		return "", fmt.Errorf("failed to query server using (%s), err: %v", settings.ServiceType, err)
 	}
@@ -315,6 +314,56 @@ func DestroyKey(ctx context.Context, settings *ConfigurationSettings, uid string
 
 	if kmipResp == nil {
 		return "", errors.New("failed to destroy key, KMIP response was nil")
+	}
+
+	return kmipResp.UniqueIdentifier, nil
+}
+
+// SetAttribute: Set an attribute name and value for an uid
+func SetAttribute(ctx context.Context, settings *ConfigurationSettings, uid, attributeName, attributeValue string) (string, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("++ set attribute", "uid", uid, "name", attributeName, "value", attributeValue)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return uid, fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	req := SetAttributeRequest{
+		UniqueIdentifier: uid,
+		AttributeName:    attributeName,
+		AttributeValue:   attributeValue,
+	}
+
+	kmipResp, err := kmipops.SetAttribute(ctx, settings, &req)
+	if err != nil {
+		return uid, fmt.Errorf("failed to set attribute for uid (%s), err: %v", uid, err)
+	}
+
+	return kmipResp.UniqueIdentifier, nil
+}
+
+// ReKey: Assign a new KMIP key for a uid
+func ReKey(ctx context.Context, settings *ConfigurationSettings, uid string) (string, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("++ rekey", "uid", uid)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	req := ReKeyRequest{
+		UniqueIdentifier: uid,
+	}
+
+	kmipResp, err := kmipops.ReKey(ctx, settings, &req)
+	if err != nil {
+		return "", fmt.Errorf("failed to rekey using uid (%s), err: %v", uid, err)
+	}
+
+	if kmipResp == nil {
+		return "", errors.New("failed to rekey, KMIP Response was null")
 	}
 
 	return kmipResp.UniqueIdentifier, nil

@@ -31,6 +31,7 @@ func Initialize() {
 		"locate":   LocateKey,
 		"revoke":   RevokeKey,
 		"destroy":  DestroyKey,
+		"register": Register,
 	}
 }
 
