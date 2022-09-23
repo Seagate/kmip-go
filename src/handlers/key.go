@@ -136,3 +136,67 @@ func DestroyKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, li
 
 	fmt.Printf("destroy key succeeded for uid (%s)\n", uid)
 }
+
+// Register:
+func Register(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("Register:", "line", line)
+
+	// Read command line arguments
+	keymaterial := kmipapi.GetValue(line, "keymaterial")
+	if keymaterial == "" {
+		fmt.Printf("register key failed for keymaterial = nil")
+	}
+	keyformat := kmipapi.GetValue(line, "keyformat")  // example: opaque
+	if keyformat == "" {
+		fmt.Printf("keyformat set to: %s\n", keyformat)
+	}
+	attribname1 := kmipapi.GetValue(line, "attribname1")
+	if attribname1 != "" {
+		fmt.Printf("attribname1 set to: %s\n", attribname1)
+	}
+	attribvalue1 := kmipapi.GetValue(line, "attribvalue1")
+	if attribvalue1 != "" {
+		fmt.Printf("attribvalue1 set to: %s\n", attribvalue1)
+	}
+	attribname2 := kmipapi.GetValue(line, "attribname2")
+	if attribname1 != "" {
+		fmt.Printf("attribname2 set to: %s\n", attribname2)
+	}
+	attribvalue2 := kmipapi.GetValue(line, "attribvalue2")
+	if attribvalue2 != "" {
+		fmt.Printf("attribvalue2 set to: %s\n", attribvalue2)
+	}
+	attribname3 := kmipapi.GetValue(line, "attribname3")
+	if attribname3 != "" {
+		fmt.Printf("attribname3 set to: %s\n", attribname3)
+	}
+	attribvalue3 := kmipapi.GetValue(line, "attribvalue3")
+	if attribvalue3 != "" {
+		fmt.Printf("attribvalue3 set to: %s\n", attribvalue3)
+	}
+	attribname4 := kmipapi.GetValue(line, "attribname4")
+	if attribname4 != "" {
+		fmt.Printf("attribname4 set to: %s\n", attribname4)
+	}
+	attribvalue4 := kmipapi.GetValue(line, "attribvalue4")
+	if attribvalue4 != "" {
+		fmt.Printf("attribvalue4 set to: %s\n", attribvalue4)
+	}
+	objtype := kmipapi.GetValue(line, "objtype")    // example: secretdata
+	if objtype != "" {
+		fmt.Printf("objtype set to: %s\n", objtype)
+	}
+	name := kmipapi.GetValue(line, "name")    
+	if name != "" {
+		fmt.Printf("name set to: %s\n", name)
+	}
+
+	// Execute the Register command
+	uid, err := kmipapi.RegisterKey(ctx, settings, value)
+	if err != nil {
+		fmt.Printf("register key failed with error: %v\n", err)
+		return
+	}
+	fmt.Printf("register key succeeded for uid (%s)\n", uid)
+}
