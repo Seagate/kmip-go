@@ -298,8 +298,8 @@ func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *Configurati
 }
 
 // Register:
-func (kmips *kmip20service) Register(ctx context.Context, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
-	return &RegisterResponse{}, fmt.Errorf("ERROR command is not implemented")
+func (kmips *kmip20service) RegisterKey(ctx context.Context, settings *ConfigurationSettings, req *RegisterKeyRequest) (*RegisterKeyResponse, error) {
+	return &RegisterKeyResponse{}, fmt.Errorf("ERROR command is not implemented")
 }
 
 // Locate:

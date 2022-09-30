@@ -138,7 +138,7 @@ func DestroyKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, li
 }
 
 // Register:
-func Register(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
+func RegisterKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("Register:", "line", line)
 
@@ -147,7 +147,8 @@ func Register(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 	if keymaterial == "" {
 		fmt.Printf("register key failed for keymaterial = nil")
 	}
-	keyformat := kmipapi.GetValue(line, "keyformat")  // example: opaque
+	fmt.Printf("register keym (%s)\n", keymaterial)
+	keyformat := kmipapi.GetValue(line, "keyformat") // example: opaque
 	if keyformat == "" {
 		fmt.Printf("keyformat set to: %s\n", keyformat)
 	}
@@ -183,17 +184,17 @@ func Register(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 	if attribvalue4 != "" {
 		fmt.Printf("attribvalue4 set to: %s\n", attribvalue4)
 	}
-	objtype := kmipapi.GetValue(line, "objtype")    // example: secretdata
+	objtype := kmipapi.GetValue(line, "objtype") // example: secretdata
 	if objtype != "" {
 		fmt.Printf("objtype set to: %s\n", objtype)
 	}
-	name := kmipapi.GetValue(line, "name")    
+	name := kmipapi.GetValue(line, "name")
 	if name != "" {
 		fmt.Printf("name set to: %s\n", name)
 	}
 
 	// Execute the Register command
-	uid, err := kmipapi.RegisterKey(ctx, settings, value)
+	uid, err := kmipapi.RegisterKey(ctx, settings, keymaterial, keyformat, attribname1, attribvalue1, attribname2, attribvalue2, attribname3, attribvalue3, attribname4, attribvalue4, objtype, name)
 	if err != nil {
 		fmt.Printf("register key failed with error: %v\n", err)
 		return

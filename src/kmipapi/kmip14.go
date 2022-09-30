@@ -169,14 +169,32 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 		UniqueIdentifier: respPayload.UniqueIdentifier,
 	}
 
-	if respPayload.SymmetricKey != nil {
-		if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
-			if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
-				// convert byes to an encoded string
-				response.KeyValue = hex.EncodeToString(bytes)
-			} else {
-				// No bytes to to encode
-				response.KeyValue = ""
+	if response.Type == kmip14.ObjectTypeSymmetricKey {
+		if respPayload.SymmetricKey != nil {
+			if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
+				if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
+					// convert byes to an encoded string
+					response.KeyValue = hex.EncodeToString(bytes)
+				} else {
+					// No bytes to to encode
+					response.KeyValue = ""
+				}
+			}
+		}
+	}
+
+	if response.Type == kmip14.ObjectTypeSecretData {
+		if response.Type == kmip14.ObjectTypeSecretData {
+			if respPayload.SecretData != nil {
+				if respPayload.SecretData.KeyBlock.KeyValue != nil {
+					if bytes, ok := respPayload.SecretData.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
+						// convert byes to an encoded string
+						response.KeyValue = hex.EncodeToString(bytes)
+					} else {
+						// No bytes to to encode
+						response.KeyValue = ""
+					}
+				}
 			}
 		}
 	}
@@ -270,9 +288,77 @@ func (kmips *kmip14service) RevokeKey(ctx context.Context, settings *Configurati
 	return &RevokeKeyResponse{UniqueIdentifier: uid}, nil
 }
 
-// Register: Not Implemented
-func (kmips *kmip14service) Register(ctx context.Context, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
-	return &RegisterResponse{}, fmt.Errorf("command is not implemented")
+// Register: Register a key
+func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *ConfigurationSettings, req *RegisterKeyRequest) (*RegisterKeyResponse, error) {
+
+	logger := klog.FromContext(ctx)
+	logger.V(4).Info("====== register key ======")
+
+	var err error
+	var decoder *ttlv.Decoder
+	var item *kmip.ResponseBatchItem
+
+	//newkey := hex.EncodeToString([]byte(req.KeyMaterial))
+	newkey := []byte(req.KeyMaterial)
+
+	payload := kmip.RegisterRequestPayload{
+		ObjectType: kmip14.ObjectTypeSecretData,
+		SecretData: &kmip.SecretData{
+			SecretDataType: kmip14.SecretDataTypePassword,
+			KeyBlock: kmip.KeyBlock{
+				KeyFormatType: kmip14.KeyFormatTypeOpaque,
+				KeyValue: &kmip.KeyValue{
+					KeyMaterial: newkey,
+				},
+			},
+		},
+	}
+
+	// **** temporarily comment out below so cmd can passed in Fornetix ****
+	//payload.TemplateAttribute.Append(kmip14.TagObjectGroup, "SASED-M-2-14-group")
+
+	payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+		AttributeName:  "x-CustomAttribute1",
+		AttributeValue: "CustomValue1",
+	})
+	payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+		AttributeName:  "x-CustomAttribute2",
+		AttributeValue: "CustomValue2",
+	})
+	payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+		AttributeName:  "x-CustomAttribute3",
+		AttributeValue: "CustomValue3",
+	})
+	payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+		AttributeName:  "x-CustomAttribute4",
+		AttributeValue: "CustomValue4",
+	})
+
+	payload.TemplateAttribute.Append(kmip14.TagName, kmip.Name{
+		NameValue: "SASED-M-2-14-name",
+		NameType:  kmip14.NameTypeUninterpretedTextString,
+	})
+
+	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationRegister), &payload)
+
+	if err != nil {
+		logger.Error(err, "The call to SendRequestMessage failed")
+		return nil, err
+	}
+
+	// Extract the RegisterResponsePayload type of message
+	var respPayload kmip.RegisterResponsePayload
+	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+
+	if err != nil {
+		logger.Error(err, "register key decode value failed")
+		return nil, fmt.Errorf("register key decode value failed, error:%v", err)
+	}
+
+	uid := respPayload.UniqueIdentifier
+	logger.V(4).Info("register key success", "uid", uid)
+
+	return &RegisterKeyResponse{UniqueIdentifier: uid}, nil
 }
 
 // Locate:

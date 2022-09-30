@@ -240,6 +240,33 @@ func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (k
 	return kmipResp.KeyValue, nil
 }
 
+// RegisterKey: Register a key
+func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymaterial string, keyformat string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string, attribname3 string, attribvalue3 string, attribname4 string, attribvalue4 string, objtype string, name string) (string, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("++ register key ", "keymaterial", keymaterial)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+	fmt.Printf("register keym (%s)\n", keymaterial)
+	req := RegisterKeyRequest{
+		KeyMaterial: keymaterial,
+		Name:        name,
+	}
+
+	kmipResp, err := kmipops.RegisterKey(ctx, settings, &req)
+	if err != nil {
+		return "", fmt.Errorf("failed to register using (%s), err: %v", settings.ServiceType, err)
+	}
+
+	if kmipResp == nil {
+		return "", errors.New("failed to register, KMIP Response was null")
+	}
+
+	return kmipResp.UniqueIdentifier, nil
+}
+
 // LocateUid: retrieve a UID for a ID
 func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string) (string, error) {
 	logger := klog.FromContext(ctx)
