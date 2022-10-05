@@ -302,6 +302,10 @@ func (kmips *kmip20service) RegisterKey(ctx context.Context, settings *Configura
 	return &RegisterKeyResponse{}, fmt.Errorf("ERROR command is not implemented")
 }
 
+func (kmips *kmip20service) GetAttribute(ctx context.Context, settings *ConfigurationSettings, req *GetAttributeRequest) (*GetAttributeResponse, error) {
+	return &GetAttributeResponse{}, fmt.Errorf("ERROR command is not implemented")
+}
+
 // Locate:
 func (kmips *kmip20service) Locate(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) (*LocateResponse, error) {
 	type createReqAttrs struct {

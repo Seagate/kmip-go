@@ -201,3 +201,27 @@ func RegisterKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, l
 	}
 	fmt.Printf("register key succeeded for uid (%s)\n", uid)
 }
+
+// GetAttribute: usage 'destroy uid=<value>' to destroy a key based on uid
+func GetAttribute(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("GetAttribute", "line", line)
+
+	uid := kmipapi.GetValue(line, "uid")
+	if uid == "" {
+		fmt.Printf("get attribute uid=value is required, example: get attribute id=6307\n")
+		return
+	}
+	attribname1 := kmipapi.GetValue(line, "attribname1")
+	if attribname1 != "" {
+		fmt.Printf("attribname1 set to: %s\n", attribname1)
+	}
+
+	uid, err := kmipapi.GetAttribute(ctx, settings, uid, attribname1)
+	if err != nil {
+		fmt.Printf("get attribute failed for uid (%s) with error: %v\n", uid, err)
+		return
+	}
+
+	fmt.Printf("get attribute succeeded for uid (%s)\n", uid)
+}

@@ -243,13 +243,13 @@ func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (k
 // RegisterKey: Register a key
 func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymaterial string, keyformat string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string, attribname3 string, attribvalue3 string, attribname4 string, attribvalue4 string, objtype string, name string) (string, error) {
 	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ register key ", "keymaterial", keymaterial)
+	logger.V(2).Info("++ register key ", "name", name)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
 		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
 	}
-	fmt.Printf("register keym (%s)\n", keymaterial)
+
 	req := RegisterKeyRequest{
 		KeyMaterial: keymaterial,
 		Name:        name,
@@ -262,6 +262,33 @@ func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymateri
 
 	if kmipResp == nil {
 		return "", errors.New("failed to register, KMIP Response was null")
+	}
+
+	return kmipResp.UniqueIdentifier, nil
+}
+
+// GetAttribute: Register a key
+func GetAttribute(ctx context.Context, settings *ConfigurationSettings, uid string, attribname1 string) (string, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("++ get attribute ", "uid", uid)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	req := GetAttributeRequest{
+		UniqueIdentifier: uid,
+		AttributeName:    attribname1,
+	}
+
+	kmipResp, err := kmipops.GetAttribute(ctx, settings, &req)
+	if err != nil {
+		return "", fmt.Errorf("failed to get attribute using (%s), err: %v", settings.ServiceType, err)
+	}
+
+	if kmipResp == nil {
+		return "", errors.New("failed to get attribute, KMIP Response was null")
 	}
 
 	return kmipResp.UniqueIdentifier, nil

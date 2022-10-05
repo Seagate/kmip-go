@@ -119,6 +119,18 @@ type RegisterKeyResponse struct {
 	UniqueIdentifier string
 }
 
+type GetAttributeRequest struct {
+	// Contains all attributes of a caller request to revoke a KMIP key.
+	UniqueIdentifier string
+	AttributeName    string
+}
+
+type GetAttributeResponse struct {
+	// Contains all attributes of the revoke key operation that are relevant to the caller.
+	UniqueIdentifier string
+	Attribute        string
+}
+
 type LocateRequest struct {
 	// Contains all attributes of a caller request to revoke a KMIP key.
 	Name string

@@ -361,6 +361,38 @@ func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *Configura
 	return &RegisterKeyResponse{UniqueIdentifier: uid}, nil
 }
 
+// GetAttribute:
+func (kmips *kmip14service) GetAttribute(ctx context.Context, settings *ConfigurationSettings, req *GetAttributeRequest) (*GetAttributeResponse, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(4).Info("====== get attribute ======", "uid", req.UniqueIdentifier)
+
+	payload := kmip.GetAttributesRequestPayload{
+		UniqueIdentifier: req.UniqueIdentifier,
+		AttributeName:    req.AttributeName,
+	}
+
+	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationGetAttributes), &payload)
+	if err != nil {
+		logger.Error(err, "The call to SendRequestMessage failed")
+		return nil, err
+	}
+
+	// Extract the LocateResponsePayload type of message
+	var respPayload kmip.GetAttributesResponsePayload
+	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode GetAttributesResponsePayload, error: %v", err)
+	}
+
+	logger.V(4).Info("XXX GetAttribute response payload", "respPayload", respPayload)
+
+	uid := respPayload.UniqueIdentifier
+	logger.V(4).Info("XXX GetAttribute response payload", "uid", respPayload.UniqueIdentifier)
+
+	return &GetAttributeResponse{UniqueIdentifier: uid}, nil
+}
+
 // Locate:
 func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) (*LocateResponse, error) {
 	logger := klog.FromContext(ctx)

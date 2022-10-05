@@ -19,6 +19,7 @@ type KMIPOperations interface {
 	SetAttribute(context.Context, *ConfigurationSettings, *SetAttributeRequest) (*SetAttributeResponse, error)
 	Discover(context.Context, *ConfigurationSettings, *DiscoverRequest) (*DiscoverResponse, error)
 	ReKey(context.Context, *ConfigurationSettings, *ReKeyRequest) (*ReKeyResponse, error)
+	GetAttribute(context.Context, *ConfigurationSettings, *GetAttributeRequest) (*GetAttributeResponse, error)
 }
 
 type commonservice struct {
