@@ -124,9 +124,9 @@ func DiscoverServer(ctx context.Context, settings *ConfigurationSettings, client
 }
 
 // QueryServer: Perform a query operation.
-func QueryServer(ctx context.Context, settings *ConfigurationSettings, operation string) (string, error) {
+func QueryServer(ctx context.Context, settings *ConfigurationSettings, queryop []kmip14.QueryFunction) (string, error) {
 	logger := klog.FromContext(ctx)
-	logger.V(2).Info("   ++ querying server", "operation", operation)
+	logger.V(2).Info("   ++ querying server", "queryop", queryop)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -134,8 +134,7 @@ func QueryServer(ctx context.Context, settings *ConfigurationSettings, operation
 	}
 
 	req := QueryRequest{
-		Id:            operation,
-		QueryFunction: kmip14.QueryFunctionQueryOperations,
+		QueryFunction: queryop,
 	}
 
 	kmipResp, err := kmipops.Query(ctx, settings, &req)

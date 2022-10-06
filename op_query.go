@@ -11,14 +11,14 @@ import (
 // Table 259
 
 type QueryRequestPayload struct {
-	QueryFunction kmip14.QueryFunction
+	QueryFunction []kmip14.QueryFunction
 }
 
 // Table 260
 
 type QueryResponsePayload struct {
 	Operation                []kmip14.Operation
-	ObjectType               kmip14.ObjectType
+	ObjectType               []kmip14.ObjectType
 	VendorIdentification     string
 	ServerInformation        string
 	ApplicationNamespace     string

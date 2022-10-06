@@ -148,14 +148,15 @@ const (
 
 type QueryRequest struct {
 	// Contains all attributes of a caller request for a query.
-	QueryFunction kmip14.QueryFunction
+	QueryFunction []kmip14.QueryFunction
 	Id            string
 }
 
 type QueryResponse struct {
 	// Contains all attributes of the query response operation that are relevant to the caller.
-	Operation            []kmip14.Operation `json:"Operation,omitempty"`
-	VendorIdentification string             `json:"Vendor Identification,omitempty"`
+	Operation            []kmip14.Operation  `json:"Operation,omitempty"`
+	ObjectType           []kmip14.ObjectType `json:"Object Type,omitempty"`
+	VendorIdentification string              `json:"Vendor Identification,omitempty"`
 }
 
 type SetAttributeRequest struct {

@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/Seagate/kmip-go"
+	"github.com/Seagate/kmip-go/kmip14"
 	"github.com/Seagate/kmip-go/src/kmipapi"
 	"k8s.io/klog/v2"
 )
@@ -81,8 +83,42 @@ func Query(ctx context.Context, settings *kmipapi.ConfigurationSettings, line st
 
 	// Read command line arguments
 	operation := kmipapi.GetValue(line, "op")
+	opsplit := strings.Split(operation, ",")
+	queryop := []kmip14.QueryFunction{}
 
-	results, err := kmipapi.QueryServer(ctx, settings, operation)
+	for i := range opsplit {
+		switch opsplit[i] {
+		default:
+			logger.V(2).Info("no input for query")
+			break
+		case "1":
+			queryop = append(queryop, kmip14.QueryFunctionQueryOperations)
+		case "2":
+			queryop = append(queryop, kmip14.QueryFunctionQueryObjects)
+		case "3":
+			queryop = append(queryop, kmip14.QueryFunctionQueryServerInformation)
+		case "4":
+			queryop = append(queryop, kmip14.QueryFunctionQueryApplicationNamespaces)
+		case "5":
+			queryop = append(queryop, kmip14.QueryFunctionQueryExtensionList)
+		case "6":
+			queryop = append(queryop, kmip14.QueryFunctionQueryExtensionMap)
+		case "7":
+			queryop = append(queryop, kmip14.QueryFunctionQueryAttestationTypes)
+		case "8":
+			queryop = append(queryop, kmip14.QueryFunctionQueryRNGs)
+		case "9":
+			queryop = append(queryop, kmip14.QueryFunctionQueryValidations)
+		case "a":
+			queryop = append(queryop, kmip14.QueryFunctionQueryProfiles)
+		case "b":
+			queryop = append(queryop, kmip14.QueryFunctionQueryCapabilities)
+		case "c":
+			queryop = append(queryop, kmip14.QueryFunctionQueryClientRegistrationMethods)
+		} 
+	}
+
+	results, err := kmipapi.QueryServer(ctx, settings, queryop)
 	if err == nil {
 		fmt.Printf("Query results: %s\n", results)
 	} else {

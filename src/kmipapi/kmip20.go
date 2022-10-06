@@ -51,18 +51,10 @@ func (kmips *kmip20service) Query(ctx context.Context, settings *ConfigurationSe
 	var decoder *ttlv.Decoder
 	var item *kmip.ResponseBatchItem
 
-	if req.Id == "" || req.Id == QueryOpsOperation {
 		payload := kmip.QueryRequestPayload{
-			QueryFunction: kmip14.QueryFunctionQueryOperations,
+			QueryFunction: req.QueryFunction,
 		}
 		decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload)
-
-	} else if req.Id == QueryOpsServerInfo {
-		payload := kmip.QueryRequestPayload{
-			QueryFunction: kmip14.QueryFunctionQueryServerInformation,
-		}
-		decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload)
-	}
 
 	if err != nil {
 		return nil, err
@@ -71,6 +63,7 @@ func (kmips *kmip20service) Query(ctx context.Context, settings *ConfigurationSe
 	// Extract the QueryResponsePayload type of message
 	var respPayload struct {
 		Operation            []kmip14.Operation
+		ObjectType           []kmip14.ObjectType
 		VendorIdentification string
 	}
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
@@ -81,7 +74,7 @@ func (kmips *kmip20service) Query(ctx context.Context, settings *ConfigurationSe
 
 	logger.V(4).Info("Query", "Payload", respPayload)
 
-	return &QueryResponse{Operation: respPayload.Operation, VendorIdentification: respPayload.VendorIdentification}, nil
+	return &QueryResponse{Operation: respPayload.Operation, ObjectType: respPayload.ObjectType, VendorIdentification: respPayload.VendorIdentification}, nil
 }
 
 // CreateKey: Send a KMIP OperationCreate message
