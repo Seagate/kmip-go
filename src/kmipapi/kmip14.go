@@ -397,6 +397,9 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 	}
 	payload := kmip.LocateRequestPayload{}
 	payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
+	//if req.AttributeName == "ObjectType" {
+	//	payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
+	//}
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationLocate), &payload)
 	if err != nil {

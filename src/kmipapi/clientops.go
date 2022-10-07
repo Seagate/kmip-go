@@ -133,7 +133,9 @@ type GetAttributeResponse struct {
 
 type LocateRequest struct {
 	// Contains all attributes of a caller request to revoke a KMIP key.
-	Name string
+	Name             string
+	AttributeName    string
+	AttributeValue   string
 }
 
 type LocateResponse struct {

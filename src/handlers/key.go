@@ -82,13 +82,21 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 	logger.V(2).Info("LocateKey", "line", line)
 
 	id := kmipapi.GetValue(line, "id")
+	attribname := kmipapi.GetValue(line, "attribname")
+	if attribname != "" {
+		fmt.Printf("attribname1 set to: %s\n", attribname)
+	}
+	attribvalue := kmipapi.GetValue(line, "attribvalue")
+	if attribvalue != "" {
+		fmt.Printf("attribvalue set to: %s\n", attribvalue)
+	}
 
 	if id == "" {
 		fmt.Printf("locate id=value is required, example: locate id=ZAD0YA320000C7300BYS\n")
 		return
 	}
 
-	uid, err := kmipapi.LocateUid(ctx, settings, id)
+	uid, err := kmipapi.LocateUid(ctx, settings, id, attribname, attribvalue)
 	if err != nil {
 		fmt.Printf("locate failed for id (%s) with error: %v\n", id, err)
 		return

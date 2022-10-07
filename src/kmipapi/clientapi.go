@@ -294,7 +294,7 @@ func GetAttribute(ctx context.Context, settings *ConfigurationSettings, uid stri
 }
 
 // LocateUid: retrieve a UID for a ID
-func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string) (string, error) {
+func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string, attribname string, attribvalue string) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ locate uid", "id", id)
 
@@ -305,6 +305,8 @@ func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string) 
 
 	req := LocateRequest{
 		Name: id,
+		AttributeName: attribname,
+		AttributeValue: attribvalue,
 	}
 
 	kmipResp, err := kmipops.Locate(ctx, settings, &req)
