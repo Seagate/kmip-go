@@ -99,6 +99,7 @@ type RegisterKeyRequest struct {
 	Id                     string
 	KeyMaterial            string
 	KeyFormat              string
+	DataType               string
 	AttribName1            string
 	AttribValue1           string
 	AttribName2            string
@@ -107,7 +108,7 @@ type RegisterKeyRequest struct {
 	AttribValue3           string
 	AttribName4            string
 	AttribValue4           string
-	Type                   kmip14.ObjectType
+	Type                   string
 	Name                   string
 	Algorithm              kmip14.CryptographicAlgorithm
 	CryptographicLength    uint32

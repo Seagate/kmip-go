@@ -160,6 +160,10 @@ func RegisterKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, l
 	if keyformat == "" {
 		fmt.Printf("keyformat set to: %s\n", keyformat)
 	}
+	datatype := kmipapi.GetValue(line, "datatype") // example: Password
+	if datatype == "" {
+		fmt.Printf("datatype set to: %s\n", datatype)
+	}
 	attribname1 := kmipapi.GetValue(line, "attribname1")
 	if attribname1 != "" {
 		fmt.Printf("attribname1 set to: %s\n", attribname1)
@@ -202,7 +206,7 @@ func RegisterKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, l
 	}
 
 	// Execute the Register command
-	uid, err := kmipapi.RegisterKey(ctx, settings, keymaterial, keyformat, attribname1, attribvalue1, attribname2, attribvalue2, attribname3, attribvalue3, attribname4, attribvalue4, objtype, name)
+	uid, err := kmipapi.RegisterKey(ctx, settings, keymaterial, keyformat, datatype, attribname1, attribvalue1, attribname2, attribvalue2, attribname3, attribvalue3, attribname4, attribvalue4, objtype, name)
 	if err != nil {
 		fmt.Printf("register key failed with error: %v\n", err)
 		return

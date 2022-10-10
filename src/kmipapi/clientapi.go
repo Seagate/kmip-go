@@ -240,7 +240,7 @@ func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (k
 }
 
 // RegisterKey: Register a key
-func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymaterial string, keyformat string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string, attribname3 string, attribvalue3 string, attribname4 string, attribvalue4 string, objtype string, name string) (string, error) {
+func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymaterial string, keyformat string, datatype string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string, attribname3 string, attribvalue3 string, attribname4 string, attribvalue4 string, objtype string, name string) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ register key ", "name", name)
 
@@ -250,8 +250,19 @@ func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymateri
 	}
 
 	req := RegisterKeyRequest{
-		KeyMaterial: keymaterial,
-		Name:        name,
+		KeyMaterial:  keymaterial,
+		KeyFormat:    keyformat,
+		DataType:     datatype,
+		AttribName1:  attribname1,
+	    AttribValue1: attribvalue1,
+	    AttribName2:  attribname2,
+	    AttribValue2: attribvalue2,
+	    AttribName3:  attribname2,
+	    AttribValue3: attribvalue2,
+	    AttribName4:  attribname2,
+	    AttribValue4: attribvalue2,
+	    Type:         objtype,
+		Name:         name,
 	}
 
 	kmipResp, err := kmipops.RegisterKey(ctx, settings, &req)

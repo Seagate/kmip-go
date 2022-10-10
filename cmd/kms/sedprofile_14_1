@@ -1,0 +1,9 @@
+load file=kms-vaultcore.json
+open
+
+getattribute uid=aa1fa54d-f129-48c2-8958-edc9b48489e5  attribname1=x-CustomAttribute4
+getattribute uid=aa1fa54d-f129-48c2-8958-edc9b48489e5  attribname1=x-CustomAttribute3
+get uid=aa1fa54d-f129-48c2-8958-edc9b48489e5
+destroy uid=aa1fa54d-f129-48c2-8958-edc9b48489e5
+
+close

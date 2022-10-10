@@ -293,44 +293,59 @@ func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *Configura
 
 	//newkey := hex.EncodeToString([]byte(req.KeyMaterial))
 	newkey := []byte(req.KeyMaterial)
+    payload := kmip.RegisterRequestPayload{}
 
-	payload := kmip.RegisterRequestPayload{
-		ObjectType: kmip14.ObjectTypeSecretData,
-		SecretData: &kmip.SecretData{
-			SecretDataType: kmip14.SecretDataTypePassword,
-			KeyBlock: kmip.KeyBlock{
-				KeyFormatType: kmip14.KeyFormatTypeOpaque,
-				KeyValue: &kmip.KeyValue{
-					KeyMaterial: newkey,
+	if req.Type == "SecretData" && req.DataType == "Password" && req.KeyFormat == "Opaque" && req.KeyMaterial != "" {
+		
+		payload = kmip.RegisterRequestPayload{
+			ObjectType: kmip14.ObjectTypeSecretData,
+			SecretData: &kmip.SecretData{
+				SecretDataType: kmip14.SecretDataTypePassword,
+				KeyBlock: kmip.KeyBlock{
+					KeyFormatType: kmip14.KeyFormatTypeOpaque,
+					KeyValue: &kmip.KeyValue{
+						KeyMaterial: newkey,
+					},
 				},
 			},
-		},
+		}
+
+		// **** temporarily comment out below so cmd can passed in Fornetix ****
+		// if req.ObjGrp != "" {
+	    //     payload.TemplateAttribute.Append(kmip14.TagObjectGroup, "SASED-M-2-14-group")
+		// }
+
+		if req.AttribName1 != "" {
+			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+				AttributeName:  req.AttribName1, //"x-CustomAttribute1",
+				AttributeValue: req.AttribValue1, //"CustomValue1",
+			})
+		}
+		if req.AttribName2 != "" {
+			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+				AttributeName:  req.AttribName2, //"x-CustomAttribute2",
+				AttributeValue: req.AttribValue2, //"CustomValue2",
+			})
+		}
+		if req.AttribName3 != "" {
+			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+				AttributeName:  req.AttribName3, //"x-CustomAttribute3",
+				AttributeValue: req.AttribValue3, //"CustomValue3",
+			})
+		}
+		if req.AttribName4 != "" {
+			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+				AttributeName:  req.AttribName4, //"x-CustomAttribute4",
+				AttributeValue: req.AttribValue4, //"CustomValue4",
+			})
+		}
+		if req.Name != "" {
+			payload.TemplateAttribute.Append(kmip14.TagName, kmip.Name{
+				NameValue: req.Name, //"SASED-M-2-14-name",
+				NameType:  kmip14.NameTypeUninterpretedTextString,
+			})
+		}
 	}
-
-	// **** temporarily comment out below so cmd can passed in Fornetix ****
-	//payload.TemplateAttribute.Append(kmip14.TagObjectGroup, "SASED-M-2-14-group")
-
-	payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-		AttributeName:  "x-CustomAttribute1",
-		AttributeValue: "CustomValue1",
-	})
-	payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-		AttributeName:  "x-CustomAttribute2",
-		AttributeValue: "CustomValue2",
-	})
-	payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-		AttributeName:  "x-CustomAttribute3",
-		AttributeValue: "CustomValue3",
-	})
-	payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-		AttributeName:  "x-CustomAttribute4",
-		AttributeValue: "CustomValue4",
-	})
-
-	payload.TemplateAttribute.Append(kmip14.TagName, kmip.Name{
-		NameValue: "SASED-M-2-14-name",
-		NameType:  kmip14.NameTypeUninterpretedTextString,
-	})
 
 	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationRegister), &payload)
 
@@ -397,9 +412,9 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 	}
 	payload := kmip.LocateRequestPayload{}
 	payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
-	//if req.AttributeName == "ObjectType" {
-	//	payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
-	//}
+	if req.AttributeName == "ObjectType" && req.AttributeValue == "SecretData" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
+	}
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationLocate), &payload)
 	if err != nil {
