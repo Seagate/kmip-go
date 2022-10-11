@@ -316,9 +316,10 @@ func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *Configura
 		}
 
 		// **** temporarily comment out below so cmd can passed in Fornetix ****
-		// if req.ObjGrp != "" {
-	    //     payload.TemplateAttribute.Append(kmip14.TagObjectGroup, "SASED-M-2-14-group")
-		// }
+		if req.ObjGrp != "" {
+	        //payload.TemplateAttribute.Append(kmip14.TagObjectGroup, "SASED-M-2-14-group")
+			payload.TemplateAttribute.Append(kmip14.TagObjectGroup, req.ObjGrp)
+		}
 
 		if req.AttribName1 != "" {
 			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
@@ -416,9 +417,12 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	}
 	payload := kmip.LocateRequestPayload{}
-	payload.Attributes = append(payload.Attributes, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
-	if req.AttributeName == "ObjectType" && req.AttributeValue == "SecretData" {
-		payload.Attributes = append(payload.Attributes, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
+	payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
+	if req.AttribName1 == "ObjectGroup" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectGroup, 0, req.AttribValue1))
+	}
+	if req.AttribName2 == "ObjectType" && req.AttribValue2 == "SecretData" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
 	}
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationLocate), &payload)

@@ -100,6 +100,7 @@ type RegisterKeyRequest struct {
 	KeyMaterial            string
 	KeyFormat              string
 	DataType               string
+	ObjGrp                 string
 	AttribName1            string
 	AttribValue1           string
 	AttribName2            string
@@ -135,8 +136,10 @@ type GetAttributeResponse struct {
 type LocateRequest struct {
 	// Contains all attributes of a caller request to revoke a KMIP key.
 	Name             string
-	AttributeName    string
-	AttributeValue   string
+	AttribName1      string
+	AttribValue1     string
+	AttribName2      string
+	AttribValue2     string
 }
 
 type LocateResponse struct {

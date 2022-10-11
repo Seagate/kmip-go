@@ -26,7 +26,7 @@ query op=1,2,3
 locate id=SASED-M-2-14-name attribname=ObjectType attribvalue=SecretData
 register keymaterial=2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a keyformat=Opaque datatype=Password attribname1=x-CustomAttribute1 attribvalue1=CustomValue1 attribname2=x-CustomAttribute2 attribvalue2=CustomValue2 attribname3=x-CustomAttribute3 attribvalue3=CustomValue3 attribname4=x-CustomAttribute4 attribvalue4=CustomValue4 objtype=SecretData name=SASED-M-2-14-name
 
-locate attribname1=ObjectGroup attribvalue1=SASED-M-2-14-group attribname2=ObjectType attribvalue2=SecretData
+locate id=SASED-M-2-14-name attribname=ObjectType attribvalue=SecretData
 getattribute uid=${lastuid}  attribname1=x-CustomAttribute4
 getattribute uid=${lastuid}  attribname1=x-CustomAttribute3
 get uid=${lastuid}

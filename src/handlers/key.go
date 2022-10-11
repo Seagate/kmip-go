@@ -85,13 +85,21 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 	logger.V(2).Info("LocateKey", "line", line)
 
 	id := kmipapi.GetValue(line, "id")
-	attribname := kmipapi.GetValue(line, "attribname")
-	if attribname != "" {
-		fmt.Printf("attribname1 set to: %s\n", attribname)
+	attribname1 := kmipapi.GetValue(line, "attribname1")
+	if attribname1 != "" {
+		fmt.Printf("attribname1 set to: %s\n", attribname1)
 	}
-	attribvalue := kmipapi.GetValue(line, "attribvalue")
-	if attribvalue != "" {
-		fmt.Printf("attribvalue set to: %s\n", attribvalue)
+	attribvalue1 := kmipapi.GetValue(line, "attribvalue1")
+	if attribvalue1 != "" {
+		fmt.Printf("attribvalue1 set to: %s\n", attribvalue1)
+	}
+	attribname2 := kmipapi.GetValue(line, "attribname2")
+	if attribname2 != "" {
+		fmt.Printf("attribname2 set to: %s\n", attribname2)
+	}
+	attribvalue2 := kmipapi.GetValue(line, "attribvalue2")
+	if attribvalue2 != "" {
+		fmt.Printf("attribvalue2 set to: %s\n", attribvalue2)
 	}
 
 	if id == "" {
@@ -99,7 +107,7 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 		return
 	}
 
-	uid, err := kmipapi.LocateUid(ctx, settings, id, attribname, attribvalue)
+	uid, err := kmipapi.LocateUid(ctx, settings, id, attribname1, attribvalue1, attribname2, attribvalue2)
 	if err != nil {
 		fmt.Printf("locate failed for id (%s) with error: %v\n", id, err)
 		return
@@ -164,7 +172,7 @@ func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 
 	success := true
 
-	uid, err := kmipapi.LocateUid(ctx, settings, id, "", "")
+	uid, err := kmipapi.LocateUid(ctx, settings, id, "", "", "", "")
 	if err != nil || uid == "" {
 		fmt.Printf("locate failed for id (%s), uid (%d), error: %v\n", id, uid, err)
 		success = false
@@ -217,6 +225,10 @@ func RegisterKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, l
 	if datatype == "" {
 		fmt.Printf("datatype set to: %s\n", datatype)
 	}
+	objgrp := kmipapi.GetValue(line, "objgrp") // example: Password
+	if objgrp == "" {
+		fmt.Printf("objgrp set to: %s\n", objgrp)
+	}
 	attribname1 := kmipapi.GetValue(line, "attribname1")
 	if attribname1 != "" {
 		fmt.Printf("attribname1 set to: %s\n", attribname1)
@@ -259,7 +271,7 @@ func RegisterKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, l
 	}
 
 	// Execute the Register command
-	uid, err := kmipapi.RegisterKey(ctx, settings, keymaterial, keyformat, datatype, attribname1, attribvalue1, attribname2, attribvalue2, attribname3, attribvalue3, attribname4, attribvalue4, objtype, name)
+	uid, err := kmipapi.RegisterKey(ctx, settings, keymaterial, keyformat, datatype, objgrp, attribname1, attribvalue1, attribname2, attribvalue2, attribname3, attribvalue3, attribname4, attribvalue4, objtype, name)
 	if err != nil {
 		fmt.Printf("register key failed with error: %v\n", err)
 		return

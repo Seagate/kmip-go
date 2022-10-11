@@ -240,7 +240,7 @@ func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (k
 }
 
 // RegisterKey: Register a key
-func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymaterial string, keyformat string, datatype string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string, attribname3 string, attribvalue3 string, attribname4 string, attribvalue4 string, objtype string, name string) (string, error) {
+func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymaterial string, keyformat string, datatype string, objgrp string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string, attribname3 string, attribvalue3 string, attribname4 string, attribvalue4 string, objtype string, name string) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ register key ", "name", name)
 
@@ -253,6 +253,7 @@ func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymateri
 		KeyMaterial:  keymaterial,
 		KeyFormat:    keyformat,
 		DataType:     datatype,
+		ObjGrp:       objgrp,
 		AttribName1:  attribname1,
 	    AttribValue1: attribvalue1,
 	    AttribName2:  attribname2,
@@ -305,7 +306,7 @@ func GetAttribute(ctx context.Context, settings *ConfigurationSettings, uid stri
 }
 
 // LocateUid: retrieve a UID for a ID
-func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string, attribname string, attribvalue string) (string, error) {
+func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ locate uid", "id", id)
 
@@ -316,8 +317,10 @@ func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string, 
 
 	req := LocateRequest{
 		Name: id,
-		AttributeName: attribname,
-		AttributeValue: attribvalue,
+		AttribName1: attribname1,
+		AttribValue1: attribvalue1,
+		AttribName2: attribname2,
+		AttribValue2: attribvalue2,
 	}
 
 	kmipResp, err := kmipops.Locate(ctx, settings, &req)
