@@ -65,7 +65,12 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSe
 		ObjectType               []kmip14.ObjectType
 		VendorIdentification     string
 	}
-	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+
+	if item != nil {
+		err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+	} else {
+		err = fmt.Errorf("query response item is nil")
+	}
 
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode QueryResponsePayload, error: %v", err)
@@ -411,9 +416,9 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	}
 	payload := kmip.LocateRequestPayload{}
-	payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
+	payload.Attributes = append(payload.Attributes, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
 	if req.AttributeName == "ObjectType" && req.AttributeValue == "SecretData" {
-		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
+		payload.Attributes = append(payload.Attributes, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
 	}
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationLocate), &payload)
@@ -432,13 +437,8 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 
 	logger.V(4).Info("XXX Locate response payload", "respPayload", respPayload)
 
-	uids := respPayload.UniqueIdentifier
+	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("XXX Locate response payload", "uid", respPayload.UniqueIdentifier)
-
-	uid := ""
-	if len(uids) > 0 {
-		uid = uids[0]
-	}
 
 	return &LocateResponse{UniqueIdentifier: uid}, nil
 }

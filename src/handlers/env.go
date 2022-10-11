@@ -26,7 +26,9 @@ func Env(ctx context.Context, settings *kmipapi.ConfigurationSettings, line stri
 	col1 := 30
 
 	fmt.Println("")
+	fmt.Printf("  %*s  %-v\n", col1, key("SaveSettingsToFile"), value(settings.SaveSettingsToFile))
 	fmt.Printf("  %*s  %-v\n", col1, key("SettingsFile"), value(settings.SettingsFile))
+	fmt.Printf("  %*s  %-v\n", col1, key("ShowElapsed"), value(settings.ShowElapsed))
 
 	fmt.Println("")
 	if settings.Connection == nil {
@@ -172,6 +174,19 @@ func Set(ctx context.Context, settings *kmipapi.ConfigurationSettings, line stri
 		fmt.Printf("KmsServerPort set to: %s\n", port)
 	}
 
+	// set show elapsed to true|false
+	elapsed := kmipapi.GetValue(line, "elapsed")
+	if elapsed != "" {
+		if strings.EqualFold(elapsed, "true") {
+			settings.ShowElapsed = true
+			fmt.Printf("ShowElapsed set to: %v\n", settings.ShowElapsed)
+		}
+		if strings.EqualFold(elapsed, "false") {
+			settings.ShowElapsed = false
+			fmt.Printf("ShowElapsed set to: %v\n", settings.ShowElapsed)
+		}
+	}
+
 	kmipapi.Store(ctx, settings)
 }
 
@@ -188,4 +203,13 @@ func Load(ctx context.Context, settings *kmipapi.ConfigurationSettings, line str
 			fmt.Printf("configuration settings read from (%s)\n", settings.SettingsFile)
 		}
 	}
+}
+
+// Banner: usage 'banner title=<value>' to print a separator banner with a title
+func Banner(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("Banner:", "line", line)
+
+	title := kmipapi.GetValue(line, "title")
+	fmt.Printf("\n%s %s %s\n\n", strings.Repeat("=", 40), title, strings.Repeat("=", 40))
 }

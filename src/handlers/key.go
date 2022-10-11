@@ -32,6 +32,9 @@ func CreateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 		return
 	}
 
+	// Store the returned uid in ${lastuid} for use in other commands with that variable
+	kmipapi.SetValue(kmipapi.LastUID, uid)
+
 	fmt.Printf("key created for id (%s) returned uid (%s)\n", id, uid)
 }
 
@@ -102,6 +105,9 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 		return
 	}
 
+	// Store the returned uid in ${lastuid} for use in other commands with that variable
+	kmipapi.SetValue(kmipapi.LastUID, uid)
+
 	fmt.Printf("locate key for id (%s) returned uid (%s)\n", id, uid)
 }
 
@@ -143,6 +149,53 @@ func DestroyKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, li
 	}
 
 	fmt.Printf("destroy key succeeded for uid (%s)\n", uid)
+}
+
+// ClearKey: usage 'clear id=<value>' to locate, revoke, and destroy a key based on id and uid
+func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("ClearKey", "line", line)
+
+	id := kmipapi.GetValue(line, "id")
+	if id == "" {
+		fmt.Printf("clear id=value is required, example: clear id=DISK01234\n")
+		return
+	}
+
+	success := true
+
+	uid, err := kmipapi.LocateUid(ctx, settings, id, "", "")
+	if err != nil || uid == "" {
+		fmt.Printf("locate failed for id (%s), uid (%d), error: %v\n", id, uid, err)
+		success = false
+	} else {
+		fmt.Printf("locate key for id (%s) returned uid (%s)\n", id, uid)
+		fmt.Printf("\n")
+
+		uid, err = kmipapi.RevokeKey(ctx, settings, uid, uint32(kmip14.RevocationReasonCodeCessationOfOperation))
+		if err != nil {
+			fmt.Printf("revoke key failed for uid (%s) with error: %v\n", uid, err)
+			success = false
+		} else {
+			fmt.Printf("revoke key succeeded for uid (%s)\n", uid)
+		}
+		fmt.Printf("\n")
+
+		uid, err = kmipapi.DestroyKey(ctx, settings, uid)
+		if err != nil {
+			fmt.Printf("destroy key failed for uid (%s) with error: %v\n", uid, err)
+			success = false
+		} else {
+			fmt.Printf("destroy key succeeded for uid (%s)\n", uid)
+		}
+		fmt.Printf("\n")
+	}
+
+	if success {
+		fmt.Printf("clear key succeeded for id (%s)\n", id)
+	} else {
+		fmt.Printf("clear key failed for id (%s)\n", id)
+	}
 }
 
 // Register:
