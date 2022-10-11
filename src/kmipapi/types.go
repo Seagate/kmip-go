@@ -3,6 +3,7 @@ package kmipapi
 import "crypto/tls"
 
 type ConfigurationSettings struct {
+	SaveSettingsToFile   bool      `json:"save_settings_to_file"`  // Save the configuration settings to a file
 	SettingsFile         string    `json:"settings_file"`          // Configuration settings storage file
 	KmsServerName        string    `json:"kms_server_name"`        // KMS server name for informational purposes
 	KmsServerIp          string    `json:"kms_server_ip"`          // KMS server IP address
@@ -14,4 +15,5 @@ type ConfigurationSettings struct {
 	ProtocolVersionMajor int       `json:"protocol_version_major"` // Major version, 1, 2, or 3
 	ProtocolVersionMinor int       `json:"protocol_version_minor"` // Minor version for 1.4 or 2.0
 	ServiceType          string    `json:"service_type"`           // The KMIP version service string, kmip14, kmip20, etc
+	ShowElapsed          bool      `json:"show_elapsed"`           // Display the elapsed time for each command executed.
 }

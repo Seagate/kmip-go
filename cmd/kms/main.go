@@ -12,7 +12,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-const version string = "1.1.2"
+const version string = "1.2.0"
 
 // init: called once during program execution
 func init() {
@@ -69,8 +69,10 @@ func main() {
 				fmt.Println("")
 				os.Exit(0)
 			}
-			handlers.Execute(ctx, &settings, line)
-			fmt.Println("")
+			if line != "" {
+				handlers.Execute(ctx, &settings, line)
+				fmt.Println("")
+			}
 		}
 	}
 }
