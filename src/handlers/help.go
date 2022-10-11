@@ -29,6 +29,7 @@ func Help(ctx context.Context, settings *kmipapi.ConfigurationSettings, line str
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("set"), col2, options("[level=<value>]"), comment("// change the debug log level 0,1,2,3,4,5,etc"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("set"), col2, options("[ip=<value>] [port=<value>]"), comment("// set the ip and port for the kms server"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("set"), col2, options("[name=<value>]"), comment("// set a name for the kms server"))
+	fmt.Printf("  %*s  %-*s  %s\n", col1, command("set"), col2, options("[elapsed=<true|false>]"), comment("// set show elapsed to true or false"))
 
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("version"), col2, options("[major=<value>] [minor=<value>]"), comment("// change the KMIP protocol version"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("certs"), col2, options("[ca=<value>] [key=<value>] [cert=<value>]"), comment("// change the KMS certificate files"))
@@ -37,7 +38,7 @@ func Help(ctx context.Context, settings *kmipapi.ConfigurationSettings, line str
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("open"), col2, options("[ip=<value>] [port=<value>]"), comment("// open a TLS session, ip and port are optional"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("close"), col2, options(""), comment("// close the TLS session"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("discover"), col2, options("[major=<value> minor=<value>]"), comment("// discover versions supported by a KMS Server"))
-	fmt.Printf("  %*s  %-*s  %s\n", col1, command("query"), col2, options("[op=<value>] [port=<value>]"), comment("// query a KMS Server, operations supported: 1, 3"))
+	fmt.Printf("  %*s  %-*s  %s\n", col1, command("query"), col2, options("[op=<value>]"), comment("// query a KMS Server, operations supported: 1, 3"))
 
 	fmt.Println("")
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("create"), col2, options("id=<value>"), comment("// create a key based on a id, corresponding uid is displayed"))
@@ -48,6 +49,8 @@ func Help(ctx context.Context, settings *kmipapi.ConfigurationSettings, line str
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("locate"), col2, options("id=<value>"), comment("// locate a uid based on a id"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("revoke"), col2, options("uid=<value>"), comment("// revoke a key based on a uid"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("destroy"), col2, options("uid=<value>"), comment("// destroy a key based on a uid"))
+
+	fmt.Printf("  %*s  %-*s  %s\n", col1, command("clear"), col2, options("id=<value>"), comment("// locate, revoke, and destroy a key based on id and uid"))
 
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("register"), col2, options("type=<value> value=<value>"), comment("// Register a new value"))
 }

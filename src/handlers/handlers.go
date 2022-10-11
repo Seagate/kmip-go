@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Seagate/kmip-go/src/kmipapi"
 )
@@ -21,6 +22,7 @@ func Initialize() {
 		"certs":    Certs,
 		"set":      Set,
 		"load":     Load,
+		"banner":   Banner,
 		"open":     Open,
 		"close":    Close,
 		"discover": Discover,
@@ -32,6 +34,7 @@ func Initialize() {
 		"revoke":   RevokeKey,
 		"destroy":  DestroyKey,
 		"register": Register,
+		"clear":    ClearKey,
 	}
 }
 
@@ -39,7 +42,13 @@ func Initialize() {
 func Execute(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	f, ok := g_handlers[kmipapi.GetCommand(line)]
 	if ok {
+		start := time.Now()
 		f(ctx, settings, line)
+		if settings.ShowElapsed {
+			duration := time.Since(start)
+			fmt.Printf("[elapsed=%s] %s\n", duration, kmipapi.GetCommand(line))
+		}
+
 	} else {
 		fmt.Printf("No handler for: %s\n", line)
 	}
