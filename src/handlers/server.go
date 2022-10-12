@@ -86,36 +86,9 @@ func Query(ctx context.Context, settings *kmipapi.ConfigurationSettings, line st
 	opsplit := strings.Split(operation, ",")
 	queryop := []kmip14.QueryFunction{}
 
-	for i := range opsplit {
-		switch opsplit[i] {
-		default:
-			logger.V(2).Info("no input for query")
-			break
-		case "1":
-			queryop = append(queryop, kmip14.QueryFunctionQueryOperations)
-		case "2":
-			queryop = append(queryop, kmip14.QueryFunctionQueryObjects)
-		case "3":
-			queryop = append(queryop, kmip14.QueryFunctionQueryServerInformation)
-		case "4":
-			queryop = append(queryop, kmip14.QueryFunctionQueryApplicationNamespaces)
-		case "5":
-			queryop = append(queryop, kmip14.QueryFunctionQueryExtensionList)
-		case "6":
-			queryop = append(queryop, kmip14.QueryFunctionQueryExtensionMap)
-		case "7":
-			queryop = append(queryop, kmip14.QueryFunctionQueryAttestationTypes)
-		case "8":
-			queryop = append(queryop, kmip14.QueryFunctionQueryRNGs)
-		case "9":
-			queryop = append(queryop, kmip14.QueryFunctionQueryValidations)
-		case "a":
-			queryop = append(queryop, kmip14.QueryFunctionQueryProfiles)
-		case "b":
-			queryop = append(queryop, kmip14.QueryFunctionQueryCapabilities)
-		case "c":
-			queryop = append(queryop, kmip14.QueryFunctionQueryClientRegistrationMethods)
-		} 
+	for _, op := range opsplit {
+		u64, _ := strconv.ParseUint(op, 10, 32)
+		queryop = append(queryop, kmip14.QueryFunction(uint32(u64)))
 	}
 
 	results, err := kmipapi.QueryServer(ctx, settings, queryop)
@@ -125,4 +98,3 @@ func Query(ctx context.Context, settings *kmipapi.ConfigurationSettings, line st
 		fmt.Printf("Query failed, error: %v\n", err)
 	}
 }
-

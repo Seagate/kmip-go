@@ -50,20 +50,20 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSe
 	var decoder *ttlv.Decoder
 	var item *kmip.ResponseBatchItem
 
-    payload := kmip.QueryRequestPayload{
-	    QueryFunction: req.QueryFunction,
-    }
-    decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload)
-	
+	payload := kmip.QueryRequestPayload{
+		QueryFunction: req.QueryFunction,
+	}
+	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload)
+
 	if err != nil {
 		return nil, err
 	}
 
 	// Extract the QueryResponsePayload type of message
 	var respPayload struct {
-		Operation                []kmip14.Operation
-		ObjectType               []kmip14.ObjectType
-		VendorIdentification     string
+		Operation            []kmip14.Operation
+		ObjectType           []kmip14.ObjectType
+		VendorIdentification string
 	}
 
 	if item != nil {
@@ -298,10 +298,10 @@ func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *Configura
 
 	//newkey := hex.EncodeToString([]byte(req.KeyMaterial))
 	newkey := []byte(req.KeyMaterial)
-    payload := kmip.RegisterRequestPayload{}
+	payload := kmip.RegisterRequestPayload{}
 
 	if req.Type == "SecretData" && req.DataType == "Password" && req.KeyFormat == "Opaque" && req.KeyMaterial != "" {
-		
+
 		payload = kmip.RegisterRequestPayload{
 			ObjectType: kmip14.ObjectTypeSecretData,
 			SecretData: &kmip.SecretData{
@@ -315,33 +315,32 @@ func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *Configura
 			},
 		}
 
-		// **** temporarily comment out below so cmd can passed in Fornetix ****
+		//  ObjectGroup does not work in Fornetix ****
 		if req.ObjGrp != "" {
-	        //payload.TemplateAttribute.Append(kmip14.TagObjectGroup, "SASED-M-2-14-group")
-			payload.TemplateAttribute.Append(kmip14.TagObjectGroup, req.ObjGrp)
+			payload.TemplateAttribute.Append(kmip14.TagObjectGroup, req.ObjGrp) //"SASED-M-2-14-group"
 		}
 
 		if req.AttribName1 != "" {
 			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-				AttributeName:  req.AttribName1, //"x-CustomAttribute1",
+				AttributeName:  req.AttribName1,  //"x-CustomAttribute1",
 				AttributeValue: req.AttribValue1, //"CustomValue1",
 			})
 		}
 		if req.AttribName2 != "" {
 			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-				AttributeName:  req.AttribName2, //"x-CustomAttribute2",
+				AttributeName:  req.AttribName2,  //"x-CustomAttribute2",
 				AttributeValue: req.AttribValue2, //"CustomValue2",
 			})
 		}
 		if req.AttribName3 != "" {
 			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-				AttributeName:  req.AttribName3, //"x-CustomAttribute3",
+				AttributeName:  req.AttribName3,  //"x-CustomAttribute3",
 				AttributeValue: req.AttribValue3, //"CustomValue3",
 			})
 		}
 		if req.AttribName4 != "" {
 			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-				AttributeName:  req.AttribName4, //"x-CustomAttribute4",
+				AttributeName:  req.AttribName4,  //"x-CustomAttribute4",
 				AttributeValue: req.AttribValue4, //"CustomValue4",
 			})
 		}
@@ -416,11 +415,17 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 		NameValue: req.Name,
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	}
+
 	payload := kmip.LocateRequestPayload{}
-	payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
+
+	if req.Name != "" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
+	}
+
 	if req.AttribName1 == "ObjectGroup" {
 		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectGroup, 0, req.AttribValue1))
 	}
+
 	if req.AttribName2 == "ObjectType" && req.AttribValue2 == "SecretData" {
 		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
 	}

@@ -106,7 +106,8 @@ func DiscoverServer(ctx context.Context, settings *ConfigurationSettings, client
 	}
 
 	req := DiscoverRequest{
-		ClientVersions: clientVersions,
+		// Need to comment out for Hashicorp to work in 1.4
+		//ClientVersions: clientVersions,
 	}
 
 	kmipResp, err := kmipops.Discover(ctx, settings, &req)
@@ -255,14 +256,14 @@ func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymateri
 		DataType:     datatype,
 		ObjGrp:       objgrp,
 		AttribName1:  attribname1,
-	    AttribValue1: attribvalue1,
-	    AttribName2:  attribname2,
-	    AttribValue2: attribvalue2,
-	    AttribName3:  attribname2,
-	    AttribValue3: attribvalue2,
-	    AttribName4:  attribname2,
-	    AttribValue4: attribvalue2,
-	    Type:         objtype,
+		AttribValue1: attribvalue1,
+		AttribName2:  attribname2,
+		AttribValue2: attribvalue2,
+		AttribName3:  attribname2,
+		AttribValue3: attribvalue2,
+		AttribName4:  attribname2,
+		AttribValue4: attribvalue2,
+		Type:         objtype,
 		Name:         name,
 	}
 
@@ -316,10 +317,10 @@ func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string, 
 	}
 
 	req := LocateRequest{
-		Name: id,
-		AttribName1: attribname1,
+		Name:         id,
+		AttribName1:  attribname1,
 		AttribValue1: attribvalue1,
-		AttribName2: attribname2,
+		AttribName2:  attribname2,
 		AttribValue2: attribvalue2,
 	}
 
