@@ -300,7 +300,6 @@ func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *Configura
 	newkey := []byte(req.KeyMaterial)
 	payload := kmip.RegisterRequestPayload{}
 
-	if req.Type == "SecretData" && req.DataType == "Password" && req.KeyFormat == "Opaque" && req.KeyMaterial != "" {
 
 		payload = kmip.RegisterRequestPayload{
 			ObjectType: kmip14.ObjectTypeSecretData,
