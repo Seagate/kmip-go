@@ -85,13 +85,29 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 	logger.V(2).Info("LocateKey", "line", line)
 
 	id := kmipapi.GetValue(line, "id")
+	attribname1 := kmipapi.GetValue(line, "attribname1")
+	if attribname1 != "" {
+		fmt.Printf("attribname1 set to: %s\n", attribname1)
+	}
+	attribvalue1 := kmipapi.GetValue(line, "attribvalue1")
+	if attribvalue1 != "" {
+		fmt.Printf("attribvalue1 set to: %s\n", attribvalue1)
+	}
+	attribname2 := kmipapi.GetValue(line, "attribname2")
+	if attribname2 != "" {
+		fmt.Printf("attribname2 set to: %s\n", attribname2)
+	}
+	attribvalue2 := kmipapi.GetValue(line, "attribvalue2")
+	if attribvalue2 != "" {
+		fmt.Printf("attribvalue2 set to: %s\n", attribvalue2)
+	}
 
-	if id == "" {
-		fmt.Printf("locate id=value is required, example: locate id=ZAD0YA320000C7300BYS\n")
+	if id == "" && attribvalue1 == "" {
+		fmt.Printf("locate id, attribname1, and attrib1value are required, example: locate id=SASED-M-2-14-name attribname1=ObjectType attribvalue1=SecretData\n")
 		return
 	}
 
-	uid, err := kmipapi.LocateUid(ctx, settings, id)
+	uid, err := kmipapi.LocateUid(ctx, settings, id, attribname1, attribvalue1, attribname2, attribvalue2)
 	if err != nil {
 		fmt.Printf("locate failed for id (%s) with error: %v\n", id, err)
 		return
@@ -156,7 +172,7 @@ func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 
 	success := true
 
-	uid, err := kmipapi.LocateUid(ctx, settings, id)
+	uid, err := kmipapi.LocateUid(ctx, settings, id, "", "", "", "")
 	if err != nil || uid == "" {
 		fmt.Printf("locate failed for id (%s), uid (%d), error: %v\n", id, uid, err)
 		success = false
@@ -188,4 +204,69 @@ func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 	} else {
 		fmt.Printf("clear key failed for id (%s)\n", id)
 	}
+}
+
+// Register:
+func RegisterKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("Register:", "line", line)
+
+	// Read command line arguments
+	objtype := kmipapi.GetValue(line, "objtype") // example: secretdata
+
+	keymaterial := kmipapi.GetValue(line, "keymaterial")
+	if keymaterial == "" {
+		fmt.Printf("register key failed, keymaterial is required")
+		return
+	}
+
+	keyformat := kmipapi.GetValue(line, "keyformat") // example: opaque
+	datatype := kmipapi.GetValue(line, "datatype")   // example: Password
+	objgrp := kmipapi.GetValue(line, "objgrp")       // example: Password
+
+	attribname1 := kmipapi.GetValue(line, "attribname1")
+	attribvalue1 := kmipapi.GetValue(line, "attribvalue1")
+	attribname2 := kmipapi.GetValue(line, "attribname2")
+	attribvalue2 := kmipapi.GetValue(line, "attribvalue2")
+	attribname3 := kmipapi.GetValue(line, "attribname3")
+	attribvalue3 := kmipapi.GetValue(line, "attribvalue3")
+	attribname4 := kmipapi.GetValue(line, "attribname4")
+	attribvalue4 := kmipapi.GetValue(line, "attribvalue4")
+
+	name := kmipapi.GetValue(line, "name")
+	if name == "" {
+		fmt.Printf("register key failed for name = nil")
+	}
+
+	// Execute the Register command
+	uid, err := kmipapi.RegisterKey(ctx, settings, keymaterial, keyformat, datatype, objgrp, attribname1, attribvalue1, attribname2, attribvalue2, attribname3, attribvalue3, attribname4, attribvalue4, objtype, name)
+	if err != nil {
+		fmt.Printf("register key failed with error: %v\n", err)
+		return
+	}
+	fmt.Printf("register key succeeded for uid (%s)\n", uid)
+}
+
+// GetAttribute: usage 'destroy uid=<value>' to destroy a key based on uid
+func GetAttribute(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("GetAttribute", "line", line)
+
+	uid := kmipapi.GetValue(line, "uid")
+	if uid == "" {
+		fmt.Printf("get attribute uid=value is required, example: get attribute uid=6307 attribname1=x-CustomAttribute4\n")
+		return
+	}
+	attribname1 := kmipapi.GetValue(line, "attribname1")
+	if attribname1 != "" {
+		fmt.Printf("attribname1 set to: %s\n", attribname1)
+	}
+
+	uid, err := kmipapi.GetAttribute(ctx, settings, uid, attribname1)
+	if err != nil {
+		fmt.Printf("get attribute failed for uid (%s) with error: %v\n", uid, err)
+		return
+	}
+
+	fmt.Printf("get attribute succeeded for uid (%s)\n", uid)
 }

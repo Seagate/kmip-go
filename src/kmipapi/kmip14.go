@@ -50,18 +50,10 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSe
 	var decoder *ttlv.Decoder
 	var item *kmip.ResponseBatchItem
 
-	if req.Id == "" || req.Id == QueryOpsOperation {
-		payload := kmip.QueryRequestPayload{
-			QueryFunction: kmip14.QueryFunctionQueryOperations,
-		}
-		decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload)
-
-	} else if req.Id == QueryOpsServerInfo {
-		payload := kmip.QueryRequestPayload{
-			QueryFunction: kmip14.QueryFunctionQueryServerInformation,
-		}
-		decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload)
+	payload := kmip.QueryRequestPayload{
+		QueryFunction: req.QueryFunction,
 	}
+	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload)
 
 	if err != nil {
 		return nil, err
@@ -70,6 +62,7 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSe
 	// Extract the QueryResponsePayload type of message
 	var respPayload struct {
 		Operation            []kmip14.Operation
+		ObjectType           []kmip14.ObjectType
 		VendorIdentification string
 	}
 
@@ -85,7 +78,7 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSe
 
 	logger.V(4).Info("Query", "Payload", respPayload)
 
-	return &QueryResponse{Operation: respPayload.Operation, VendorIdentification: respPayload.VendorIdentification}, nil
+	return &QueryResponse{Operation: respPayload.Operation, ObjectType: respPayload.ObjectType, VendorIdentification: respPayload.VendorIdentification}, nil
 }
 
 // CreateKey: Send a KMIP OperationCreate message
@@ -174,14 +167,32 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 		UniqueIdentifier: respPayload.UniqueIdentifier,
 	}
 
-	if respPayload.SymmetricKey != nil {
-		if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
-			if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
-				// convert byes to an encoded string
-				response.KeyValue = hex.EncodeToString(bytes)
-			} else {
-				// No bytes to to encode
-				response.KeyValue = ""
+	if response.Type == kmip14.ObjectTypeSymmetricKey {
+		if respPayload.SymmetricKey != nil {
+			if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
+				if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
+					// convert byes to an encoded string
+					response.KeyValue = hex.EncodeToString(bytes)
+				} else {
+					// No bytes to to encode
+					response.KeyValue = ""
+				}
+			}
+		}
+	}
+
+	if response.Type == kmip14.ObjectTypeSecretData {
+		if response.Type == kmip14.ObjectTypeSecretData {
+			if respPayload.SecretData != nil {
+				if respPayload.SecretData.KeyBlock.KeyValue != nil {
+					if bytes, ok := respPayload.SecretData.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
+						// convert byes to an encoded string
+						response.KeyValue = hex.EncodeToString(bytes)
+					} else {
+						// No bytes to to encode
+						response.KeyValue = ""
+					}
+				}
 			}
 		}
 	}
@@ -275,9 +286,121 @@ func (kmips *kmip14service) RevokeKey(ctx context.Context, settings *Configurati
 	return &RevokeKeyResponse{UniqueIdentifier: uid}, nil
 }
 
-// Register: Not Implemented
-func (kmips *kmip14service) Register(ctx context.Context, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
-	return &RegisterResponse{}, fmt.Errorf("command is not implemented")
+// Register: Register a key
+func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *ConfigurationSettings, req *RegisterKeyRequest) (*RegisterKeyResponse, error) {
+
+	logger := klog.FromContext(ctx)
+	logger.V(4).Info("====== register key ======")
+
+	var err error
+	var decoder *ttlv.Decoder
+	var item *kmip.ResponseBatchItem
+
+	//newkey := hex.EncodeToString([]byte(req.KeyMaterial))
+	newkey := []byte(req.KeyMaterial)
+	payload := kmip.RegisterRequestPayload{}
+
+
+		payload = kmip.RegisterRequestPayload{
+			ObjectType: kmip14.ObjectTypeSecretData,
+			SecretData: &kmip.SecretData{
+				SecretDataType: kmip14.SecretDataTypePassword,
+				KeyBlock: kmip.KeyBlock{
+					KeyFormatType: kmip14.KeyFormatTypeOpaque,
+					KeyValue: &kmip.KeyValue{
+						KeyMaterial: newkey,
+					},
+				},
+			},
+		}
+
+		if req.ObjGrp != "" {
+			payload.TemplateAttribute.Append(kmip14.TagObjectGroup, req.ObjGrp) //"SASED-M-2-14-group"
+		}
+
+		if req.AttribName1 != "" {
+			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+				AttributeName:  req.AttribName1,  //"x-CustomAttribute1",
+				AttributeValue: req.AttribValue1, //"CustomValue1",
+			})
+		}
+		if req.AttribName2 != "" {
+			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+				AttributeName:  req.AttribName2,  //"x-CustomAttribute2",
+				AttributeValue: req.AttribValue2, //"CustomValue2",
+			})
+		}
+		if req.AttribName3 != "" {
+			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+				AttributeName:  req.AttribName3,  //"x-CustomAttribute3",
+				AttributeValue: req.AttribValue3, //"CustomValue3",
+			})
+		}
+		if req.AttribName4 != "" {
+			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+				AttributeName:  req.AttribName4,  //"x-CustomAttribute4",
+				AttributeValue: req.AttribValue4, //"CustomValue4",
+			})
+		}
+		if req.Name != "" {
+			payload.TemplateAttribute.Append(kmip14.TagName, kmip.Name{
+				NameValue: req.Name, //"SASED-M-2-14-name",
+				NameType:  kmip14.NameTypeUninterpretedTextString,
+			})
+		}
+
+	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationRegister), &payload)
+
+	if err != nil {
+		logger.Error(err, "The call to SendRequestMessage failed")
+		return nil, err
+	}
+
+	// Extract the RegisterResponsePayload type of message
+	var respPayload kmip.RegisterResponsePayload
+	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+
+	if err != nil {
+		logger.Error(err, "register key decode value failed")
+		return nil, fmt.Errorf("register key decode value failed, error:%v", err)
+	}
+
+	uid := respPayload.UniqueIdentifier
+	logger.V(4).Info("register key success", "uid", uid)
+
+	return &RegisterKeyResponse{UniqueIdentifier: uid}, nil
+}
+
+// GetAttribute:
+func (kmips *kmip14service) GetAttribute(ctx context.Context, settings *ConfigurationSettings, req *GetAttributeRequest) (*GetAttributeResponse, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(4).Info("====== get attribute ======", "uid", req.UniqueIdentifier)
+
+	payload := kmip.GetAttributesRequestPayload{
+		UniqueIdentifier: req.UniqueIdentifier,
+		AttributeName:    req.AttributeName,
+	}
+
+	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationGetAttributes), &payload)
+	if err != nil {
+		logger.Error(err, "The call to SendRequestMessage failed")
+		return nil, err
+	}
+
+	// Extract the GetAttributesResponsePayload type of message
+	var respPayload kmip.GetAttributesResponsePayload
+	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode GetAttributesResponsePayload, error: %v", err)
+	}
+
+	logger.V(4).Info("XXX GetAttribute response payload", "respPayload", respPayload)
+
+	uid := respPayload.UniqueIdentifier
+	logger.V(4).Info("XXX GetAttribute response payload", "uid", respPayload.UniqueIdentifier)
+
+	return &GetAttributeResponse{UniqueIdentifier: uid}, nil
 }
 
 // Locate:
@@ -289,8 +412,20 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 		NameValue: req.Name,
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	}
+
 	payload := kmip.LocateRequestPayload{}
-	payload.Attributes = append(payload.Attributes, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
+
+	if req.Name != "" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
+	}
+
+	if req.AttribName1 == "ObjectGroup" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectGroup, 0, req.AttribValue1))
+	}
+
+	if req.AttribName2 == "ObjectType" && req.AttribValue2 == "SecretData" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
+	}
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationLocate), &payload)
 	if err != nil {

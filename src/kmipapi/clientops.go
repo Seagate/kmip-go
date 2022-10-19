@@ -94,23 +94,52 @@ type RevokeKeyResponse struct {
 	UniqueIdentifier string
 }
 
-type RegisterRequest struct {
+type RegisterKeyRequest struct {
 	// Contains all attributes of a caller request to register a KMIP key.
 	Id                     string
-	Type                   kmip14.ObjectType
+	KeyMaterial            string
+	KeyFormat              string
+	DataType               string
+	ObjGrp                 string
+	AttribName1            string
+	AttribValue1           string
+	AttribName2            string
+	AttribValue2           string
+	AttribName3            string
+	AttribValue3           string
+	AttribName4            string
+	AttribValue4           string
+	Type                   string
+	Name                   string
 	Algorithm              kmip14.CryptographicAlgorithm
 	CryptographicLength    uint32
 	CryptographicUsageMask uint32
 }
 
-type RegisterResponse struct {
+type RegisterKeyResponse struct {
 	// Contains all attributes of the revoke key operation that are relevant to the caller.
 	UniqueIdentifier string
 }
 
+type GetAttributeRequest struct {
+	// Contains all attributes of a caller request to revoke a KMIP key.
+	UniqueIdentifier string
+	AttributeName    string
+}
+
+type GetAttributeResponse struct {
+	// Contains all attributes of the revoke key operation that are relevant to the caller.
+	UniqueIdentifier string
+	Attribute        string
+}
+
 type LocateRequest struct {
 	// Contains all attributes of a caller request to revoke a KMIP key.
-	Name string
+	Name             string
+	AttribName1      string
+	AttribValue1     string
+	AttribName2      string
+	AttribValue2     string
 }
 
 type LocateResponse struct {
@@ -125,14 +154,15 @@ const (
 
 type QueryRequest struct {
 	// Contains all attributes of a caller request for a query.
-	QueryFunction kmip14.QueryFunction
+	QueryFunction []kmip14.QueryFunction
 	Id            string
 }
 
 type QueryResponse struct {
 	// Contains all attributes of the query response operation that are relevant to the caller.
-	Operation            []kmip14.Operation `json:"Operation,omitempty"`
-	VendorIdentification string             `json:"Vendor Identification,omitempty"`
+	Operation            []kmip14.Operation  `json:"Operation,omitempty"`
+	ObjectType           []kmip14.ObjectType `json:"Object Type,omitempty"`
+	VendorIdentification string              `json:"Vendor Identification,omitempty"`
 }
 
 type SetAttributeRequest struct {

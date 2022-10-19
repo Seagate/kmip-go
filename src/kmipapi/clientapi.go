@@ -124,9 +124,9 @@ func DiscoverServer(ctx context.Context, settings *ConfigurationSettings, client
 }
 
 // QueryServer: Perform a query operation.
-func QueryServer(ctx context.Context, settings *ConfigurationSettings, operation string) (string, error) {
+func QueryServer(ctx context.Context, settings *ConfigurationSettings, queryops []kmip14.QueryFunction) (string, error) {
 	logger := klog.FromContext(ctx)
-	logger.V(2).Info("   ++ querying server", "operation", operation)
+	logger.V(2).Info("   ++ querying server", "queryops", queryops)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -134,8 +134,7 @@ func QueryServer(ctx context.Context, settings *ConfigurationSettings, operation
 	}
 
 	req := QueryRequest{
-		Id:            operation,
-		QueryFunction: kmip14.QueryFunctionQueryOperations,
+		QueryFunction: queryops,
 	}
 
 	kmipResp, err := kmipops.Query(ctx, settings, &req)
@@ -240,8 +239,74 @@ func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (k
 	return kmipResp.KeyValue, nil
 }
 
+// RegisterKey: Register a key
+func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymaterial string, keyformat string, datatype string, objgrp string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string, attribname3 string, attribvalue3 string, attribname4 string, attribvalue4 string, objtype string, name string) (string, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("++ register key ", "name", name)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	req := RegisterKeyRequest{
+		KeyMaterial:  keymaterial,
+		KeyFormat:    keyformat,
+		DataType:     datatype,
+		ObjGrp:       objgrp,
+		AttribName1:  attribname1,
+		AttribValue1: attribvalue1,
+		AttribName2:  attribname2,
+		AttribValue2: attribvalue2,
+		AttribName3:  attribname2,
+		AttribValue3: attribvalue2,
+		AttribName4:  attribname2,
+		AttribValue4: attribvalue2,
+		Type:         objtype,
+		Name:         name,
+	}
+
+	kmipResp, err := kmipops.RegisterKey(ctx, settings, &req)
+	if err != nil {
+		return "", fmt.Errorf("failed to register using (%s), err: %v", settings.ServiceType, err)
+	}
+
+	if kmipResp == nil {
+		return "", errors.New("failed to register, KMIP Response was null")
+	}
+
+	return kmipResp.UniqueIdentifier, nil
+}
+
+// GetAttribute: Register a key
+func GetAttribute(ctx context.Context, settings *ConfigurationSettings, uid string, attribname1 string) (string, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("++ get attribute ", "uid", uid)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	req := GetAttributeRequest{
+		UniqueIdentifier: uid,
+		AttributeName:    attribname1,
+	}
+
+	kmipResp, err := kmipops.GetAttribute(ctx, settings, &req)
+	if err != nil {
+		return "", fmt.Errorf("failed to get attribute using (%s), err: %v", settings.ServiceType, err)
+	}
+
+	if kmipResp == nil {
+		return "", errors.New("failed to get attribute, KMIP Response was null")
+	}
+
+	return kmipResp.UniqueIdentifier, nil
+}
+
 // LocateUid: retrieve a UID for a ID
-func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string) (string, error) {
+func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string) (string, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ locate uid", "id", id)
 
@@ -251,7 +316,11 @@ func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string) 
 	}
 
 	req := LocateRequest{
-		Name: id,
+		Name:         id,
+		AttribName1:  attribname1,
+		AttribValue1: attribvalue1,
+		AttribName2:  attribname2,
+		AttribValue2: attribvalue2,
 	}
 
 	kmipResp, err := kmipops.Locate(ctx, settings, &req)

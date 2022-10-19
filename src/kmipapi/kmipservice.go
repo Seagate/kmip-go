@@ -13,12 +13,13 @@ type KMIPOperations interface {
 	DestroyKey(context.Context, *ConfigurationSettings, *DestroyKeyRequest) (*DestroyKeyResponse, error)
 	ActivateKey(context.Context, *ConfigurationSettings, *ActivateKeyRequest) (*ActivateKeyResponse, error)
 	RevokeKey(context.Context, *ConfigurationSettings, *RevokeKeyRequest) (*RevokeKeyResponse, error)
-	Register(context.Context, *ConfigurationSettings, *RegisterRequest) (*RegisterResponse, error)
+	RegisterKey(context.Context, *ConfigurationSettings, *RegisterKeyRequest) (*RegisterKeyResponse, error)
 	Locate(context.Context, *ConfigurationSettings, *LocateRequest) (*LocateResponse, error)
 	Query(context.Context, *ConfigurationSettings, *QueryRequest) (*QueryResponse, error)
 	SetAttribute(context.Context, *ConfigurationSettings, *SetAttributeRequest) (*SetAttributeResponse, error)
 	Discover(context.Context, *ConfigurationSettings, *DiscoverRequest) (*DiscoverResponse, error)
 	ReKey(context.Context, *ConfigurationSettings, *ReKeyRequest) (*ReKeyResponse, error)
+	GetAttribute(context.Context, *ConfigurationSettings, *GetAttributeRequest) (*GetAttributeResponse, error)
 }
 
 type commonservice struct {

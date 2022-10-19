@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/Seagate/kmip-go"
+	"github.com/Seagate/kmip-go/kmip14"
 	"github.com/Seagate/kmip-go/src/kmipapi"
 	"k8s.io/klog/v2"
 )
@@ -81,35 +83,18 @@ func Query(ctx context.Context, settings *kmipapi.ConfigurationSettings, line st
 
 	// Read command line arguments
 	operation := kmipapi.GetValue(line, "op")
+	opsplit := strings.Split(operation, ",")
+	queryop := []kmip14.QueryFunction{}
 
-	results, err := kmipapi.QueryServer(ctx, settings, operation)
+	for _, op := range opsplit {
+		u64, _ := strconv.ParseUint(op, 10, 32)
+		queryop = append(queryop, kmip14.QueryFunction(uint32(u64)))
+	}
+
+	results, err := kmipapi.QueryServer(ctx, settings, queryop)
 	if err == nil {
 		fmt.Printf("Query results: %s\n", results)
 	} else {
 		fmt.Printf("Query failed, error: %v\n", err)
 	}
-}
-
-// Register:
-func Register(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("Register:", "line", line)
-
-	// Read command line arguments
-	typestr := kmipapi.GetValue(line, "type")
-	if typestr != "" {
-		fmt.Printf("type set to: %s\n", typestr)
-	}
-	value := kmipapi.GetValue(line, "value")
-	if value != "" {
-		fmt.Printf("value set to: %s\n", value)
-	}
-
-	// // Execute the Register command
-	// err := kmipapi.Register(ctx, typestr, value)
-	// if err == nil {
-	// 	fmt.Printf("Register passed\n")
-	// } else {
-	// 	fmt.Printf("Register failed, error: %v\n", err)
-	// }
 }
