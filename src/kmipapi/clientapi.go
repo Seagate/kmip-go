@@ -106,8 +106,7 @@ func DiscoverServer(ctx context.Context, settings *ConfigurationSettings, client
 	}
 
 	req := DiscoverRequest{
-		// Need to comment out for Hashicorp to work in 1.4
-		//ClientVersions: clientVersions,
+		ClientVersions: clientVersions,
 	}
 
 	kmipResp, err := kmipops.Discover(ctx, settings, &req)
