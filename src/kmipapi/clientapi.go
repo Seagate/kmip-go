@@ -134,7 +134,7 @@ func QueryServer(ctx context.Context, settings *ConfigurationSettings, queryops 
 	}
 
 	req := QueryRequest{
-		QueryFunction: queryop,
+		QueryFunction: queryops,
 	}
 
 	kmipResp, err := kmipops.Query(ctx, settings, &req)
