@@ -314,7 +314,6 @@ func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *Configura
 			},
 		}
 
-		//  ObjectGroup does not work in Fornetix ****
 		if req.ObjGrp != "" {
 			payload.TemplateAttribute.Append(kmip14.TagObjectGroup, req.ObjGrp) //"SASED-M-2-14-group"
 		}
