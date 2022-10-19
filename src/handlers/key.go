@@ -216,7 +216,8 @@ func RegisterKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, l
 
 	keymaterial := kmipapi.GetValue(line, "keymaterial")
 	if keymaterial == "" {
-		fmt.Printf("register key failed for keymaterial = nil")
+		fmt.Printf("register key failed, keymaterial is required")
+		return
 	}
 
 	keyformat := kmipapi.GetValue(line, "keyformat") // example: opaque
