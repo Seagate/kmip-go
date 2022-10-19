@@ -103,7 +103,7 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 	}
 
 	if id == "" && attribvalue1 == "" {
-		fmt.Printf("locate id=value is required, example: locate id=ZAD0YA320000C7300BYS\n")
+		fmt.Printf("locate id, attribname1, and attrib1value are required, example: locate id=SASED-M-2-14-name attribname1=ObjectType attribvalue1=SecretData\n")
 		return
 	}
 
