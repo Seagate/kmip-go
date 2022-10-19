@@ -349,7 +349,6 @@ func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *Configura
 				NameType:  kmip14.NameTypeUninterpretedTextString,
 			})
 		}
-	}
 
 	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationRegister), &payload)
 
