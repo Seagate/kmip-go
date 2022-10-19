@@ -387,7 +387,7 @@ func (kmips *kmip14service) GetAttribute(ctx context.Context, settings *Configur
 		return nil, err
 	}
 
-	// Extract the LocateResponsePayload type of message
+	// Extract the GetAttributesResponsePayload type of message
 	var respPayload kmip.GetAttributesResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 
