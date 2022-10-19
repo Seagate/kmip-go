@@ -126,7 +126,7 @@ func DiscoverServer(ctx context.Context, settings *ConfigurationSettings, client
 // QueryServer: Perform a query operation.
 func QueryServer(ctx context.Context, settings *ConfigurationSettings, queryops []kmip14.QueryFunction) (string, error) {
 	logger := klog.FromContext(ctx)
-	logger.V(2).Info("   ++ querying server", "queryop", queryop)
+	logger.V(2).Info("   ++ querying server", "queryops", queryops)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
