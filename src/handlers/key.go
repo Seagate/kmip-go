@@ -254,7 +254,7 @@ func GetAttribute(ctx context.Context, settings *kmipapi.ConfigurationSettings, 
 
 	uid := kmipapi.GetValue(line, "uid")
 	if uid == "" {
-		fmt.Printf("get attribute uid=value is required, example: get attribute id=6307\n")
+		fmt.Printf("get attribute uid=value is required, example: get attribute uid=6307 attribname1=x-CustomAttribute4\n")
 		return
 	}
 	attribname1 := kmipapi.GetValue(line, "attribname1")
