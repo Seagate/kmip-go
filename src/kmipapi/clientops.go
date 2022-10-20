@@ -94,7 +94,7 @@ type RevokeKeyResponse struct {
 	UniqueIdentifier string
 }
 
-type RegisterKeyRequest struct {
+type RegisterRequest struct {
 	// Contains all attributes of a caller request to register a KMIP key.
 	Id                     string
 	KeyMaterial            string
@@ -116,7 +116,7 @@ type RegisterKeyRequest struct {
 	CryptographicUsageMask uint32
 }
 
-type RegisterKeyResponse struct {
+type RegisterResponse struct {
 	// Contains all attributes of the revoke key operation that are relevant to the caller.
 	UniqueIdentifier string
 }

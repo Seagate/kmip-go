@@ -86,24 +86,12 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 
 	id := kmipapi.GetValue(line, "id")
 	attribname1 := kmipapi.GetValue(line, "attribname1")
-	if attribname1 != "" {
-		fmt.Printf("attribname1 set to: %s\n", attribname1)
-	}
 	attribvalue1 := kmipapi.GetValue(line, "attribvalue1")
-	if attribvalue1 != "" {
-		fmt.Printf("attribvalue1 set to: %s\n", attribvalue1)
-	}
 	attribname2 := kmipapi.GetValue(line, "attribname2")
-	if attribname2 != "" {
-		fmt.Printf("attribname2 set to: %s\n", attribname2)
-	}
 	attribvalue2 := kmipapi.GetValue(line, "attribvalue2")
-	if attribvalue2 != "" {
-		fmt.Printf("attribvalue2 set to: %s\n", attribvalue2)
-	}
-
-	if id == "" && attribvalue1 == "" {
-		fmt.Printf("locate id, attribname1, and attrib1value are required, example: locate id=SASED-M-2-14-name attribname1=ObjectType attribvalue1=SecretData\n")
+	
+	if id == "" && attribvalue2 == "" {
+		fmt.Printf("locate id, attribname2, and attribvalue2 are required, example: locate id=SASED-M-2-14-name attribname2=ObjectType attribvalue2=SecretData\n")
 		return
 	}
 
@@ -258,10 +246,7 @@ func GetAttribute(ctx context.Context, settings *kmipapi.ConfigurationSettings, 
 		return
 	}
 	attribname1 := kmipapi.GetValue(line, "attribname1")
-	if attribname1 != "" {
-		fmt.Printf("attribname1 set to: %s\n", attribname1)
-	}
-
+	
 	uid, err := kmipapi.GetAttribute(ctx, settings, uid, attribname1)
 	if err != nil {
 		fmt.Printf("get attribute failed for uid (%s) with error: %v\n", uid, err)

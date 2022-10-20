@@ -249,7 +249,7 @@ func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymateri
 		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
 	}
 
-	req := RegisterKeyRequest{
+	req := RegisterRequest{
 		KeyMaterial:  keymaterial,
 		KeyFormat:    keyformat,
 		DataType:     datatype,
@@ -258,15 +258,15 @@ func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymateri
 		AttribValue1: attribvalue1,
 		AttribName2:  attribname2,
 		AttribValue2: attribvalue2,
-		AttribName3:  attribname2,
-		AttribValue3: attribvalue2,
-		AttribName4:  attribname2,
-		AttribValue4: attribvalue2,
+		AttribName3:  attribname3,
+		AttribValue3: attribvalue3,
+		AttribName4:  attribname4,
+		AttribValue4: attribvalue4,
 		Type:         objtype,
 		Name:         name,
 	}
 
-	kmipResp, err := kmipops.RegisterKey(ctx, settings, &req)
+	kmipResp, err := kmipops.Register(ctx, settings, &req)
 	if err != nil {
 		return "", fmt.Errorf("failed to register using (%s), err: %v", settings.ServiceType, err)
 	}
