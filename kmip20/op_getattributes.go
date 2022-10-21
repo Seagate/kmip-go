@@ -11,7 +11,7 @@ import (
 
 type GetAttributesRequestPayload struct {
 	UniqueIdentifier   *UniqueIdentifierValue // Required: No
-	AttributeReference string                 // Required: No
+	Attributes         interface{}            // Required: No
 }
 
 // Table 197

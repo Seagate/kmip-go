@@ -392,13 +392,21 @@ func (kmips *kmip20service) GetAttribute(ctx context.Context, settings *Configur
 
     logger.V(4).Info("====== get attribute ======")
 
+	type createReqAttrs struct {
+		VendorIdentification string
+		AttributeName string
+	}
+
     payload := kmip20.GetAttributesRequestPayload{
 	    UniqueIdentifier: &kmip20.UniqueIdentifierValue{
 			Text:  req.UniqueIdentifier,
 			Enum:  0,
 			Index: 0,
 		},
-		AttributeReference: req.AttributeName,
+		Attributes: createReqAttrs{
+			VendorIdentification: "x",
+			AttributeName:        req.AttributeName,
+		},
     }
 
     decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationGetAttributes), &payload)
