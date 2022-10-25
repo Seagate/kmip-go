@@ -326,10 +326,6 @@ func (kmips *kmip20service) Register(ctx context.Context, settings *Configuratio
 
 	var attributes createReqAttrs
 
-	//attributes.ObjectGroup = ObjectGroup{
-	//    AttributeName: "Object Group",
-	//    AttributeValue: "SASED-M-2-14-group",
-    //}
 
     attributes.Attribute = append(attributes.Attribute, Attribute{
 	    VendorIdentification: "x",
