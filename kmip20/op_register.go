@@ -79,8 +79,6 @@ func (h *RegisterHandler) HandleItem(ctx context.Context, req *kmip.Request) (it
 		return nil, err
 	}
 
-	req.IDPlaceholder = respPayload.UniqueIdentifier
-
 	return &kmip.ResponseBatchItem{
 		ResponsePayload: respPayload,
 	}, nil
