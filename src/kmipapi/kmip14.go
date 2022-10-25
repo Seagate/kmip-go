@@ -287,7 +287,7 @@ func (kmips *kmip14service) RevokeKey(ctx context.Context, settings *Configurati
 }
 
 // Register: Register a key
-func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *ConfigurationSettings, req *RegisterKeyRequest) (*RegisterKeyResponse, error) {
+func (kmips *kmip14service) Register(ctx context.Context, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
 
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== register key ======")
@@ -300,54 +300,53 @@ func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *Configura
 	newkey := []byte(req.KeyMaterial)
 	payload := kmip.RegisterRequestPayload{}
 
-
-		payload = kmip.RegisterRequestPayload{
-			ObjectType: kmip14.ObjectTypeSecretData,
-			SecretData: &kmip.SecretData{
-				SecretDataType: kmip14.SecretDataTypePassword,
-				KeyBlock: kmip.KeyBlock{
-					KeyFormatType: kmip14.KeyFormatTypeOpaque,
-					KeyValue: &kmip.KeyValue{
-						KeyMaterial: newkey,
-					},
-				},
+	payload = kmip.RegisterRequestPayload{
+		ObjectType: kmip14.ObjectTypeSecretData,
+		SecretData: &kmip.SecretData{
+			SecretDataType: kmip14.SecretDataTypePassword,
+			KeyBlock: kmip.KeyBlock{
+			    KeyFormatType: kmip14.KeyFormatTypeOpaque,
+			    KeyValue: &kmip.KeyValue{
+				    KeyMaterial: newkey,
+			    },
 			},
-		}
+		},
+	}
 
-		if req.ObjGrp != "" {
-			payload.TemplateAttribute.Append(kmip14.TagObjectGroup, req.ObjGrp) //"SASED-M-2-14-group"
-		}
+	if req.ObjGrp != "" {
+		payload.TemplateAttribute.Append(kmip14.TagObjectGroup, req.ObjGrp) //"SASED-M-2-14-group"
+	}
 
-		if req.AttribName1 != "" {
-			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-				AttributeName:  req.AttribName1,  //"x-CustomAttribute1",
-				AttributeValue: req.AttribValue1, //"CustomValue1",
-			})
-		}
-		if req.AttribName2 != "" {
-			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-				AttributeName:  req.AttribName2,  //"x-CustomAttribute2",
-				AttributeValue: req.AttribValue2, //"CustomValue2",
-			})
-		}
-		if req.AttribName3 != "" {
-			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-				AttributeName:  req.AttribName3,  //"x-CustomAttribute3",
-				AttributeValue: req.AttribValue3, //"CustomValue3",
-			})
-		}
-		if req.AttribName4 != "" {
-			payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-				AttributeName:  req.AttribName4,  //"x-CustomAttribute4",
-				AttributeValue: req.AttribValue4, //"CustomValue4",
-			})
-		}
-		if req.Name != "" {
-			payload.TemplateAttribute.Append(kmip14.TagName, kmip.Name{
-				NameValue: req.Name, //"SASED-M-2-14-name",
-				NameType:  kmip14.NameTypeUninterpretedTextString,
-			})
-		}
+	if req.AttribName1 != "" {
+		payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+			AttributeName:  req.AttribName1,  //"x-CustomAttribute1",
+			AttributeValue: req.AttribValue1, //"CustomValue1",
+		})
+	}
+	if req.AttribName2 != "" {
+		payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+			AttributeName:  req.AttribName2,  //"x-CustomAttribute2",
+			AttributeValue: req.AttribValue2, //"CustomValue2",
+		})
+	}
+	if req.AttribName3 != "" {
+		payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+			AttributeName:  req.AttribName3,  //"x-CustomAttribute3",
+			AttributeValue: req.AttribValue3, //"CustomValue3",
+		})
+	}
+	if req.AttribName4 != "" {
+		payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+			AttributeName:  req.AttribName4,  //"x-CustomAttribute4",
+			AttributeValue: req.AttribValue4, //"CustomValue4",
+		})
+	}
+	if req.Name != "" {
+		payload.TemplateAttribute.Append(kmip14.TagName, kmip.Name{
+			NameValue: req.Name, //"SASED-M-2-14-name",
+			NameType:  kmip14.NameTypeUninterpretedTextString,
+		})
+	}	
 
 	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationRegister), &payload)
 
@@ -368,7 +367,7 @@ func (kmips *kmip14service) RegisterKey(ctx context.Context, settings *Configura
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("register key success", "uid", uid)
 
-	return &RegisterKeyResponse{UniqueIdentifier: uid}, nil
+	return &RegisterResponse{UniqueIdentifier: uid}, nil
 }
 
 // GetAttribute:

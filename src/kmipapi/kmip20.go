@@ -291,12 +291,139 @@ func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *Configurati
 }
 
 // Register:
-func (kmips *kmip20service) RegisterKey(ctx context.Context, settings *ConfigurationSettings, req *RegisterKeyRequest) (*RegisterKeyResponse, error) {
-	return &RegisterKeyResponse{}, fmt.Errorf("ERROR command is not implemented")
+func (kmips *kmip20service) Register(ctx context.Context, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
+
+	logger := klog.FromContext(ctx)
+
+	type Attribute struct {
+		VendorIdentification string
+		AttributeName string
+		AttributeValue interface{}
+	}
+	
+	type createReqAttrs struct {
+		//ObjectGroup kmip20.ObjectGroup
+		Attribute  []Attribute
+		Name       kmip.Name
+	}
+
+    logger.V(4).Info("====== register key ======")
+
+    newkey := []byte(req.KeyMaterial)
+
+    payload := kmip20.RegisterRequestPayload{
+	    ObjectType: kmip14.ObjectTypeSecretData,
+	    SecretData: &kmip.SecretData{
+		    SecretDataType : kmip14.SecretDataTypePassword,
+		    KeyBlock: kmip.KeyBlock{
+			    KeyFormatType: kmip14.KeyFormatTypeOpaque,
+			    KeyValue: &kmip.KeyValue{
+				    KeyMaterial: newkey,
+			    },
+		    },
+	    },
+    }
+
+	var attributes createReqAttrs
+
+
+    attributes.Attribute = append(attributes.Attribute, Attribute{
+	    VendorIdentification: "x",
+	    AttributeName: "CustomAttribute1",
+	    AttributeValue: "CustomValue1",
+    })
+
+	attributes.Attribute = append(attributes.Attribute, Attribute{
+	    VendorIdentification: "x",
+	    AttributeName: "CustomAttribute2",
+	    AttributeValue: "CustomValue2",
+    })
+
+	attributes.Attribute = append(attributes.Attribute, Attribute{
+	    VendorIdentification: "x",
+	    AttributeName: "CustomAttribute3",
+	    AttributeValue: "CustomValue3",
+    })
+
+	attributes.Attribute = append(attributes.Attribute, Attribute{
+	    VendorIdentification: "x",
+	    AttributeName: "CustomAttribute4",
+	    AttributeValue: "CustomValue4",
+    })
+
+	attributes.Name = kmip.Name{
+	    NameValue: "SASED-M-2-14-name",
+	    NameType:  kmip14.NameTypeUninterpretedTextString,
+    }
+
+	payload.Attributes = attributes
+    
+	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationRegister), &payload)
+
+    if err != nil {
+	    logger.Error(err, "The call to SendRequestMessage failed")
+	    return nil, err
+    }
+
+    // Extract the RegisterResponsePayload type of message
+    var respPayload kmip20.RegisterResponsePayload
+    err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+
+    if err != nil {
+	    logger.Error(err, "register key decode value failed")
+	    return nil, fmt.Errorf("register key decode value failed, error:%v", err)
+    }
+
+    uid := respPayload.UniqueIdentifier
+    logger.V(4).Info("register key success", "uid", uid)
+    return &RegisterResponse{UniqueIdentifier: uid}, nil
+
 }
 
 func (kmips *kmip20service) GetAttribute(ctx context.Context, settings *ConfigurationSettings, req *GetAttributeRequest) (*GetAttributeResponse, error) {
-	return &GetAttributeResponse{}, fmt.Errorf("ERROR command is not implemented")
+	//return &GetAttributeResponse{}, fmt.Errorf("ERROR command is not implemented")
+
+	logger := klog.FromContext(ctx)
+
+    logger.V(4).Info("====== get attribute ======")
+
+	type createReqAttrs struct {
+		VendorIdentification string
+		AttributeName string
+	}
+
+    payload := kmip20.GetAttributesRequestPayload{
+	    UniqueIdentifier: &kmip20.UniqueIdentifierValue{
+			Text:  req.UniqueIdentifier,
+			Enum:  0,
+			Index: 0,
+		},
+		Attributes: createReqAttrs{
+			VendorIdentification: "x",
+			AttributeName:        req.AttributeName,
+		},
+    }
+
+    decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationGetAttributes), &payload)
+
+    if err != nil {
+	    logger.Error(err, "The call to SendRequestMessage failed")
+	    return nil, err
+    }
+
+    // Extract the GetAttributeResponsePayload type of message
+    var respPayload kmip20.GetAttributesResponsePayload
+    err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+
+    if err != nil {
+	    logger.Error(err, "get attribute decode value failed")
+	    return nil, fmt.Errorf("get attribute decode value failed, error:%v", err)
+    }
+
+    uid := respPayload.UniqueIdentifier
+    logger.V(4).Info("get attribute success", "uid", uid)
+    return &GetAttributeResponse{UniqueIdentifier: uid}, nil
+
 }
 
 // Locate:
