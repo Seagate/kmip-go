@@ -292,7 +292,6 @@ func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *Configurati
 
 // Register:
 func (kmips *kmip20service) Register(ctx context.Context, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
-	//return &RegisterResponse{}, fmt.Errorf("ERROR command is not implemented")
 
 	logger := klog.FromContext(ctx)
 
