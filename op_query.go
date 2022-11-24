@@ -14,6 +14,17 @@ type QueryRequestPayload struct {
 	QueryFunction []kmip14.QueryFunction
 }
 
+type CapabilityInformation struct {
+	StreamingCapability     bool                      // Required: No
+	AsynchronousCapability  bool                      // Required: No
+	AttestationCapability   bool                      // Required: No
+	BatchUndoCapability     bool                      // Required: No
+	BatchContinueCapability bool                      // Required: No
+	UnwrapMode              kmip14.UnwrapMode         // Required: No
+	DestroyAction           kmip14.DestroyAction      // Required: No
+	ShreddingAlgorithm      kmip14.ShreddingAlgorithm // Required: No
+	RNGMode                 kmip14.RNGMode            // Required: No
+}
 // Table 260
 
 type QueryResponsePayload struct {
@@ -27,7 +38,7 @@ type QueryResponsePayload struct {
 	RNGParameters            string
 	ProfileInformation       []kmip14.ProfileName
 	ValidationInformation    []kmip14.ValidationAuthorityType
-	CapabilityInformation    []string
+	CapabilityInformation    CapabilityInformation
 	ClientRegistrationMethod kmip14.ClientRegistrationMethod
 	DefaultsInformation      string
 	ProtectionStorageMasks   string

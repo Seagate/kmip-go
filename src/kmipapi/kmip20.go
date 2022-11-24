@@ -65,6 +65,7 @@ func (kmips *kmip20service) Query(ctx context.Context, settings *ConfigurationSe
 		Operation            []kmip14.Operation
 		ObjectType           []kmip14.ObjectType
 		VendorIdentification string
+		CapabilityInformation CapabilityInformation
 	}
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 
@@ -74,7 +75,7 @@ func (kmips *kmip20service) Query(ctx context.Context, settings *ConfigurationSe
 
 	logger.V(4).Info("Query", "Payload", respPayload)
 
-	return &QueryResponse{Operation: respPayload.Operation, ObjectType: respPayload.ObjectType, VendorIdentification: respPayload.VendorIdentification}, nil
+	return &QueryResponse{Operation: respPayload.Operation, ObjectType: respPayload.ObjectType, VendorIdentification: respPayload.VendorIdentification, CapabilityInformation: respPayload.CapabilityInformation}, nil
 }
 
 // CreateKey: Send a KMIP OperationCreate message
