@@ -437,3 +437,51 @@ func ReKey(ctx context.Context, settings *ConfigurationSettings, uid string) (st
 
 	return kmipResp.UniqueIdentifier, nil
 }
+
+func CreateBatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, cmds []string) (string, error) {
+
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("++ create batch cmd", "id", id)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	for index, op := range cmds {
+
+		switch op {
+			case "create":
+				req := CreateKeyRequest{
+				Id:                     id,
+				Type:                   kmip14.ObjectTypeSymmetricKey,
+				Algorithm:              kmip14.CryptographicAlgorithmAES,
+				CryptographicLength:    256,
+				CryptographicUsageMask: 12,
+				}
+				logger.V(2).Info("++ create batch cmd", "req", req)
+
+			case "activate":
+			    req := ActivateKeyRequest{}
+				logger.V(2).Info("++ create batch cmd", "req", req)
+
+			case "get":
+				req := GetKeyRequest{}
+				logger.V(2).Info("++ create batch cmd", "req", req)
+
+
+
+
+
+		}
+		logger.V(2).Info("++ create batch cmd", "index", index)
+		
+	}
+
+
+
+
+
+	return "", nil
+}
+

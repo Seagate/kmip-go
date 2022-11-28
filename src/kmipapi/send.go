@@ -32,6 +32,7 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 				ProtocolVersionMinor: settings.ProtocolVersionMinor,
 			},
 			BatchCount: 1,
+			BatchOrderOption: true,
 		},
 		BatchItem: []kmip.RequestBatchItem{
 			{
