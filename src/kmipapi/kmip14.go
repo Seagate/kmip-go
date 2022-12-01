@@ -83,7 +83,7 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSe
 }
 
 // CreateKey: Send a KMIP OperationCreate message
-func (kmips *kmip14service) CreateKey(ctx context.Context, settings *ConfigurationSettings, req *CreateKeyRequest) (*CreateKeyResponse, error) {
+func (kmips *kmip14service) CreateKey(ctx context.Context, settings *ConfigurationSettings, req *CreateKeyRequest, BatchOp bool) (*CreateKeyResponse, *kmip.CreateRequestPayload, error) {
 	logger := klog.FromContext(ctx)
 
 	type createReqAttrs struct {
@@ -111,11 +111,15 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, settings *Configurati
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	})
 
+	if BatchOp == true {
+		return nil, &payload, nil
+	}
+
 	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationCreate), &payload)
 
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Extract the CreateResponsePayload type of message
@@ -124,13 +128,13 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, settings *Configurati
 
 	if err != nil {
 		logger.Error(err, "create key decode value failed")
-		return nil, fmt.Errorf("create key decode value failed, error:%v", err)
+		return nil, nil, fmt.Errorf("create key decode value failed, error:%v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("create key success", "uid", uid)
 
-	return &CreateKeyResponse{UniqueIdentifier: uid}, nil
+	return &CreateKeyResponse{UniqueIdentifier: uid}, nil, nil
 }
 
 // GetKey: Send a KMIP OperationGet message
@@ -229,16 +233,20 @@ func (kmips *kmip14service) DestroyKey(ctx context.Context, settings *Configurat
 }
 
 // ActivateKey:
-func (kmips *kmip14service) ActivateKey(ctx context.Context, settings *ConfigurationSettings, req *ActivateKeyRequest) (*ActivateKeyResponse, error) {
+func (kmips *kmip14service) ActivateKey(ctx context.Context, settings *ConfigurationSettings, req *ActivateKeyRequest, BatchOp bool) (*ActivateKeyResponse, *kmip.ActivateRequestPayload, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== activate key ======", "uid", req.UniqueIdentifier)
 
 	payload := kmip.ActivateRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 
+	if BatchOp == true {
+		return nil, &payload, nil
+	}
+
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationActivate), &payload)
 	if err != nil {
 		logger.Error(err, "activate key call to SendRequestMessage failed")
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Extract the ActivateResponsePayload type of message
@@ -246,13 +254,13 @@ func (kmips *kmip14service) ActivateKey(ctx context.Context, settings *Configura
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
+		return nil, nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("activate key success", "uid", uid)
 
-	return &ActivateKeyResponse{UniqueIdentifier: uid}, nil
+	return &ActivateKeyResponse{UniqueIdentifier: uid}, nil, nil
 }
 
 // RevokeKey:

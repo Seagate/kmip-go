@@ -5,13 +5,15 @@ package kmipapi
 import (
 	"context"
 	"errors"
+
+	"github.com/Seagate/kmip-go"
 )
 
 type KMIPOperations interface {
-	CreateKey(context.Context, *ConfigurationSettings, *CreateKeyRequest) (*CreateKeyResponse, error)
+	CreateKey(context.Context, *ConfigurationSettings, *CreateKeyRequest, bool) (*CreateKeyResponse, *kmip.CreateRequestPayload, error)
 	GetKey(context.Context, *ConfigurationSettings, *GetKeyRequest) (*GetKeyResponse, error)
 	DestroyKey(context.Context, *ConfigurationSettings, *DestroyKeyRequest) (*DestroyKeyResponse, error)
-	ActivateKey(context.Context, *ConfigurationSettings, *ActivateKeyRequest) (*ActivateKeyResponse, error)
+	ActivateKey(context.Context, *ConfigurationSettings, *ActivateKeyRequest, bool) (*ActivateKeyResponse, *kmip.ActivateRequestPayload, error)
 	RevokeKey(context.Context, *ConfigurationSettings, *RevokeKeyRequest) (*RevokeKeyResponse, error)
 	Register(context.Context, *ConfigurationSettings, *RegisterRequest) (*RegisterResponse, error)
 	Locate(context.Context, *ConfigurationSettings, *LocateRequest) (*LocateResponse, error)

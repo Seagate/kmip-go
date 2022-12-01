@@ -173,7 +173,7 @@ func CreateKey(ctx context.Context, settings *ConfigurationSettings, id string) 
 		CryptographicUsageMask: 12,
 	}
 
-	kmipResp, err := kmipops.CreateKey(ctx, settings, &req)
+	kmipResp, _, err := kmipops.CreateKey(ctx, settings, &req, false)
 	if err != nil {
 		return "", fmt.Errorf("failed to create key using (%s), err: %v", settings.ServiceType, err)
 	}
@@ -200,7 +200,7 @@ func ActivateKey(ctx context.Context, settings *ConfigurationSettings, uid strin
 		UniqueIdentifier: uid,
 	}
 
-	kmipResp, err := kmipops.ActivateKey(ctx, settings, &req)
+	kmipResp, _, err := kmipops.ActivateKey(ctx, settings, &req, false)
 	if err != nil {
 		return "", fmt.Errorf("failed to activate key using (%s), err: %v", settings.ServiceType, err)
 	}
@@ -438,7 +438,7 @@ func ReKey(ctx context.Context, settings *ConfigurationSettings, uid string) (st
 	return kmipResp.UniqueIdentifier, nil
 }
 
-func CreateBatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, cmds []string) (string, error) {
+func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, cmds []string) (string, error) {
 
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ create batch cmd", "id", id)
@@ -448,37 +448,77 @@ func CreateBatchCmd(ctx context.Context, settings *ConfigurationSettings, id str
 		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
 	}
 
-	for index, op := range cmds {
-
-		switch op {
+    var batchcount int
+	var BatchItems []kmip.RequestBatchItem
+	
+	for index, ops := range cmds {
+		switch ops {
 			case "create":
 				req := CreateKeyRequest{
-				Id:                     id,
-				Type:                   kmip14.ObjectTypeSymmetricKey,
-				Algorithm:              kmip14.CryptographicAlgorithmAES,
-				CryptographicLength:    256,
-				CryptographicUsageMask: 12,
+					Id:                     id,
+					Type:                   kmip14.ObjectTypeSymmetricKey,
+					Algorithm:              kmip14.CryptographicAlgorithmAES,
+					CryptographicLength:    256,
+					CryptographicUsageMask: 12,
 				}
-				logger.V(2).Info("++ create batch cmd", "req", req)
+			
+				_, reqPayload, _ := kmipops.CreateKey(ctx, settings, &req, true)
+
+				BatchItems = append(BatchItems, kmip.RequestBatchItem{
+						Operation:              kmip14.OperationCreate,
+						RequestPayload:  		reqPayload,
+						
+					},
+				)
 
 			case "activate":
-			    req := ActivateKeyRequest{}
-				logger.V(2).Info("++ create batch cmd", "req", req)
+				req := ActivateKeyRequest{}
+			
+				_, reqPayload, _ := kmipops.ActivateKey(ctx, settings, &req, true)
+
+				BatchItems = append(BatchItems, kmip.RequestBatchItem{
+						Operation:              kmip14.OperationActivate,
+						RequestPayload:  		reqPayload,
+					},
+				)
 
 			case "get":
-				req := GetKeyRequest{}
-				logger.V(2).Info("++ create batch cmd", "req", req)
+				BatchItems = append(BatchItems, kmip.RequestBatchItem{
+						Operation:              kmip14.OperationGet,
+						RequestPayload:  		GetKeyRequest{},
+					},
+				)
 
+			case "locate":
+				BatchItems = append(BatchItems, kmip.RequestBatchItem{
+						Operation:              kmip14.OperationLocate,
+						RequestPayload:  		LocateRequest{
+							Name:         			id,
+						},
+					},
+				)
 
+			case "revoke":
+				BatchItems = append(BatchItems, kmip.RequestBatchItem{
+						Operation:              kmip14.OperationRevoke,
+						RequestPayload:  		RevokeKeyRequest{},
+					},
+				)
 
+			case "destroy":
+				BatchItems = append(BatchItems, kmip.RequestBatchItem{
+					Operation:              kmip14.OperationDestroy,
+					RequestPayload:  		DestroyKeyRequest{},
+				},
+			)
 
-
+			default:
+				return "", fmt.Errorf("ops not recognized (%s)", ops)
 		}
-		logger.V(2).Info("++ create batch cmd", "index", index)
+		batchcount = index
 		
 	}
-
-
+	logger.V(2).Info("++ batch cmd", "batchcount", batchcount)
 
 
 

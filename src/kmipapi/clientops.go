@@ -25,6 +25,7 @@ type CreateKeyRequest struct {
 	Algorithm              kmip14.CryptographicAlgorithm
 	CryptographicLength    uint32
 	CryptographicUsageMask uint32
+	Operation              kmip14.Operation
 }
 
 type CreateKeyResponse struct {
@@ -41,7 +42,8 @@ type CreateKeyResponse struct {
 
 type DeleteKeyRequest struct {
 	// Contains all attributes of a caller request to delete a KMIP key.
-	Type kmip14.ObjectType
+	Type              kmip14.ObjectType
+	Operation         kmip14.Operation
 }
 
 type DeleteKeyResponse struct {
@@ -53,6 +55,7 @@ type DeleteKeyResponse struct {
 type GetKeyRequest struct {
 	// Contains all attributes of a caller request to get a KMIP key.
 	UniqueIdentifier string
+	Operation        kmip14.Operation
 }
 
 type GetKeyResponse struct {
@@ -65,6 +68,7 @@ type GetKeyResponse struct {
 type DestroyKeyRequest struct {
 	// Contains all attributes of a caller request to destroy a KMIP key.
 	UniqueIdentifier string
+	Operation        kmip14.Operation
 }
 
 type DestroyKeyResponse struct {
@@ -75,6 +79,7 @@ type DestroyKeyResponse struct {
 type ActivateKeyRequest struct {
 	// Contains all attributes of a caller request to activate a KMIP key.
 	UniqueIdentifier string
+	Operation        kmip14.Operation
 }
 
 type ActivateKeyResponse struct {
@@ -87,6 +92,7 @@ type RevokeKeyRequest struct {
 	UniqueIdentifier string
 	RevocationReason uint32
 	CompromiseDate   time.Time // optional
+	Operation        kmip14.Operation
 }
 
 type RevokeKeyResponse struct {
@@ -140,6 +146,7 @@ type LocateRequest struct {
 	AttribValue1     string
 	AttribName2      string
 	AttribValue2     string
+	Operation        kmip14.Operation
 }
 
 type LocateResponse struct {
