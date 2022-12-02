@@ -11,12 +11,12 @@ import (
 
 type KMIPOperations interface {
 	CreateKey(context.Context, *ConfigurationSettings, *CreateKeyRequest, bool) (*CreateKeyResponse, *kmip.CreateRequestPayload, error)
-	GetKey(context.Context, *ConfigurationSettings, *GetKeyRequest) (*GetKeyResponse, error)
-	DestroyKey(context.Context, *ConfigurationSettings, *DestroyKeyRequest) (*DestroyKeyResponse, error)
+	GetKey(context.Context, *ConfigurationSettings, *GetKeyRequest, bool) (*GetKeyResponse, *kmip.GetRequestPayload, error)
+	DestroyKey(context.Context, *ConfigurationSettings, *DestroyKeyRequest, bool) (*DestroyKeyResponse, *kmip.DestroyRequestPayload, error)
 	ActivateKey(context.Context, *ConfigurationSettings, *ActivateKeyRequest, bool) (*ActivateKeyResponse, *kmip.ActivateRequestPayload, error)
-	RevokeKey(context.Context, *ConfigurationSettings, *RevokeKeyRequest) (*RevokeKeyResponse, error)
+	RevokeKey(context.Context, *ConfigurationSettings, *RevokeKeyRequest, bool) (*RevokeKeyResponse, *kmip.RevokeRequestPayload, error)
 	Register(context.Context, *ConfigurationSettings, *RegisterRequest) (*RegisterResponse, error)
-	Locate(context.Context, *ConfigurationSettings, *LocateRequest) (*LocateResponse, error)
+	Locate(context.Context, *ConfigurationSettings, *LocateRequest, bool) (*LocateResponse, *kmip.LocateRequestPayload, error)
 	Query(context.Context, *ConfigurationSettings, *QueryRequest) (*QueryResponse, error)
 	SetAttribute(context.Context, *ConfigurationSettings, *SetAttributeRequest) (*SetAttributeResponse, error)
 	Discover(context.Context, *ConfigurationSettings, *DiscoverRequest) (*DiscoverResponse, error)

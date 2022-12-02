@@ -226,7 +226,7 @@ func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (k
 		UniqueIdentifier: uid,
 	}
 
-	kmipResp, err := kmipops.GetKey(ctx, settings, &req)
+	kmipResp, _, err := kmipops.GetKey(ctx, settings, &req, false)
 	if err != nil {
 		return "", fmt.Errorf("failed to get key using (%s), err: %v", settings.ServiceType, err)
 	}
@@ -323,7 +323,7 @@ func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string, 
 		AttribValue2: attribvalue2,
 	}
 
-	kmipResp, err := kmipops.Locate(ctx, settings, &req)
+	kmipResp, _, err := kmipops.Locate(ctx, settings, &req, false)
 	if err != nil {
 		return "", fmt.Errorf("failed to locate using (%s), err: %v", settings.ServiceType, err)
 	}
@@ -350,7 +350,7 @@ func RevokeKey(ctx context.Context, settings *ConfigurationSettings, uid string,
 		RevocationReason: reason,
 	}
 
-	kmipResp, err := kmipops.RevokeKey(ctx, settings, &req)
+	kmipResp, _, err := kmipops.RevokeKey(ctx, settings, &req, false)
 	if err != nil {
 		return "", fmt.Errorf("failed to revoke key for uid (%s), err: %v", uid, err)
 	}
@@ -376,7 +376,7 @@ func DestroyKey(ctx context.Context, settings *ConfigurationSettings, uid string
 		UniqueIdentifier: uid,
 	}
 
-	kmipResp, err := kmipops.DestroyKey(ctx, settings, &req)
+	kmipResp, _, err := kmipops.DestroyKey(ctx, settings, &req, false)
 	if err != nil {
 		return "", fmt.Errorf("failed to destroy key for uid (%s), err: %v", uid, err)
 	}
@@ -452,6 +452,7 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 	var BatchItems []kmip.RequestBatchItem
 	
 	for index, ops := range cmds {
+		batchcount = index+1
 		switch ops {
 			case "create":
 				req := CreateKeyRequest{
@@ -465,9 +466,9 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 				_, reqPayload, _ := kmipops.CreateKey(ctx, settings, &req, true)
 
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
+						//UniqueBatchItemID:		batchcount[:],
 						Operation:              kmip14.OperationCreate,
-						RequestPayload:  		reqPayload,
-						
+						RequestPayload:  		reqPayload,						
 					},
 				)
 
@@ -477,46 +478,63 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 				_, reqPayload, _ := kmipops.ActivateKey(ctx, settings, &req, true)
 
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
+						//UniqueBatchItemID:		batchcount[:],
 						Operation:              kmip14.OperationActivate,
 						RequestPayload:  		reqPayload,
 					},
 				)
 
 			case "get":
+				req := GetKeyRequest{}
+			
+				_, reqPayload, _ := kmipops.GetKey(ctx, settings, &req, true)
+				
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
+						//UniqueBatchItemID:		batchcount[:],
 						Operation:              kmip14.OperationGet,
-						RequestPayload:  		GetKeyRequest{},
+						RequestPayload:  		reqPayload,
 					},
 				)
 
 			case "locate":
+				req := LocateRequest{Name: id,}
+			
+				_, reqPayload, _ := kmipops.Locate(ctx, settings, &req, true)
+				
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
+						//UniqueBatchItemID:		batchcount[:],
 						Operation:              kmip14.OperationLocate,
-						RequestPayload:  		LocateRequest{
-							Name:         			id,
-						},
+						RequestPayload:  		reqPayload,
 					},
 				)
 
 			case "revoke":
+				req := RevokeKeyRequest{}
+			
+				_, reqPayload, _ := kmipops.RevokeKey(ctx, settings, &req, true)
+				
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
+						//UniqueBatchItemID:		batchcount[:],
 						Operation:              kmip14.OperationRevoke,
-						RequestPayload:  		RevokeKeyRequest{},
+						RequestPayload:  		reqPayload,
 					},
 				)
 
 			case "destroy":
+				req := DestroyKeyRequest{}
+			
+				_, reqPayload, _ := kmipops.DestroyKey(ctx, settings, &req, true)
+				
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-					Operation:              kmip14.OperationDestroy,
-					RequestPayload:  		DestroyKeyRequest{},
-				},
-			)
+						//UniqueBatchItemID:		batchcount[:],
+						Operation:              kmip14.OperationDestroy,
+						RequestPayload:  		reqPayload,
+					},
+				)
 
 			default:
 				return "", fmt.Errorf("ops not recognized (%s)", ops)
 		}
-		batchcount = index
-		
 	}
 	logger.V(2).Info("++ batch cmd", "batchcount", batchcount)
 

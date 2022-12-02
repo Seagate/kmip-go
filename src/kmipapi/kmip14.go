@@ -138,7 +138,7 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, settings *Configurati
 }
 
 // GetKey: Send a KMIP OperationGet message
-func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationSettings, req *GetKeyRequest) (*GetKeyResponse, error) {
+func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationSettings, req *GetKeyRequest, BatchOp bool) (*GetKeyResponse, *kmip.GetRequestPayload, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== get key ======", "uid", req.UniqueIdentifier)
 
@@ -146,12 +146,16 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 		UniqueIdentifier: req.UniqueIdentifier,
 	}
 
+	if BatchOp == true {
+		return nil, &payload, nil
+	}
+
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationGet), &payload)
 	logger.V(5).Info("get key response item", "item", item)
 
 	if err != nil {
 		logger.Error(err, "get key call to SendRequestMessage failed")
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Extract the GetResponsePayload type of message
@@ -161,7 +165,7 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 
 	if err != nil {
 		logger.Error(err, "get key decode value failed")
-		return nil, fmt.Errorf("get key decode value failed, error: %v", err)
+		return nil, nil, fmt.Errorf("get key decode value failed, error: %v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
@@ -202,20 +206,24 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 		}
 	}
 
-	return &response, nil
+	return &response, nil, nil
 }
 
 // DestroyKey:
-func (kmips *kmip14service) DestroyKey(ctx context.Context, settings *ConfigurationSettings, req *DestroyKeyRequest) (*DestroyKeyResponse, error) {
+func (kmips *kmip14service) DestroyKey(ctx context.Context, settings *ConfigurationSettings, req *DestroyKeyRequest, BatchOp bool) (*DestroyKeyResponse, *kmip.DestroyRequestPayload, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== destroy key ======", "uid", req.UniqueIdentifier)
 
 	payload := kmip.DestroyRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 
+	if BatchOp == true {
+		return nil, &payload, nil
+	}
+
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationDestroy), &payload)
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Extract the DestroyResponsePayload type of message
@@ -223,13 +231,13 @@ func (kmips *kmip14service) DestroyKey(ctx context.Context, settings *Configurat
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
+		return nil, nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("XXX DestroyKey response payload", "uid", uid)
 
-	return &DestroyKeyResponse{UniqueIdentifier: uid}, nil
+	return &DestroyKeyResponse{UniqueIdentifier: uid}, nil, nil
 }
 
 // ActivateKey:
@@ -264,7 +272,7 @@ func (kmips *kmip14service) ActivateKey(ctx context.Context, settings *Configura
 }
 
 // RevokeKey:
-func (kmips *kmip14service) RevokeKey(ctx context.Context, settings *ConfigurationSettings, req *RevokeKeyRequest) (*RevokeKeyResponse, error) {
+func (kmips *kmip14service) RevokeKey(ctx context.Context, settings *ConfigurationSettings, req *RevokeKeyRequest, BatchOp bool) (*RevokeKeyResponse, *kmip.RevokeRequestPayload, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== revoke key ======", "uid", req.UniqueIdentifier)
 
@@ -275,10 +283,14 @@ func (kmips *kmip14service) RevokeKey(ctx context.Context, settings *Configurati
 		},
 	}
 
+	if BatchOp == true {
+		return nil, &payload, nil
+	}
+
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationRevoke), &payload)
 	if err != nil {
 		logger.Error(err, "revoke key call to SendRequestMessage failed")
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Extract the RevokeResponsePayload type of message
@@ -286,13 +298,13 @@ func (kmips *kmip14service) RevokeKey(ctx context.Context, settings *Configurati
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
+		return nil, nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("XXX RevokeKey response payload", "uid", uid)
 
-	return &RevokeKeyResponse{UniqueIdentifier: uid}, nil
+	return &RevokeKeyResponse{UniqueIdentifier: uid}, nil, nil
 }
 
 // Register: Register a key
@@ -412,7 +424,7 @@ func (kmips *kmip14service) GetAttribute(ctx context.Context, settings *Configur
 }
 
 // Locate:
-func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) (*LocateResponse, error) {
+func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest, BatchOp bool) (*LocateResponse, *kmip.LocateRequestPayload, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== locate ======", "name", req.Name)
 
@@ -435,10 +447,14 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
 	}
 
+	if BatchOp == true {
+		return nil, &payload, nil
+	}
+
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationLocate), &payload)
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Extract the LocateResponsePayload type of message
@@ -446,7 +462,7 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
+		return nil, nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
 
 	logger.V(4).Info("XXX Locate response payload", "respPayload", respPayload)
@@ -454,7 +470,7 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("XXX Locate response payload", "uid", respPayload.UniqueIdentifier)
 
-	return &LocateResponse{UniqueIdentifier: uid}, nil
+	return &LocateResponse{UniqueIdentifier: uid}, nil, nil
 }
 
 // SetAttribute: Not Supported
