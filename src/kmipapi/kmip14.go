@@ -112,6 +112,7 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, settings *Configurati
 	})
 
 	if BatchOp == true {
+		logger.V(4).Info("create", "Payload", payload)
 		return nil, &payload, nil
 	}
 

@@ -46,6 +46,8 @@ func (h *RevokeHandler) HandleItem(ctx context.Context, req *Request) (*Response
 		return nil, err
 	}
 
+	req.IDPlaceholder = respPayload.UniqueIdentifier
+
 	return &ResponseBatchItem{
 		ResponsePayload: respPayload,
 	}, nil

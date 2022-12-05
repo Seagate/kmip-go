@@ -448,11 +448,12 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
 	}
 
-    var batchcount int
+	batchcount := []byte{}
 	var BatchItems []kmip.RequestBatchItem
 	
 	for index, ops := range cmds {
-		batchcount = index+1
+		
+		batchcount = append(batchcount, byte(index+1))
 		switch ops {
 			case "create":
 				req := CreateKeyRequest{
@@ -462,13 +463,13 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 					CryptographicLength:    256,
 					CryptographicUsageMask: 12,
 				}
-			
+				
 				_, reqPayload, _ := kmipops.CreateKey(ctx, settings, &req, true)
 
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-						//UniqueBatchItemID:		batchcount[:],
+						UniqueBatchItemID:		batchcount[index:index+1],
 						Operation:              kmip14.OperationCreate,
-						RequestPayload:  		reqPayload,						
+						RequestPayload:  		*reqPayload,						
 					},
 				)
 
@@ -478,9 +479,9 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 				_, reqPayload, _ := kmipops.ActivateKey(ctx, settings, &req, true)
 
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-						//UniqueBatchItemID:		batchcount[:],
+						UniqueBatchItemID:		batchcount[index:index+1],
 						Operation:              kmip14.OperationActivate,
-						RequestPayload:  		reqPayload,
+						RequestPayload:  		*reqPayload,
 					},
 				)
 
@@ -490,9 +491,9 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 				_, reqPayload, _ := kmipops.GetKey(ctx, settings, &req, true)
 				
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-						//UniqueBatchItemID:		batchcount[:],
+						UniqueBatchItemID:		batchcount[index:index+1],
 						Operation:              kmip14.OperationGet,
-						RequestPayload:  		reqPayload,
+						RequestPayload:  		*reqPayload,
 					},
 				)
 
@@ -502,9 +503,9 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 				_, reqPayload, _ := kmipops.Locate(ctx, settings, &req, true)
 				
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-						//UniqueBatchItemID:		batchcount[:],
+						UniqueBatchItemID:		batchcount[index:index+1],
 						Operation:              kmip14.OperationLocate,
-						RequestPayload:  		reqPayload,
+						RequestPayload:  		*reqPayload,
 					},
 				)
 
@@ -514,9 +515,9 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 				_, reqPayload, _ := kmipops.RevokeKey(ctx, settings, &req, true)
 				
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-						//UniqueBatchItemID:		batchcount[:],
+						UniqueBatchItemID:		batchcount[index:index+1],
 						Operation:              kmip14.OperationRevoke,
-						RequestPayload:  		reqPayload,
+						RequestPayload:  		*reqPayload,
 					},
 				)
 
@@ -526,9 +527,9 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 				_, reqPayload, _ := kmipops.DestroyKey(ctx, settings, &req, true)
 				
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-						//UniqueBatchItemID:		batchcount[:],
+						UniqueBatchItemID:		batchcount[index:index+1],
 						Operation:              kmip14.OperationDestroy,
-						RequestPayload:  		reqPayload,
+						RequestPayload:  		*reqPayload,
 					},
 				)
 
@@ -537,8 +538,11 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 		}
 	}
 	logger.V(2).Info("++ batch cmd", "batchcount", batchcount)
+	logger.V(2).Info("++ batch cmd", "BatchItems", BatchItems)
 
-
+	decoder, item, err := BatchSendRequestMessage(ctx, settings, BatchItems)
+	logger.V(2).Info("++ batch cmd", "decoder", decoder)
+	logger.V(2).Info("++ batch cmd", "item", item)
 
 	return "", nil
 }
