@@ -143,10 +143,12 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== get key ======", "uid", req.UniqueIdentifier)
 
-	payload := kmip.GetRequestPayload{
-		UniqueIdentifier: req.UniqueIdentifier,
+	payload := kmip.GetRequestPayload{}
+/*
+	if req.UniqueIdentifier != "" {
+		payload = kmip.GetRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 	}
-
+*/
 	if BatchOp == true {
 		return nil, &payload, nil
 	}
@@ -215,7 +217,11 @@ func (kmips *kmip14service) DestroyKey(ctx context.Context, settings *Configurat
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== destroy key ======", "uid", req.UniqueIdentifier)
 
-	payload := kmip.DestroyRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
+	payload := kmip.DestroyRequestPayload{}
+
+	if req.UniqueIdentifier != "" {
+		payload = kmip.DestroyRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
+	}
 
 	if BatchOp == true {
 		return nil, &payload, nil
@@ -246,8 +252,13 @@ func (kmips *kmip14service) ActivateKey(ctx context.Context, settings *Configura
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== activate key ======", "uid", req.UniqueIdentifier)
 
-	payload := kmip.ActivateRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
-
+	//payload := kmip.ActivateRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
+	payload := kmip.ActivateRequestPayload{}
+/*
+	if req.UniqueIdentifier != "" {
+		payload = kmip.ActivateRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
+	}
+*/
 	if BatchOp == true {
 		return nil, &payload, nil
 	}

@@ -10,10 +10,12 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"encoding/hex"
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
 	"k8s.io/klog/v2"
+	"github.com/Seagate/kmip-go/ttlv"
 )
 
 // OpenSession: Read PEM files and establish a TLS connection with the KMS server
@@ -438,14 +440,14 @@ func ReKey(ctx context.Context, settings *ConfigurationSettings, uid string) (st
 	return kmipResp.UniqueIdentifier, nil
 }
 
-func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, cmds []string) (string, error) {
+func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, cmds []string) (string, string, error) {
 
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ create batch cmd", "id", id)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
-		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+		return "", "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
 	}
 
 	batchcount := []byte{}
@@ -534,16 +536,67 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 				)
 
 			default:
-				return "", fmt.Errorf("ops not recognized (%s)", ops)
+				return "", "", fmt.Errorf("ops not recognized (%s)", ops)
 		}
 	}
 	logger.V(2).Info("++ batch cmd", "batchcount", batchcount)
 	logger.V(2).Info("++ batch cmd", "BatchItems", BatchItems)
+	BatchNum := len(batchcount)
 
-	decoder, item, err := BatchSendRequestMessage(ctx, settings, BatchItems)
+	decoder, item, err := BatchSendRequestMessage(ctx, settings, BatchItems, BatchNum)
 	logger.V(2).Info("++ batch cmd", "decoder", decoder)
 	logger.V(2).Info("++ batch cmd", "item", item)
 
-	return "", nil
+	// Extract the GetResponsePayload type of message
+	var respPayload kmip.GetResponsePayload
+	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+	logger.V(5).Info("get key decode value", "response", respPayload)
+
+	if err != nil {
+		logger.Error(err, "get key decode value failed")
+		return "", "", fmt.Errorf("get key decode value failed, error: %v", err)
+	}
+
+	uid := respPayload.UniqueIdentifier
+	logger.V(4).Info("get key success", "uid", uid)
+
+	response := GetKeyResponse{
+		Type:             respPayload.ObjectType,
+		UniqueIdentifier: respPayload.UniqueIdentifier,
+	}
+
+	if response.Type == kmip14.ObjectTypeSymmetricKey {
+		if respPayload.SymmetricKey != nil {
+			if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
+				if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
+					// convert byes to an encoded string
+					response.KeyValue = hex.EncodeToString(bytes)
+				} else {
+					// No bytes to to encode
+					response.KeyValue = ""
+				}
+			}
+		}
+	}
+/*
+	if response.Type == kmip14.ObjectTypeSecretData {
+		if response.Type == kmip14.ObjectTypeSecretData {
+			if respPayload.SecretData != nil {
+				if respPayload.SecretData.KeyBlock.KeyValue != nil {
+					if bytes, ok := respPayload.SecretData.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
+						// convert byes to an encoded string
+						response.KeyValue = hex.EncodeToString(bytes)
+					} else {
+						// No bytes to to encode
+						response.KeyValue = ""
+					}
+				}
+			}
+		}
+	}
+*/
+	return response.KeyValue, response.UniqueIdentifier, nil
+
+//	return "", nil
 }
 

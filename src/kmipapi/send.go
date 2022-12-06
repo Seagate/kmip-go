@@ -115,7 +115,7 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 }
 
 // SendRequestMessage: Send a KMIP request message
-func BatchSendRequestMessage(ctx context.Context, settings *ConfigurationSettings, payload []kmip.RequestBatchItem) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
+func BatchSendRequestMessage(ctx context.Context, settings *ConfigurationSettings, payload []kmip.RequestBatchItem, BatchNum int) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
 	logger := klog.FromContext(ctx)
 
 	logger.V(4).Info("(1) create batch request message")
@@ -127,7 +127,7 @@ func BatchSendRequestMessage(ctx context.Context, settings *ConfigurationSetting
 				ProtocolVersionMajor: settings.ProtocolVersionMajor,
 				ProtocolVersionMinor: settings.ProtocolVersionMinor,
 			},
-			BatchCount: 3,
+			BatchCount: BatchNum,
 			BatchOrderOption: true,
 		},
 		BatchItem: payload,
@@ -172,32 +172,35 @@ func BatchSendRequestMessage(ctx context.Context, settings *ConfigurationSetting
 			return nil, nil, fmt.Errorf("failed to decode response message, error: %v", err)
 		}
 
-		// TODO: Need to handle more than more batch item in the future.
-
-		logger.V(4).Info("(6) extract batch item from response message", "BatchCount", respMsg.ResponseHeader.BatchCount)
-		logger.V(5).Info("response", "message", respMsg)
-		if len(respMsg.BatchItem) == 0 {
-			return nil, nil, fmt.Errorf("response message had not batch items")
-		}
-
-		// Check the status of the batch item
-		if respMsg.ResponseHeader.BatchCount >= 0 {
-			if respMsg.BatchItem[0].ResultStatus != kmip14.ResultStatusSuccess {
-				logger.V(4).Info("send message results", "ResultStatus", respMsg.BatchItem[0].ResultStatus, "ResultReason",
-					respMsg.BatchItem[0].ResultReason, "ResultMessage", respMsg.BatchItem[0].ResultMessage)
-				return nil, nil, fmt.Errorf("send operation (%s) status (%s) reason (%s) message (%s)",
-					"", respMsg.BatchItem[0].ResultStatus, respMsg.BatchItem[0].ResultReason, respMsg.BatchItem[0].ResultMessage)
+		// TODO: Need to handle more than one batch item in the future.
+		//for i:=0; i<BatchNum; i++ {
+			i := BatchNum-1
+			logger.V(4).Info("(6) extract batch item from response message", "BatchCount", respMsg.ResponseHeader.BatchCount)
+			logger.V(5).Info("response", "message", respMsg)
+			if len(respMsg.BatchItem) == 0 {
+				return nil, nil, fmt.Errorf("response message had not batch items")
 			}
-		}
 
-		if respMsg.ResponseHeader.BatchCount >= 0 && respMsg.BatchItem[0].ResultStatus == kmip14.ResultStatusSuccess {
-			logger.V(4).Info("(7) returning decoder and the first batch item", "items", len(respMsg.BatchItem))
-			return decoder, &respMsg.BatchItem[0], nil
-		} else {
-			return nil, nil, fmt.Errorf(
-				"Server status (%s) reason (%s) message (%s)",
-				respMsg.BatchItem[0].ResultStatus, respMsg.BatchItem[0].ResultReason, respMsg.BatchItem[0].ResultMessage)
-		}
+			// Check the status of the batch item
+			if respMsg.ResponseHeader.BatchCount >= 0 {
+				if respMsg.BatchItem[i].ResultStatus != kmip14.ResultStatusSuccess {
+					logger.V(4).Info("send message results", "ResultStatus", respMsg.BatchItem[i].ResultStatus, "ResultReason",
+						respMsg.BatchItem[i].ResultReason, "ResultMessage", respMsg.BatchItem[i].ResultMessage)
+					return nil, nil, fmt.Errorf("send operation (%s) status (%s) reason (%s) message (%s)",
+						"", respMsg.BatchItem[i].ResultStatus, respMsg.BatchItem[i].ResultReason, respMsg.BatchItem[i].ResultMessage)
+				}
+			}
+
+			if respMsg.ResponseHeader.BatchCount >= 0 && respMsg.BatchItem[i].ResultStatus == kmip14.ResultStatusSuccess {
+				logger.V(4).Info("(7) returning decoder and the first batch item", "items", len(respMsg.BatchItem))
+				return decoder, &respMsg.BatchItem[i], nil
+			} else {
+				return nil, nil, fmt.Errorf(
+					"Server status (%s) reason (%s) message (%s)",
+					respMsg.BatchItem[i].ResultStatus, respMsg.BatchItem[i].ResultReason, respMsg.BatchItem[i].ResultMessage)
+			}
+		//}
+
 
 	} else {
 		return nil, nil, fmt.Errorf("TLS connection is <nil>")
