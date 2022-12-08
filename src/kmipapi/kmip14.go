@@ -144,11 +144,11 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 	logger.V(4).Info("====== get key ======", "uid", req.UniqueIdentifier)
 
 	payload := kmip.GetRequestPayload{}
-/*
+
 	if req.UniqueIdentifier != "" {
 		payload = kmip.GetRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 	}
-*/
+
 	if BatchOp == true {
 		return nil, &payload, nil
 	}
@@ -254,11 +254,11 @@ func (kmips *kmip14service) ActivateKey(ctx context.Context, settings *Configura
 
 	//payload := kmip.ActivateRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 	payload := kmip.ActivateRequestPayload{}
-/*
+
 	if req.UniqueIdentifier != "" {
 		payload = kmip.ActivateRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 	}
-*/
+
 	if BatchOp == true {
 		return nil, &payload, nil
 	}

@@ -440,6 +440,11 @@ func ReKey(ctx context.Context, settings *ConfigurationSettings, uid string) (st
 	return kmipResp.UniqueIdentifier, nil
 }
 
+type CreateNullStruct struct {}
+type RevokeNullStruct struct {
+	RevocationReason         kmip.RevocationReasonStruct // Required: Yes
+}
+
 func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, cmds []string) (string, string, error) {
 
 	logger := klog.FromContext(ctx)
@@ -467,7 +472,7 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 				}
 				
 				_, reqPayload, _ := kmipops.CreateKey(ctx, settings, &req, true)
-
+				
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
 						UniqueBatchItemID:		batchcount[index:index+1],
 						Operation:              kmip14.OperationCreate,
@@ -476,26 +481,28 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 				)
 
 			case "activate":
-				req := ActivateKeyRequest{}
+				//req := ActivateKeyRequest{}
 			
-				_, reqPayload, _ := kmipops.ActivateKey(ctx, settings, &req, true)
+				//_, reqPayload, _ := kmipops.ActivateKey(ctx, settings, &req, true)
+				reqPayload := CreateNullStruct{}
 
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
 						UniqueBatchItemID:		batchcount[index:index+1],
 						Operation:              kmip14.OperationActivate,
-						RequestPayload:  		*reqPayload,
+						RequestPayload:  		reqPayload,
 					},
 				)
 
 			case "get":
-				req := GetKeyRequest{}
+				//req := GetKeyRequest{}
 			
-				_, reqPayload, _ := kmipops.GetKey(ctx, settings, &req, true)
+				//_, reqPayload, _ := kmipops.GetKey(ctx, settings, &req, true)
+				reqPayload := CreateNullStruct{}
 				
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
 						UniqueBatchItemID:		batchcount[index:index+1],
 						Operation:              kmip14.OperationGet,
-						RequestPayload:  		*reqPayload,
+						RequestPayload:  		reqPayload,
 					},
 				)
 
@@ -512,26 +519,32 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 				)
 
 			case "revoke":
-				req := RevokeKeyRequest{}
+				//req := RevokeKeyRequest{}
 			
-				_, reqPayload, _ := kmipops.RevokeKey(ctx, settings, &req, true)
+				//_, reqPayload, _ := kmipops.RevokeKey(ctx, settings, &req, true)
+				reqPayload := RevokeNullStruct{
+						RevocationReason: kmip.RevocationReasonStruct{
+							RevocationReasonCode: kmip14.RevocationReasonCodeCessationOfOperation,
+					},
+				}
 				
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
 						UniqueBatchItemID:		batchcount[index:index+1],
 						Operation:              kmip14.OperationRevoke,
-						RequestPayload:  		*reqPayload,
+						RequestPayload:  		reqPayload,							
 					},
 				)
 
 			case "destroy":
-				req := DestroyKeyRequest{}
+				//req := DestroyKeyRequest{}
 			
-				_, reqPayload, _ := kmipops.DestroyKey(ctx, settings, &req, true)
+				//_, reqPayload, _ := kmipops.DestroyKey(ctx, settings, &req, true)
+				reqPayload := CreateNullStruct{}
 				
 				BatchItems = append(BatchItems, kmip.RequestBatchItem{
 						UniqueBatchItemID:		batchcount[index:index+1],
 						Operation:              kmip14.OperationDestroy,
-						RequestPayload:  		*reqPayload,
+						RequestPayload:  		reqPayload,
 					},
 				)
 
