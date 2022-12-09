@@ -6,16 +6,16 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"encoding/hex"
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
-	"k8s.io/klog/v2"
 	"github.com/Seagate/kmip-go/ttlv"
+	"k8s.io/klog/v2"
 )
 
 // OpenSession: Read PEM files and establish a TLS connection with the KMS server
@@ -440,9 +440,9 @@ func ReKey(ctx context.Context, settings *ConfigurationSettings, uid string) (st
 	return kmipResp.UniqueIdentifier, nil
 }
 
-type CreateNullStruct struct {}
+type CreateNullStruct struct{}
 type RevokeNullStruct struct {
-	RevocationReason         kmip.RevocationReasonStruct // Required: Yes
+	RevocationReason kmip.RevocationReasonStruct // Required: Yes
 }
 
 func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, cmds []string) (string, string, error) {
@@ -457,99 +457,99 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 
 	batchcount := []byte{}
 	var BatchItems []kmip.RequestBatchItem
-	
+
 	for index, ops := range cmds {
-		
+
 		batchcount = append(batchcount, byte(index+1))
 		switch ops {
-			case "create":
-				req := CreateKeyRequest{
-					Id:                     id,
-					Type:                   kmip14.ObjectTypeSymmetricKey,
-					Algorithm:              kmip14.CryptographicAlgorithmAES,
-					CryptographicLength:    256,
-					CryptographicUsageMask: 12,
-				}
-				
-				_, reqPayload, _ := kmipops.CreateKey(ctx, settings, &req, true)
-				
-				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-						UniqueBatchItemID:		batchcount[index:index+1],
-						Operation:              kmip14.OperationCreate,
-						RequestPayload:  		*reqPayload,						
-					},
-				)
+		case "create":
+			req := CreateKeyRequest{
+				Id:                     id,
+				Type:                   kmip14.ObjectTypeSymmetricKey,
+				Algorithm:              kmip14.CryptographicAlgorithmAES,
+				CryptographicLength:    256,
+				CryptographicUsageMask: 12,
+			}
 
-			case "activate":
-				//req := ActivateKeyRequest{}
-			
-				//_, reqPayload, _ := kmipops.ActivateKey(ctx, settings, &req, true)
-				reqPayload := CreateNullStruct{}
+			_, reqPayload, _ := kmipops.CreateKey(ctx, settings, &req, true)
 
-				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-						UniqueBatchItemID:		batchcount[index:index+1],
-						Operation:              kmip14.OperationActivate,
-						RequestPayload:  		reqPayload,
-					},
-				)
+			BatchItems = append(BatchItems, kmip.RequestBatchItem{
+				UniqueBatchItemID: batchcount[index : index+1],
+				Operation:         kmip14.OperationCreate,
+				RequestPayload:    *reqPayload,
+			},
+			)
 
-			case "get":
-				//req := GetKeyRequest{}
-			
-				//_, reqPayload, _ := kmipops.GetKey(ctx, settings, &req, true)
-				reqPayload := CreateNullStruct{}
-				
-				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-						UniqueBatchItemID:		batchcount[index:index+1],
-						Operation:              kmip14.OperationGet,
-						RequestPayload:  		reqPayload,
-					},
-				)
+		case "activate":
+			//req := ActivateKeyRequest{}
 
-			case "locate":
-				req := LocateRequest{Name: id,}
-			
-				_, reqPayload, _ := kmipops.Locate(ctx, settings, &req, true)
-				
-				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-						UniqueBatchItemID:		batchcount[index:index+1],
-						Operation:              kmip14.OperationLocate,
-						RequestPayload:  		*reqPayload,
-					},
-				)
+			//_, reqPayload, _ := kmipops.ActivateKey(ctx, settings, &req, true)
+			reqPayload := CreateNullStruct{}
 
-			case "revoke":
-				//req := RevokeKeyRequest{}
-			
-				//_, reqPayload, _ := kmipops.RevokeKey(ctx, settings, &req, true)
-				reqPayload := RevokeNullStruct{
-						RevocationReason: kmip.RevocationReasonStruct{
-							RevocationReasonCode: kmip14.RevocationReasonCodeCessationOfOperation,
-					},
-				}
-				
-				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-						UniqueBatchItemID:		batchcount[index:index+1],
-						Operation:              kmip14.OperationRevoke,
-						RequestPayload:  		reqPayload,							
-					},
-				)
+			BatchItems = append(BatchItems, kmip.RequestBatchItem{
+				UniqueBatchItemID: batchcount[index : index+1],
+				Operation:         kmip14.OperationActivate,
+				RequestPayload:    reqPayload,
+			},
+			)
 
-			case "destroy":
-				//req := DestroyKeyRequest{}
-			
-				//_, reqPayload, _ := kmipops.DestroyKey(ctx, settings, &req, true)
-				reqPayload := CreateNullStruct{}
-				
-				BatchItems = append(BatchItems, kmip.RequestBatchItem{
-						UniqueBatchItemID:		batchcount[index:index+1],
-						Operation:              kmip14.OperationDestroy,
-						RequestPayload:  		reqPayload,
-					},
-				)
+		case "get":
+			//req := GetKeyRequest{}
 
-			default:
-				return "", "", fmt.Errorf("ops not recognized (%s)", ops)
+			//_, reqPayload, _ := kmipops.GetKey(ctx, settings, &req, true)
+			reqPayload := CreateNullStruct{}
+
+			BatchItems = append(BatchItems, kmip.RequestBatchItem{
+				UniqueBatchItemID: batchcount[index : index+1],
+				Operation:         kmip14.OperationGet,
+				RequestPayload:    reqPayload,
+			},
+			)
+
+		case "locate":
+			req := LocateRequest{Name: id}
+
+			_, reqPayload, _ := kmipops.Locate(ctx, settings, &req, true)
+
+			BatchItems = append(BatchItems, kmip.RequestBatchItem{
+				UniqueBatchItemID: batchcount[index : index+1],
+				Operation:         kmip14.OperationLocate,
+				RequestPayload:    *reqPayload,
+			},
+			)
+
+		case "revoke":
+			//req := RevokeKeyRequest{}
+
+			//_, reqPayload, _ := kmipops.RevokeKey(ctx, settings, &req, true)
+			reqPayload := RevokeNullStruct{
+				RevocationReason: kmip.RevocationReasonStruct{
+					RevocationReasonCode: kmip14.RevocationReasonCodeCessationOfOperation,
+				},
+			}
+
+			BatchItems = append(BatchItems, kmip.RequestBatchItem{
+				UniqueBatchItemID: batchcount[index : index+1],
+				Operation:         kmip14.OperationRevoke,
+				RequestPayload:    reqPayload,
+			},
+			)
+
+		case "destroy":
+			//req := DestroyKeyRequest{}
+
+			//_, reqPayload, _ := kmipops.DestroyKey(ctx, settings, &req, true)
+			reqPayload := CreateNullStruct{}
+
+			BatchItems = append(BatchItems, kmip.RequestBatchItem{
+				UniqueBatchItemID: batchcount[index : index+1],
+				Operation:         kmip14.OperationDestroy,
+				RequestPayload:    reqPayload,
+			},
+			)
+
+		default:
+			return "", "", fmt.Errorf("ops not recognized (%s)", ops)
 		}
 	}
 	logger.V(2).Info("++ batch cmd", "batchcount", batchcount)
@@ -591,25 +591,5 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 			}
 		}
 	}
-/*
-	if response.Type == kmip14.ObjectTypeSecretData {
-		if response.Type == kmip14.ObjectTypeSecretData {
-			if respPayload.SecretData != nil {
-				if respPayload.SecretData.KeyBlock.KeyValue != nil {
-					if bytes, ok := respPayload.SecretData.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
-						// convert byes to an encoded string
-						response.KeyValue = hex.EncodeToString(bytes)
-					} else {
-						// No bytes to to encode
-						response.KeyValue = ""
-					}
-				}
-			}
-		}
-	}
-*/
-	return response.KeyValue, response.UniqueIdentifier, nil
-
-//	return "", nil
+	return response.UniqueIdentifier, response.KeyValue, nil
 }
-
