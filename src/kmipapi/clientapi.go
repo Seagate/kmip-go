@@ -601,7 +601,7 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 		err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 
 		if err != nil {
-			return "", "", fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
+			return "", "", fmt.Errorf("unable to decode DestroyResponsePayload, error: %v", err)
 		}
 
 		uid := respPayload.UniqueIdentifier
