@@ -560,36 +560,55 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 	logger.V(2).Info("++ batch cmd", "decoder", decoder)
 	logger.V(2).Info("++ batch cmd", "item", item)
 
-	// Extract the GetResponsePayload type of message
-	var respPayload kmip.GetResponsePayload
-	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-	logger.V(5).Info("get key decode value", "response", respPayload)
+	if item.Operation == kmip14.OperationGet {
+		// Extract the GetResponsePayload type of message
+		var respPayload kmip.GetResponsePayload
+		err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+		logger.V(5).Info("get key decode value", "response", respPayload)
 
-	if err != nil {
-		logger.Error(err, "get key decode value failed")
-		return "", "", fmt.Errorf("get key decode value failed, error: %v", err)
-	}
+		if err != nil {
+			logger.Error(err, "get key decode value failed")
+			return "", "", fmt.Errorf("get key decode value failed, error: %v", err)
+		}
 
-	uid := respPayload.UniqueIdentifier
-	logger.V(4).Info("get key success", "uid", uid)
+		uid := respPayload.UniqueIdentifier
+		logger.V(4).Info("get key success", "uid", uid)
 
-	response := GetKeyResponse{
-		Type:             respPayload.ObjectType,
-		UniqueIdentifier: respPayload.UniqueIdentifier,
-	}
+		response := GetKeyResponse{
+			Type:             respPayload.ObjectType,
+			UniqueIdentifier: respPayload.UniqueIdentifier,
+		}
 
-	if response.Type == kmip14.ObjectTypeSymmetricKey {
-		if respPayload.SymmetricKey != nil {
-			if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
-				if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
-					// convert byes to an encoded string
-					response.KeyValue = hex.EncodeToString(bytes)
-				} else {
-					// No bytes to to encode
-					response.KeyValue = ""
+		if response.Type == kmip14.ObjectTypeSymmetricKey {
+			if respPayload.SymmetricKey != nil {
+				if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
+					if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
+						// convert byes to an encoded string
+						response.KeyValue = hex.EncodeToString(bytes)
+					} else {
+						// No bytes to to encode
+						response.KeyValue = ""
+					}
 				}
 			}
 		}
+		return response.UniqueIdentifier, response.KeyValue, nil
 	}
-	return response.UniqueIdentifier, response.KeyValue, nil
+
+	if item.Operation == kmip14.OperationDestroy {
+		// Extract the DestroyResponsePayload type of message
+		var respPayload kmip.DestroyResponsePayload
+		err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+
+		if err != nil {
+			return "", "", fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
+		}
+
+		uid := respPayload.UniqueIdentifier
+		logger.V(4).Info("XXX DestroyKey response payload", "uid", uid)
+
+		return uid, "", nil
+	}
+
+	return "", "", nil
 }
