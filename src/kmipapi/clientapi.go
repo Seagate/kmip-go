@@ -445,7 +445,24 @@ type RevokeNullStruct struct {
 	RevocationReason kmip.RevocationReasonStruct // Required: Yes
 }
 
-func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, cmds []string) (string, string, error) {
+type BatchListItem struct {
+    Operation kmip14.Operation
+	RequestPayload interface{}
+}
+
+func BatchCmdCreateList() ([]kmip.RequestBatchItem) {
+	var BatchList []kmip.RequestBatchItem
+	return BatchList
+}
+
+func BatchCmdAddItem(ctx context.Context, BatchList []kmip.RequestBatchItem, BatchItems []BatchListItem) (error) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("++ batch cmd add item", "batch", BatchItems)
+	logger.V(2).Info("++ batch cmd add item", "BatchList", BatchList)
+	return nil
+}
+
+func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, BatchItems []BatchListItem) (string, string, error) {
 
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ create batch cmd", "id", id)
@@ -456,13 +473,13 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 	}
 
 	batchcount := []byte{}
-	var BatchItems []kmip.RequestBatchItem
+	var BatchItemsList []kmip.RequestBatchItem
 
-	for index, ops := range cmds {
+	for index, batch := range BatchItems {
 
 		batchcount = append(batchcount, byte(index+1))
-		switch ops {
-		case "create":
+		switch batch.Operation {
+		case kmip14.OperationCreate:
 			req := CreateKeyRequest{
 				Id:                     id,
 				Type:                   kmip14.ObjectTypeSymmetricKey,
@@ -473,52 +490,52 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 
 			_, reqPayload, _ := kmipops.CreateKey(ctx, settings, &req, true)
 
-			BatchItems = append(BatchItems, kmip.RequestBatchItem{
+			BatchItemsList = append(BatchItemsList, kmip.RequestBatchItem{
 				UniqueBatchItemID: batchcount[index : index+1],
 				Operation:         kmip14.OperationCreate,
 				RequestPayload:    *reqPayload,
 			},
 			)
 
-		case "activate":
+		case kmip14.OperationActivate:
 			//req := ActivateKeyRequest{}
 
 			//_, reqPayload, _ := kmipops.ActivateKey(ctx, settings, &req, true)
 			reqPayload := CreateNullStruct{}
 
-			BatchItems = append(BatchItems, kmip.RequestBatchItem{
+			BatchItemsList = append(BatchItemsList, kmip.RequestBatchItem{
 				UniqueBatchItemID: batchcount[index : index+1],
 				Operation:         kmip14.OperationActivate,
 				RequestPayload:    reqPayload,
 			},
 			)
 
-		case "get":
+		case kmip14.OperationGet:
 			//req := GetKeyRequest{}
 
 			//_, reqPayload, _ := kmipops.GetKey(ctx, settings, &req, true)
 			reqPayload := CreateNullStruct{}
 
-			BatchItems = append(BatchItems, kmip.RequestBatchItem{
+			BatchItemsList = append(BatchItemsList, kmip.RequestBatchItem{
 				UniqueBatchItemID: batchcount[index : index+1],
 				Operation:         kmip14.OperationGet,
 				RequestPayload:    reqPayload,
 			},
 			)
 
-		case "locate":
+		case kmip14.OperationLocate:
 			req := LocateRequest{Name: id}
 
 			_, reqPayload, _ := kmipops.Locate(ctx, settings, &req, true)
 
-			BatchItems = append(BatchItems, kmip.RequestBatchItem{
+			BatchItemsList = append(BatchItemsList, kmip.RequestBatchItem{
 				UniqueBatchItemID: batchcount[index : index+1],
 				Operation:         kmip14.OperationLocate,
 				RequestPayload:    *reqPayload,
 			},
 			)
 
-		case "revoke":
+		case kmip14.OperationRevoke:
 			//req := RevokeKeyRequest{}
 
 			//_, reqPayload, _ := kmipops.RevokeKey(ctx, settings, &req, true)
@@ -528,20 +545,20 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 				},
 			}
 
-			BatchItems = append(BatchItems, kmip.RequestBatchItem{
+			BatchItemsList = append(BatchItemsList, kmip.RequestBatchItem{
 				UniqueBatchItemID: batchcount[index : index+1],
 				Operation:         kmip14.OperationRevoke,
 				RequestPayload:    reqPayload,
 			},
 			)
 
-		case "destroy":
+		case kmip14.OperationDestroy:
 			//req := DestroyKeyRequest{}
 
 			//_, reqPayload, _ := kmipops.DestroyKey(ctx, settings, &req, true)
 			reqPayload := CreateNullStruct{}
 
-			BatchItems = append(BatchItems, kmip.RequestBatchItem{
+			BatchItemsList = append(BatchItemsList, kmip.RequestBatchItem{
 				UniqueBatchItemID: batchcount[index : index+1],
 				Operation:         kmip14.OperationDestroy,
 				RequestPayload:    reqPayload,
@@ -549,14 +566,14 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, c
 			)
 
 		default:
-			return "", "", fmt.Errorf("ops not recognized (%s)", ops)
+			return "", "", fmt.Errorf("batch.Operation not recognized (%s)", batch.Operation)
 		}
 	}
 	logger.V(2).Info("++ batch cmd", "batchcount", batchcount)
-	logger.V(2).Info("++ batch cmd", "BatchItems", BatchItems)
+	logger.V(2).Info("++ batch cmd", "BatchItemsList", BatchItemsList)
 	BatchNum := len(batchcount)
 
-	decoder, item, err := BatchSendRequestMessage(ctx, settings, BatchItems, BatchNum)
+	decoder, item, err := BatchSendRequestMessage(ctx, settings, BatchItemsList, BatchNum)
 	logger.V(2).Info("++ batch cmd", "decoder", decoder)
 	logger.V(2).Info("++ batch cmd", "item", item)
 

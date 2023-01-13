@@ -138,6 +138,50 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, settings *Configurati
 	return &CreateKeyResponse{UniqueIdentifier: uid}, nil, nil
 }
 
+// CreateKey: Send a KMIP OperationCreate message
+func (kmips *kmip14service) GenerateCreateKeyPayload(ctx context.Context, settings *ConfigurationSettings, req *CreateKeyRequest) (interface{}) {
+	logger := klog.FromContext(ctx)
+
+	type createReqAttrs struct {
+		CryptographicAlgorithm kmip14.CryptographicAlgorithm
+		CryptographicLength    int
+		CryptographicUsageMask kmip14.CryptographicUsageMask
+		Name                   kmip.Name
+	}
+
+	logger.V(4).Info("====== batch create key payload ======", "id", req.Id)
+
+	payload := kmip.CreateRequestPayload{
+		ObjectType: kmip14.ObjectTypeSymmetricKey,
+	}
+
+	payload.TemplateAttribute.Append(kmip14.TagCryptographicAlgorithm, kmip14.CryptographicAlgorithmAES)
+	payload.TemplateAttribute.Append(kmip14.TagCryptographicLength, 256)
+	payload.TemplateAttribute.Append(kmip14.TagCryptographicUsageMask, kmip14.CryptographicUsageMaskEncrypt|kmip14.CryptographicUsageMaskDecrypt)
+	payload.TemplateAttribute.Append(kmip14.TagName, kmip.Name{
+		NameValue: req.Id,
+		NameType:  kmip14.NameTypeUninterpretedTextString,
+	})
+
+	logger.V(4).Info("create", "Payload", payload)
+	return &payload
+
+
+}
+
+// GenerateGetKeyPayload: Send a KMIP OperationGet message
+func (kmips *kmip14service) GenerateGetKeyPayload(ctx context.Context, settings *ConfigurationSettings, req *GetKeyRequest) (interface{}, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(4).Info("====== batch get key payload ======", "uid", req.UniqueIdentifier)
+
+	payload := kmip.GetRequestPayload{}
+
+	if req.UniqueIdentifier != "" {
+		payload = kmip.GetRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
+	}
+	return &payload, nil
+}
+
 // GetKey: Send a KMIP OperationGet message
 func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationSettings, req *GetKeyRequest, BatchOp bool) (*GetKeyResponse, *kmip.GetRequestPayload, error) {
 	logger := klog.FromContext(ctx)
