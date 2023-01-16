@@ -158,41 +158,30 @@ func (kmips *kmip20service) GenerateCreateKeyPayload(ctx context.Context, settin
 		},
 	}
 
-	return &payload
+	return payload
 }
-/*
-// ActivateKey:
-func (kmips *kmip20service) GenerateActivateKeyPayload(ctx context.Context, settings *ConfigurationSettings, req *ActivateKeyRequest) (interface{}, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== activate key ======", "uid", req.UniqueIdentifier)
 
-	payload := kmip20.ActivateRequestPayload{
-		UniqueIdentifier: &kmip20.UniqueIdentifierValue{
-			Text:  req.UniqueIdentifier,
-			Enum:  0,
-			Index: 0,
+// Locate:
+func (kmips *kmip20service) GenerateLocatePayload(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) (interface{}) {
+	type createReqAttrs struct {
+		Name kmip.Name
+	}
+
+	logger := klog.FromContext(ctx)
+	logger.V(4).Info("====== batch locate ======", "name", req.Name)
+
+	payload := kmip20.LocateRequestPayload{
+		Attributes: createReqAttrs{
+			Name: kmip.Name{
+				NameValue: req.Name,
+				NameType:  kmip14.NameTypeUninterpretedTextString,
+			},
 		},
 	}
+
+	return payload
 }
 
-
-// GenerateGetKeyPayload: Send a KMIP OperationGet message to retrieve key material based on a uid
-func (kmips *kmip20service) GenerateGetKeyPayload(ctx context.Context, settings *ConfigurationSettings, req *GetKeyRequest) (interface{}, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== batch get key payload ======", "uid", req.UniqueIdentifier)
-
-	if req.UniqueIdentifier != "" {
-		payload := kmip20.GetRequestPayload{
-			UniqueIdentifier: &kmip20.UniqueIdentifierValue{
-				Text:  req.UniqueIdentifier,
-				Enum:  0,
-				Index: 0,
-			},
-		}
-	}
-	return &payload, nil
-}
-*/
 // GetKey: Send a KMIP OperationGet message to retrieve key material based on a uid
 func (kmips *kmip20service) GetKey(ctx context.Context, settings *ConfigurationSettings, req *GetKeyRequest, BatchOp bool) (*GetKeyResponse, *kmip.GetRequestPayload, error) {
 	logger := klog.FromContext(ctx)

@@ -169,17 +169,31 @@ func (kmips *kmip14service) GenerateCreateKeyPayload(ctx context.Context, settin
 
 }
 
-// GenerateGetKeyPayload: Send a KMIP OperationGet message
-func (kmips *kmip14service) GenerateGetKeyPayload(ctx context.Context, settings *ConfigurationSettings, req *GetKeyRequest) (interface{}, error) {
+// GenerateLocatePayload:
+func (kmips *kmip14service) GenerateLocatePayload(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) (interface{}) {
 	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== batch get key payload ======", "uid", req.UniqueIdentifier)
+	logger.V(4).Info("====== batch locate ======", "name", req.Name)
 
-	payload := kmip.GetRequestPayload{}
-
-	if req.UniqueIdentifier != "" {
-		payload = kmip.GetRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
+	Name := kmip.Name{
+		NameValue: req.Name,
+		NameType:  kmip14.NameTypeUninterpretedTextString,
 	}
-	return &payload, nil
+
+	payload := kmip.LocateRequestPayload{}
+
+	if req.Name != "" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
+	}
+
+	if req.AttribName1 == "ObjectGroup" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectGroup, 0, req.AttribValue1))
+	}
+
+	if req.AttribName2 == "ObjectType" && req.AttribValue2 == "SecretData" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
+	}
+
+	return payload
 }
 
 // GetKey: Send a KMIP OperationGet message

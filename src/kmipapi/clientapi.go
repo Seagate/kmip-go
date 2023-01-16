@@ -457,12 +457,8 @@ func BatchCmdCreateList() ([]kmip.RequestBatchItem) {
 
 func BatchCmdAddItem(ctx context.Context, BatchList []kmip.RequestBatchItem, BatchItems BatchListItem, batchnum []byte, batchcount byte) ([]kmip.RequestBatchItem, []byte, error) {
 	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ batch cmd add item", "batch", BatchItems)
+	//logger.V(2).Info("++ batch cmd add item", "batch", BatchItems)
 
-	s := len(BatchList)
-	logger.V(2).Info("++ batch cmd add item", "s", s)
-
-	//batchnum := []byte{}
 	batchnum = append(batchnum, byte(batchcount+1))
 	BatchList = append(BatchList, kmip.RequestBatchItem{
 		UniqueBatchItemID: batchnum[batchcount : batchcount+1],

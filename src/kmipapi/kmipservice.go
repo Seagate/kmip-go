@@ -7,14 +7,8 @@ import (
 	"errors"
 
 	"github.com/Seagate/kmip-go"
-	//"github.com/Seagate/kmip-go/kmip20"
 )
-/*
-type KMIPCreatePayload struct{
-	Create14 *kmip.CreateRequestPayload
-	Create20 *kmip20.CreateRequestPayload
-}
-*/
+
 type KMIPOperations interface {
 	CreateKey(context.Context, *ConfigurationSettings, *CreateKeyRequest, bool) (*CreateKeyResponse, *kmip.CreateRequestPayload, error)
 	GetKey(context.Context, *ConfigurationSettings, *GetKeyRequest, bool) (*GetKeyResponse, *kmip.GetRequestPayload, error)
@@ -29,11 +23,7 @@ type KMIPOperations interface {
 	ReKey(context.Context, *ConfigurationSettings, *ReKeyRequest) (*ReKeyResponse, error)
 	GetAttribute(context.Context, *ConfigurationSettings, *GetAttributeRequest) (*GetAttributeResponse, error)
 	GenerateCreateKeyPayload(context.Context, *ConfigurationSettings, *CreateKeyRequest) (interface{})
-	//GenerateActivateKeyPayload(context.Context, *ConfigurationSettings, *ActivateKeyRequest) (interface{}, error)
-	//GenerateGetKeyPayload(context.Context, *ConfigurationSettings, *GetKeyRequest) (interface{}, error)
-	//GenerateLocatePayload(context.Context, *ConfigurationSettings, *LocateRequest) (interface{}, error)
-	//GenerateRevokeKeyPayload(context.Context, *ConfigurationSettings, *RevokeKeyRequest) (interface{}, error)
-	//GenerateDestroyKeyPayload(context.Context, *ConfigurationSettings, *DestroyKeyRequest) (interface{}, error)
+	GenerateLocatePayload(context.Context, *ConfigurationSettings, *LocateRequest) (interface{})
 }
 
 type commonservice struct {
