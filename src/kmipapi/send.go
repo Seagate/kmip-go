@@ -17,6 +17,27 @@ const (
 	DefaultBufferSize = 4096
 )
 
+func BatchCmdRequestMessage(ctx context.Context, settings *ConfigurationSettings, payload []kmip.RequestBatchItem)(kmip.RequestMessage, error) {
+	logger := klog.FromContext(ctx)
+
+	logger.V(4).Info("(1) create batch request message")
+	logger.V(5).Info("send batch request message", "CurrentProtocolVersionMajor", settings.ProtocolVersionMajor, "CurrentProtocolVersionMinor", settings.ProtocolVersionMinor)
+
+	BatchNum := len(payload)
+	msg := kmip.RequestMessage{
+		RequestHeader: kmip.RequestHeader{
+			ProtocolVersion: kmip.ProtocolVersion{
+				ProtocolVersionMajor: settings.ProtocolVersionMajor,
+				ProtocolVersionMinor: settings.ProtocolVersionMinor,
+			},
+			BatchCount: BatchNum,
+			BatchOrderOption: true,
+		},
+		BatchItem: payload,
+	}
+	return msg, nil
+}
+
 // SendRequestMessage: Send a KMIP request message
 func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, operation uint32, payload interface{}) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
 	logger := klog.FromContext(ctx)

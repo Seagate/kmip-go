@@ -164,7 +164,7 @@ func (kmips *kmip14service) GenerateCreateKeyPayload(ctx context.Context, settin
 	})
 
 	logger.V(4).Info("create", "Payload", payload)
-	return &payload
+	return payload
 
 
 }
