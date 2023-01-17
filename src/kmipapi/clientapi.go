@@ -462,7 +462,7 @@ func BatchCmdAddItem(ctx context.Context, BatchList []kmip.RequestBatchItem, Bat
 	batchnum = append(batchnum, byte(batchcount+1))
 	BatchList = append(BatchList, kmip.RequestBatchItem{
 		UniqueBatchItemID: batchnum[batchcount : batchcount+1],
-		Operation:         BatchItems.Operation,
+		Operation:         kmip14.Operation(BatchItems.Operation),
 		RequestPayload:    BatchItems.RequestPayload,
 	},
 	)

@@ -141,14 +141,6 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, settings *Configurati
 // CreateKey: Send a KMIP OperationCreate message
 func (kmips *kmip14service) GenerateCreateKeyPayload(ctx context.Context, settings *ConfigurationSettings, req *CreateKeyRequest) (interface{}) {
 	logger := klog.FromContext(ctx)
-
-	type createReqAttrs struct {
-		CryptographicAlgorithm kmip14.CryptographicAlgorithm
-		CryptographicLength    int
-		CryptographicUsageMask kmip14.CryptographicUsageMask
-		Name                   kmip.Name
-	}
-
 	logger.V(4).Info("====== batch create key payload ======", "id", req.Id)
 
 	payload := kmip.CreateRequestPayload{
