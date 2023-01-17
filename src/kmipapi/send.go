@@ -136,23 +136,8 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 }
 
 // SendRequestMessage: Send a KMIP request message
-func BatchSendRequestMessage(ctx context.Context, settings *ConfigurationSettings, payload []kmip.RequestBatchItem, BatchNum int) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
+func BatchSendRequestMessage(ctx context.Context, settings *ConfigurationSettings, msg kmip.RequestMessage) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
 	logger := klog.FromContext(ctx)
-
-	logger.V(4).Info("(1) create batch request message")
-	logger.V(5).Info("send batch request message", "CurrentProtocolVersionMajor", settings.ProtocolVersionMajor, "CurrentProtocolVersionMinor", settings.ProtocolVersionMinor)
-
-	msg := kmip.RequestMessage{
-		RequestHeader: kmip.RequestHeader{
-			ProtocolVersion: kmip.ProtocolVersion{
-				ProtocolVersionMajor: settings.ProtocolVersionMajor,
-				ProtocolVersionMinor: settings.ProtocolVersionMinor,
-			},
-			BatchCount: BatchNum,
-			BatchOrderOption: true,
-		},
-		BatchItem: payload,
-	}
 
 	logger.V(4).Info("(2) marshal message and print request")
 	kmipreq, err := ttlv.Marshal(msg)
@@ -195,7 +180,7 @@ func BatchSendRequestMessage(ctx context.Context, settings *ConfigurationSetting
 
 		// TODO: Need to handle more than one batch item in the future.
 		//for i:=0; i<BatchNum; i++ {
-			i := BatchNum-1
+			i := msg.RequestHeader.BatchCount-1
 			logger.V(4).Info("(6) extract batch item from response message", "BatchCount", respMsg.ResponseHeader.BatchCount)
 			logger.V(5).Info("response", "message", respMsg)
 			if len(respMsg.BatchItem) == 0 {

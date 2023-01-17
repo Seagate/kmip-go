@@ -6,7 +6,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/hex"
+	//"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,7 +14,7 @@ import (
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
-	"github.com/Seagate/kmip-go/ttlv"
+	//"github.com/Seagate/kmip-go/ttlv"
 	"k8s.io/klog/v2"
 )
 
@@ -470,7 +470,7 @@ func BatchCmdAddItem(ctx context.Context, BatchList []kmip.RequestBatchItem, Bat
 
 	return BatchList, batchnum, nil
 }
-
+/*
 func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, BatchItems []BatchListItem) (string, string, error) {
 
 	logger := klog.FromContext(ctx)
@@ -638,3 +638,4 @@ func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, B
 
 	return "", "", nil
 }
+*/
