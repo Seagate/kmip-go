@@ -17,7 +17,7 @@ const (
 	DefaultBufferSize = 4096
 )
 
-func BatchCmdRequestMessage(ctx context.Context, settings *ConfigurationSettings, payload []kmip.RequestBatchItem)(kmip.RequestMessage, error) {
+func BatchCmdRequestMessage(ctx context.Context, settings *ConfigurationSettings, payload []kmip.RequestBatchItem) (kmip.RequestMessage, error) {
 	logger := klog.FromContext(ctx)
 
 	logger.V(4).Info("(1) create batch request message")
@@ -30,7 +30,7 @@ func BatchCmdRequestMessage(ctx context.Context, settings *ConfigurationSettings
 				ProtocolVersionMajor: settings.ProtocolVersionMajor,
 				ProtocolVersionMinor: settings.ProtocolVersionMinor,
 			},
-			BatchCount: BatchNum,
+			BatchCount:       BatchNum,
 			BatchOrderOption: true,
 		},
 		BatchItem: payload,
@@ -39,35 +39,45 @@ func BatchCmdRequestMessage(ctx context.Context, settings *ConfigurationSettings
 }
 
 // SendRequestMessage: Send a KMIP request message
-func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, operation uint32, payload interface{}) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
+func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, operation uint32, payload interface{}, dobatch bool) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
 	logger := klog.FromContext(ctx)
 	biID := uuid.New()
 
-	logger.V(4).Info("(1) create request message")
-	logger.V(5).Info("send request message", "CurrentProtocolVersionMajor", settings.ProtocolVersionMajor, "CurrentProtocolVersionMinor", settings.ProtocolVersionMinor)
+	var kmipreq []byte
+	var err error
 
-	msg := kmip.RequestMessage{
-		RequestHeader: kmip.RequestHeader{
-			ProtocolVersion: kmip.ProtocolVersion{
-				ProtocolVersionMajor: settings.ProtocolVersionMajor,
-				ProtocolVersionMinor: settings.ProtocolVersionMinor,
-			},
-			BatchCount: 1,
-			BatchOrderOption: true,
-		},
-		BatchItem: []kmip.RequestBatchItem{
-			{
-				UniqueBatchItemID: biID[:],
-				Operation:         kmip14.Operation(operation),
-				RequestPayload:    payload,
-			},
-		},
-	}
+	if dobatch == true {
+		kmipreq, err = ttlv.Marshal(payload)
+		if err != nil {
+			return nil, nil, fmt.Errorf("dobatch - failed to marshal message, error: %v", err)
+		}
+	} else {
+		logger.V(4).Info("(1) create request message")
+		logger.V(5).Info("send request message", "CurrentProtocolVersionMajor", settings.ProtocolVersionMajor, "CurrentProtocolVersionMinor", settings.ProtocolVersionMinor)
 
-	logger.V(4).Info("(2) marshal message and print request")
-	kmipreq, err := ttlv.Marshal(msg)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal message, error: %v", err)
+		msg := kmip.RequestMessage{
+			RequestHeader: kmip.RequestHeader{
+				ProtocolVersion: kmip.ProtocolVersion{
+					ProtocolVersionMajor: settings.ProtocolVersionMajor,
+					ProtocolVersionMinor: settings.ProtocolVersionMinor,
+				},
+				BatchCount:       1,
+				BatchOrderOption: true,
+			},
+			BatchItem: []kmip.RequestBatchItem{
+				{
+					UniqueBatchItemID: biID[:],
+					Operation:         kmip14.Operation(operation),
+					RequestPayload:    payload,
+				},
+			},
+		}
+
+		logger.V(4).Info("(2) marshal message and print request")
+		kmipreq, err = ttlv.Marshal(msg)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to marshal message, error: %v", err)
+		}
 	}
 	logger.V(5).Info("KMIP message", "request", kmipreq)
 
@@ -180,36 +190,34 @@ func BatchSendRequestMessage(ctx context.Context, settings *ConfigurationSetting
 
 		// TODO: Need to handle more than one batch item in the future.
 		//for i:=0; i<BatchNum; i++ {
-			i := msg.RequestHeader.BatchCount-1
-			logger.V(4).Info("(6) extract batch item from response message", "BatchCount", respMsg.ResponseHeader.BatchCount)
-			logger.V(5).Info("response", "message", respMsg)
-			if len(respMsg.BatchItem) == 0 {
-				return nil, nil, fmt.Errorf("response message had not batch items")
-			}
+		i := msg.RequestHeader.BatchCount - 1
+		logger.V(4).Info("(6) extract batch item from response message", "BatchCount", respMsg.ResponseHeader.BatchCount)
+		logger.V(5).Info("response", "message", respMsg)
+		if len(respMsg.BatchItem) == 0 {
+			return nil, nil, fmt.Errorf("response message had not batch items")
+		}
 
-			// Check the status of the batch item
-			if respMsg.ResponseHeader.BatchCount >= 0 {
-				if respMsg.BatchItem[i].ResultStatus != kmip14.ResultStatusSuccess {
-					logger.V(4).Info("send message results", "ResultStatus", respMsg.BatchItem[i].ResultStatus, "ResultReason",
-						respMsg.BatchItem[i].ResultReason, "ResultMessage", respMsg.BatchItem[i].ResultMessage)
-					return nil, nil, fmt.Errorf("send operation (%s) status (%s) reason (%s) message (%s)",
-						"", respMsg.BatchItem[i].ResultStatus, respMsg.BatchItem[i].ResultReason, respMsg.BatchItem[i].ResultMessage)
-				}
+		// Check the status of the batch item
+		if respMsg.ResponseHeader.BatchCount >= 0 {
+			if respMsg.BatchItem[i].ResultStatus != kmip14.ResultStatusSuccess {
+				logger.V(4).Info("send message results", "ResultStatus", respMsg.BatchItem[i].ResultStatus, "ResultReason",
+					respMsg.BatchItem[i].ResultReason, "ResultMessage", respMsg.BatchItem[i].ResultMessage)
+				return nil, nil, fmt.Errorf("send operation (%s) status (%s) reason (%s) message (%s)",
+					"", respMsg.BatchItem[i].ResultStatus, respMsg.BatchItem[i].ResultReason, respMsg.BatchItem[i].ResultMessage)
 			}
+		}
 
-			if respMsg.ResponseHeader.BatchCount >= 0 && respMsg.BatchItem[i].ResultStatus == kmip14.ResultStatusSuccess {
-				logger.V(4).Info("(7) returning decoder and the first batch item", "items", len(respMsg.BatchItem))
-				return decoder, &respMsg.BatchItem[i], nil
-			} else {
-				return nil, nil, fmt.Errorf(
-					"Server status (%s) reason (%s) message (%s)",
-					respMsg.BatchItem[i].ResultStatus, respMsg.BatchItem[i].ResultReason, respMsg.BatchItem[i].ResultMessage)
-			}
+		if respMsg.ResponseHeader.BatchCount >= 0 && respMsg.BatchItem[i].ResultStatus == kmip14.ResultStatusSuccess {
+			logger.V(4).Info("(7) returning decoder and the first batch item", "items", len(respMsg.BatchItem))
+			return decoder, &respMsg.BatchItem[i], nil
+		} else {
+			return nil, nil, fmt.Errorf(
+				"Server status (%s) reason (%s) message (%s)",
+				respMsg.BatchItem[i].ResultStatus, respMsg.BatchItem[i].ResultReason, respMsg.BatchItem[i].ResultMessage)
+		}
 		//}
-
 
 	} else {
 		return nil, nil, fmt.Errorf("TLS connection is <nil>")
 	}
 }
-

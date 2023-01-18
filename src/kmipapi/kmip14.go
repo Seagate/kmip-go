@@ -23,7 +23,7 @@ func (kmips *kmip14service) Discover(ctx context.Context, settings *Configuratio
 		ProtocolVersion: req.ClientVersions,
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationDiscoverVersions), &payload)
+	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationDiscoverVersions), &payload, false)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSe
 	payload := kmip.QueryRequestPayload{
 		QueryFunction: req.QueryFunction,
 	}
-	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload)
+	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload, false)
 
 	if err != nil {
 		return nil, err
@@ -61,9 +61,9 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSe
 
 	// Extract the QueryResponsePayload type of message
 	var respPayload struct {
-		Operation            []kmip14.Operation
-		ObjectType           []kmip14.ObjectType
-		VendorIdentification string
+		Operation             []kmip14.Operation
+		ObjectType            []kmip14.ObjectType
+		VendorIdentification  string
 		CapabilityInformation CapabilityInformation
 	}
 
@@ -79,7 +79,7 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSe
 
 	logger.V(4).Info("Query", "Payload", respPayload)
 
-	return &QueryResponse{Operation: respPayload.Operation, ObjectType: respPayload.ObjectType, VendorIdentification: respPayload.VendorIdentification, CapabilityInformation: respPayload.CapabilityInformation }, nil
+	return &QueryResponse{Operation: respPayload.Operation, ObjectType: respPayload.ObjectType, VendorIdentification: respPayload.VendorIdentification, CapabilityInformation: respPayload.CapabilityInformation}, nil
 }
 
 // CreateKey: Send a KMIP OperationCreate message
@@ -116,7 +116,7 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, settings *Configurati
 		return nil, &payload, nil
 	}
 
-	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationCreate), &payload)
+	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationCreate), &payload, false)
 
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
@@ -139,7 +139,7 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, settings *Configurati
 }
 
 // CreateKey: Send a KMIP OperationCreate message
-func (kmips *kmip14service) GenerateCreateKeyPayload(ctx context.Context, settings *ConfigurationSettings, req *CreateKeyRequest) (interface{}) {
+func (kmips *kmip14service) GenerateCreateKeyPayload(ctx context.Context, settings *ConfigurationSettings, req *CreateKeyRequest) interface{} {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== batch create key payload ======", "id", req.Id)
 
@@ -158,11 +158,10 @@ func (kmips *kmip14service) GenerateCreateKeyPayload(ctx context.Context, settin
 	logger.V(4).Info("create", "Payload", payload)
 	return payload
 
-
 }
 
 // GenerateLocatePayload:
-func (kmips *kmip14service) GenerateLocatePayload(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) (interface{}) {
+func (kmips *kmip14service) GenerateLocatePayload(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) interface{} {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== batch locate ======", "name", req.Name)
 
@@ -203,7 +202,7 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 		return nil, &payload, nil
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationGet), &payload)
+	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationGet), &payload, false)
 	logger.V(5).Info("get key response item", "item", item)
 
 	if err != nil {
@@ -277,7 +276,7 @@ func (kmips *kmip14service) DestroyKey(ctx context.Context, settings *Configurat
 		return nil, &payload, nil
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationDestroy), &payload)
+	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationDestroy), &payload, false)
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, nil, err
@@ -313,7 +312,7 @@ func (kmips *kmip14service) ActivateKey(ctx context.Context, settings *Configura
 		return nil, &payload, nil
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationActivate), &payload)
+	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationActivate), &payload, false)
 	if err != nil {
 		logger.Error(err, "activate key call to SendRequestMessage failed")
 		return nil, nil, err
@@ -349,7 +348,7 @@ func (kmips *kmip14service) RevokeKey(ctx context.Context, settings *Configurati
 		return nil, &payload, nil
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationRevoke), &payload)
+	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationRevoke), &payload, false)
 	if err != nil {
 		logger.Error(err, "revoke key call to SendRequestMessage failed")
 		return nil, nil, err
@@ -388,10 +387,10 @@ func (kmips *kmip14service) Register(ctx context.Context, settings *Configuratio
 		SecretData: &kmip.SecretData{
 			SecretDataType: kmip14.SecretDataTypePassword,
 			KeyBlock: kmip.KeyBlock{
-			    KeyFormatType: kmip14.KeyFormatTypeOpaque,
-			    KeyValue: &kmip.KeyValue{
-				    KeyMaterial: newkey,
-			    },
+				KeyFormatType: kmip14.KeyFormatTypeOpaque,
+				KeyValue: &kmip.KeyValue{
+					KeyMaterial: newkey,
+				},
 			},
 		},
 	}
@@ -429,9 +428,9 @@ func (kmips *kmip14service) Register(ctx context.Context, settings *Configuratio
 			NameValue: req.Name, //"SASED-M-2-14-name",
 			NameType:  kmip14.NameTypeUninterpretedTextString,
 		})
-	}	
+	}
 
-	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationRegister), &payload)
+	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationRegister), &payload, false)
 
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
@@ -463,7 +462,7 @@ func (kmips *kmip14service) GetAttribute(ctx context.Context, settings *Configur
 		AttributeName:    req.AttributeName,
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationGetAttributes), &payload)
+	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationGetAttributes), &payload, false)
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
@@ -513,7 +512,7 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 		return nil, &payload, nil
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationLocate), &payload)
+	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationLocate), &payload, false)
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, nil, err
@@ -547,7 +546,7 @@ func (kmips *kmip14service) ReKey(ctx context.Context, settings *ConfigurationSe
 
 	payload := kmip.ReKeyRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationReKey), &payload)
+	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationReKey), &payload, false)
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
