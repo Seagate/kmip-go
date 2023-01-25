@@ -6,7 +6,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	//"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,7 +13,6 @@ import (
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
-	//"github.com/Seagate/kmip-go/ttlv"
 	"k8s.io/klog/v2"
 )
 
@@ -175,7 +173,7 @@ func CreateKey(ctx context.Context, settings *ConfigurationSettings, id string) 
 		CryptographicUsageMask: 12,
 	}
 
-	kmipResp, _, err := kmipops.CreateKey(ctx, settings, &req, false)
+	kmipResp, err := kmipops.CreateKey(ctx, settings, &req)
 	if err != nil {
 		return "", fmt.Errorf("failed to create key using (%s), err: %v", settings.ServiceType, err)
 	}
@@ -202,7 +200,7 @@ func ActivateKey(ctx context.Context, settings *ConfigurationSettings, uid strin
 		UniqueIdentifier: uid,
 	}
 
-	kmipResp, _, err := kmipops.ActivateKey(ctx, settings, &req, false)
+	kmipResp, err := kmipops.ActivateKey(ctx, settings, &req)
 	if err != nil {
 		return "", fmt.Errorf("failed to activate key using (%s), err: %v", settings.ServiceType, err)
 	}
@@ -228,7 +226,7 @@ func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (k
 		UniqueIdentifier: uid,
 	}
 
-	kmipResp, _, err := kmipops.GetKey(ctx, settings, &req, false)
+	kmipResp, err := kmipops.GetKey(ctx, settings, &req)
 	if err != nil {
 		return "", fmt.Errorf("failed to get key using (%s), err: %v", settings.ServiceType, err)
 	}
@@ -325,7 +323,7 @@ func LocateUid(ctx context.Context, settings *ConfigurationSettings, id string, 
 		AttribValue2: attribvalue2,
 	}
 
-	kmipResp, _, err := kmipops.Locate(ctx, settings, &req, false)
+	kmipResp, err := kmipops.Locate(ctx, settings, &req)
 	if err != nil {
 		return "", fmt.Errorf("failed to locate using (%s), err: %v", settings.ServiceType, err)
 	}
@@ -352,7 +350,7 @@ func RevokeKey(ctx context.Context, settings *ConfigurationSettings, uid string,
 		RevocationReason: reason,
 	}
 
-	kmipResp, _, err := kmipops.RevokeKey(ctx, settings, &req, false)
+	kmipResp, err := kmipops.RevokeKey(ctx, settings, &req)
 	if err != nil {
 		return "", fmt.Errorf("failed to revoke key for uid (%s), err: %v", uid, err)
 	}
@@ -378,7 +376,7 @@ func DestroyKey(ctx context.Context, settings *ConfigurationSettings, uid string
 		UniqueIdentifier: uid,
 	}
 
-	kmipResp, _, err := kmipops.DestroyKey(ctx, settings, &req, false)
+	kmipResp, err := kmipops.DestroyKey(ctx, settings, &req)
 	if err != nil {
 		return "", fmt.Errorf("failed to destroy key for uid (%s), err: %v", uid, err)
 	}
@@ -446,18 +444,17 @@ type RevokeNullStruct struct {
 }
 
 type BatchListItem struct {
-    Operation kmip14.Operation
+	Operation      kmip14.Operation
 	RequestPayload interface{}
 }
 
-func BatchCmdCreateList() ([]kmip.RequestBatchItem) {
+func BatchCmdCreateList() []kmip.RequestBatchItem {
 	var BatchList []kmip.RequestBatchItem
 	return BatchList
 }
 
 func BatchCmdAddItem(ctx context.Context, BatchList []kmip.RequestBatchItem, BatchItems BatchListItem, batchnum []byte, batchcount byte) ([]kmip.RequestBatchItem, []byte, error) {
 	logger := klog.FromContext(ctx)
-	//logger.V(2).Info("++ batch cmd add item", "batch", BatchItems)
 
 	batchnum = append(batchnum, byte(batchcount+1))
 	BatchList = append(BatchList, kmip.RequestBatchItem{
@@ -470,172 +467,3 @@ func BatchCmdAddItem(ctx context.Context, BatchList []kmip.RequestBatchItem, Bat
 
 	return BatchList, batchnum, nil
 }
-/*
-func BatchCmd(ctx context.Context, settings *ConfigurationSettings, id string, BatchItems []BatchListItem) (string, string, error) {
-
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ create batch cmd", "id", id)
-
-	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
-	if err != nil || kmipops == nil {
-		return "", "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
-	}
-
-	batchcount := []byte{}
-	var BatchItemsList []kmip.RequestBatchItem
-
-	for index, batch := range BatchItems {
-
-		batchcount = append(batchcount, byte(index+1))
-		switch batch.Operation {
-		case kmip14.OperationCreate:
-			req := CreateKeyRequest{
-				Id:                     id,
-				Type:                   kmip14.ObjectTypeSymmetricKey,
-				Algorithm:              kmip14.CryptographicAlgorithmAES,
-				CryptographicLength:    256,
-				CryptographicUsageMask: 12,
-			}
-
-			_, reqPayload, _ := kmipops.CreateKey(ctx, settings, &req, true)
-
-			BatchItemsList = append(BatchItemsList, kmip.RequestBatchItem{
-				UniqueBatchItemID: batchcount[index : index+1],
-				Operation:         kmip14.OperationCreate,
-				RequestPayload:    *reqPayload,
-			},
-			)
-
-		case kmip14.OperationActivate:
-			//req := ActivateKeyRequest{}
-
-			//_, reqPayload, _ := kmipops.ActivateKey(ctx, settings, &req, true)
-			reqPayload := CreateNullStruct{}
-
-			BatchItemsList = append(BatchItemsList, kmip.RequestBatchItem{
-				UniqueBatchItemID: batchcount[index : index+1],
-				Operation:         kmip14.OperationActivate,
-				RequestPayload:    reqPayload,
-			},
-			)
-
-		case kmip14.OperationGet:
-			//req := GetKeyRequest{}
-
-			//_, reqPayload, _ := kmipops.GetKey(ctx, settings, &req, true)
-			reqPayload := CreateNullStruct{}
-
-			BatchItemsList = append(BatchItemsList, kmip.RequestBatchItem{
-				UniqueBatchItemID: batchcount[index : index+1],
-				Operation:         kmip14.OperationGet,
-				RequestPayload:    reqPayload,
-			},
-			)
-
-		case kmip14.OperationLocate:
-			req := LocateRequest{Name: id}
-
-			_, reqPayload, _ := kmipops.Locate(ctx, settings, &req, true)
-
-			BatchItemsList = append(BatchItemsList, kmip.RequestBatchItem{
-				UniqueBatchItemID: batchcount[index : index+1],
-				Operation:         kmip14.OperationLocate,
-				RequestPayload:    *reqPayload,
-			},
-			)
-
-		case kmip14.OperationRevoke:
-			//req := RevokeKeyRequest{}
-
-			//_, reqPayload, _ := kmipops.RevokeKey(ctx, settings, &req, true)
-			reqPayload := RevokeNullStruct{
-				RevocationReason: kmip.RevocationReasonStruct{
-					RevocationReasonCode: kmip14.RevocationReasonCodeCessationOfOperation,
-				},
-			}
-
-			BatchItemsList = append(BatchItemsList, kmip.RequestBatchItem{
-				UniqueBatchItemID: batchcount[index : index+1],
-				Operation:         kmip14.OperationRevoke,
-				RequestPayload:    reqPayload,
-			},
-			)
-
-		case kmip14.OperationDestroy:
-			//req := DestroyKeyRequest{}
-
-			//_, reqPayload, _ := kmipops.DestroyKey(ctx, settings, &req, true)
-			reqPayload := CreateNullStruct{}
-
-			BatchItemsList = append(BatchItemsList, kmip.RequestBatchItem{
-				UniqueBatchItemID: batchcount[index : index+1],
-				Operation:         kmip14.OperationDestroy,
-				RequestPayload:    reqPayload,
-			},
-			)
-
-		default:
-			return "", "", fmt.Errorf("batch.Operation not recognized (%s)", batch.Operation)
-		}
-	}
-	logger.V(2).Info("++ batch cmd", "batchcount", batchcount)
-	logger.V(2).Info("++ batch cmd", "BatchItemsList", BatchItemsList)
-	BatchNum := len(batchcount)
-
-	decoder, item, err := BatchSendRequestMessage(ctx, settings, BatchItemsList, BatchNum)
-	logger.V(2).Info("++ batch cmd", "decoder", decoder)
-	logger.V(2).Info("++ batch cmd", "item", item)
-
-	if item.Operation == kmip14.OperationGet {
-		// Extract the GetResponsePayload type of message
-		var respPayload kmip.GetResponsePayload
-		err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-		logger.V(5).Info("get key decode value", "response", respPayload)
-
-		if err != nil {
-			logger.Error(err, "get key decode value failed")
-			return "", "", fmt.Errorf("get key decode value failed, error: %v", err)
-		}
-
-		uid := respPayload.UniqueIdentifier
-		logger.V(4).Info("get key success", "uid", uid)
-
-		response := GetKeyResponse{
-			Type:             respPayload.ObjectType,
-			UniqueIdentifier: respPayload.UniqueIdentifier,
-		}
-
-		if response.Type == kmip14.ObjectTypeSymmetricKey {
-			if respPayload.SymmetricKey != nil {
-				if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
-					if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
-						// convert byes to an encoded string
-						response.KeyValue = hex.EncodeToString(bytes)
-					} else {
-						// No bytes to to encode
-						response.KeyValue = ""
-					}
-				}
-			}
-		}
-		return response.UniqueIdentifier, response.KeyValue, nil
-	}
-
-	if item.Operation == kmip14.OperationDestroy {
-		// Extract the DestroyResponsePayload type of message
-		var respPayload kmip.DestroyResponsePayload
-		err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
-		if err != nil {
-			return "", "", fmt.Errorf("unable to decode DestroyResponsePayload, error: %v", err)
-		}
-
-		uid := respPayload.UniqueIdentifier
-		logger.V(4).Info("XXX DestroyKey response payload", "uid", uid)
-
-		return uid, "", nil
-	}
-
-	return "", "", nil
-}
-*/
