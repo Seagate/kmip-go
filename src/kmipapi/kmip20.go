@@ -339,7 +339,6 @@ func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *Configurati
 
 // Register:
 func (kmips *kmip20service) Register(ctx context.Context, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
-
 	logger := klog.FromContext(ctx)
 
 	type Attribute struct {
@@ -349,7 +348,7 @@ func (kmips *kmip20service) Register(ctx context.Context, settings *Configuratio
 	}
 
 	type createReqAttrs struct {
-		//ObjectGroup kmip20.ObjectGroup
+		// ObjectGroup kmip20.ObjectGroup
 		Attribute []Attribute
 		Name      kmip.Name
 	}
@@ -405,7 +404,6 @@ func (kmips *kmip20service) Register(ctx context.Context, settings *Configuratio
 	payload.Attributes = attributes
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationRegister), &payload, false)
-
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
@@ -423,11 +421,10 @@ func (kmips *kmip20service) Register(ctx context.Context, settings *Configuratio
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("register key success", "uid", uid)
 	return &RegisterResponse{UniqueIdentifier: uid}, nil
-
 }
 
 func (kmips *kmip20service) GetAttribute(ctx context.Context, settings *ConfigurationSettings, req *GetAttributeRequest) (*GetAttributeResponse, error) {
-	//return &GetAttributeResponse{}, fmt.Errorf("ERROR command is not implemented")
+	// return &GetAttributeResponse{}, fmt.Errorf("ERROR command is not implemented")
 
 	logger := klog.FromContext(ctx)
 
@@ -451,7 +448,6 @@ func (kmips *kmip20service) GetAttribute(ctx context.Context, settings *Configur
 	}
 
 	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationGetAttributes), &payload, false)
-
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
@@ -469,7 +465,6 @@ func (kmips *kmip20service) GetAttribute(ctx context.Context, settings *Configur
 	uid := respPayload.UniqueIdentifier
 	logger.V(4).Info("get attribute success", "uid", uid)
 	return &GetAttributeResponse{UniqueIdentifier: uid}, nil
-
 }
 
 // Locate:

@@ -42,8 +42,8 @@ type CreateKeyResponse struct {
 
 type DeleteKeyRequest struct {
 	// Contains all attributes of a caller request to delete a KMIP key.
-	Type              kmip14.ObjectType
-	Operation         kmip14.Operation
+	Type      kmip14.ObjectType
+	Operation kmip14.Operation
 }
 
 type DeleteKeyResponse struct {
@@ -141,12 +141,12 @@ type GetAttributeResponse struct {
 
 type LocateRequest struct {
 	// Contains all attributes of a caller request to revoke a KMIP key.
-	Name             string
-	AttribName1      string
-	AttribValue1     string
-	AttribName2      string
-	AttribValue2     string
-	Operation        kmip14.Operation
+	Name         string
+	AttribName1  string
+	AttribValue1 string
+	AttribName2  string
+	AttribValue2 string
+	Operation    kmip14.Operation
 }
 
 type LocateResponse struct {
@@ -180,9 +180,9 @@ type CapabilityInformation struct {
 
 type QueryResponse struct {
 	// Contains all attributes of the query response operation that are relevant to the caller.
-	Operation            []kmip14.Operation  `json:"Operation,omitempty"`
-	ObjectType           []kmip14.ObjectType `json:"Object Type,omitempty"`
-	VendorIdentification string              `json:"Vendor Identification,omitempty"`
+	Operation             []kmip14.Operation  `json:"Operation,omitempty"`
+	ObjectType            []kmip14.ObjectType `json:"Object Type,omitempty"`
+	VendorIdentification  string              `json:"Vendor Identification,omitempty"`
 	CapabilityInformation CapabilityInformation
 }
 

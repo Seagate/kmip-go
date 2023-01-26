@@ -5,7 +5,6 @@ import (
 )
 
 // ReKeyRequestPayload ////////////////////////////////////////
-//
 type ReKeyRequestPayload struct {
 	UniqueIdentifier string
 }

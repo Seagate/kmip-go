@@ -438,10 +438,12 @@ func ReKey(ctx context.Context, settings *ConfigurationSettings, uid string) (st
 	return kmipResp.UniqueIdentifier, nil
 }
 
-type CreateNullStruct struct{}
-type RevokeNullStruct struct {
-	RevocationReason kmip.RevocationReasonStruct // Required: Yes
-}
+type (
+	CreateNullStruct struct{}
+	RevokeNullStruct struct {
+		RevocationReason kmip.RevocationReasonStruct // Required: Yes
+	}
+)
 
 type BatchListItem struct {
 	Operation      kmip14.Operation

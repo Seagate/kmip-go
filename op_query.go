@@ -25,6 +25,7 @@ type CapabilityInformation struct {
 	ShreddingAlgorithm      kmip14.ShreddingAlgorithm // Required: No
 	RNGMode                 kmip14.RNGMode            // Required: No
 }
+
 // Table 260
 
 type QueryResponsePayload struct {

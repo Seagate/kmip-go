@@ -13,23 +13,23 @@ import (
 // Table 169
 
 type RegisterRequestPayload struct {
-	ObjectType              kmip14.ObjectType
-	Attributes              interface{}
-	Certificate             *kmip.Certificate
-	SymmetricKey            *kmip.SymmetricKey
-	PrivateKey              *kmip.PrivateKey
-	PublicKey               *kmip.PublicKey
-	SplitKey                *kmip.SplitKey
-	Template                *kmip.Template
-	SecretData              *kmip.SecretData
-	OpaqueObject            *kmip.OpaqueObject
-	ProtectionStorageMasks  uint32
+	ObjectType             kmip14.ObjectType
+	Attributes             interface{}
+	Certificate            *kmip.Certificate
+	SymmetricKey           *kmip.SymmetricKey
+	PrivateKey             *kmip.PrivateKey
+	PublicKey              *kmip.PublicKey
+	SplitKey               *kmip.SplitKey
+	Template               *kmip.Template
+	SecretData             *kmip.SecretData
+	OpaqueObject           *kmip.OpaqueObject
+	ProtectionStorageMasks uint32
 }
 
 // Table 170
 
 type RegisterResponsePayload struct {
-	UniqueIdentifier  string
+	UniqueIdentifier string
 }
 
 type RegisterHandler struct {

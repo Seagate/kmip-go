@@ -152,7 +152,6 @@ func (kmips *kmip14service) GenerateCreateKeyPayload(ctx context.Context, settin
 
 	logger.V(4).Info("create", "Payload", payload)
 	return payload
-
 }
 
 // GenerateLocatePayload:
@@ -288,7 +287,7 @@ func (kmips *kmip14service) ActivateKey(ctx context.Context, settings *Configura
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== activate key ======", "uid", req.UniqueIdentifier)
 
-	//payload := kmip.ActivateRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
+	// payload := kmip.ActivateRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 	payload := kmip.ActivateRequestPayload{}
 
 	if req.UniqueIdentifier != "" {
@@ -349,7 +348,6 @@ func (kmips *kmip14service) RevokeKey(ctx context.Context, settings *Configurati
 
 // Register: Register a key
 func (kmips *kmip14service) Register(ctx context.Context, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
-
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== register key ======")
 
@@ -357,7 +355,7 @@ func (kmips *kmip14service) Register(ctx context.Context, settings *Configuratio
 	var decoder *ttlv.Decoder
 	var item *kmip.ResponseBatchItem
 
-	//newkey := hex.EncodeToString([]byte(req.KeyMaterial))
+	// newkey := hex.EncodeToString([]byte(req.KeyMaterial))
 	newkey := []byte(req.KeyMaterial)
 	payload := kmip.RegisterRequestPayload{}
 

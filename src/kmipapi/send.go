@@ -45,7 +45,7 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 
 	var kmipreq []byte
 	var err error
-	//var msg kmip.RequestMessage
+	// var msg kmip.RequestMessage
 
 	if dobatch == true {
 		kmipreq, err = ttlv.Marshal(payload)
@@ -145,5 +145,3 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 		return nil, nil, fmt.Errorf("TLS connection is <nil>")
 	}
 }
-
-
