@@ -64,7 +64,7 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSe
 		Operation             []kmip14.Operation
 		ObjectType            []kmip14.ObjectType
 		VendorIdentification  string
-		CapabilityInformation CapabilityInformation
+		CapabilityInformation kmip.CapabilityInformation
 	}
 
 	if item != nil {
