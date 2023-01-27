@@ -164,26 +164,12 @@ type QueryRequest struct {
 	QueryFunction []kmip14.QueryFunction
 	Id            string
 }
-
-type CapabilityInformation struct {
-	StreamingCapability     bool                      // Required: No
-	AsynchronousCapability  bool                      // Required: No
-	AttestationCapability   bool                      // Required: No
-	BatchUndoCapability     bool                      // Required: No
-	BatchContinueCapability bool                      // Required: No
-	UnwrapMode              kmip14.UnwrapMode         // Required: No
-	DestroyAction           kmip14.DestroyAction      // Required: No
-	ShreddingAlgorithm      kmip14.ShreddingAlgorithm // Required: No
-	RNGMode                 kmip14.RNGMode            // Required: No
-	QuantumSafeCapability   bool                      // Required: No
-}
-
 type QueryResponse struct {
 	// Contains all attributes of the query response operation that are relevant to the caller.
 	Operation             []kmip14.Operation  `json:"Operation,omitempty"`
 	ObjectType            []kmip14.ObjectType `json:"Object Type,omitempty"`
 	VendorIdentification  string              `json:"Vendor Identification,omitempty"`
-	CapabilityInformation CapabilityInformation
+	CapabilityInformation interface{}
 }
 
 type SetAttributeRequest struct {

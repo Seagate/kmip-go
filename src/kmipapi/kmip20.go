@@ -65,7 +65,7 @@ func (kmips *kmip20service) Query(ctx context.Context, settings *ConfigurationSe
 		Operation             []kmip14.Operation
 		ObjectType            []kmip14.ObjectType
 		VendorIdentification  string
-		CapabilityInformation CapabilityInformation
+		CapabilityInformation kmip20.CapabilityInformation
 	}
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 
