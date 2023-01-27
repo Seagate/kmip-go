@@ -437,3 +437,35 @@ func ReKey(ctx context.Context, settings *ConfigurationSettings, uid string) (st
 
 	return kmipResp.UniqueIdentifier, nil
 }
+
+type (
+	CreateNullStruct struct{}
+	RevokeNullStruct struct {
+		RevocationReason kmip.RevocationReasonStruct // Required: Yes
+	}
+)
+
+type BatchListItem struct {
+	Operation      kmip14.Operation
+	RequestPayload interface{}
+}
+
+func BatchCmdCreateList() []kmip.RequestBatchItem {
+	var BatchList []kmip.RequestBatchItem
+	return BatchList
+}
+
+func BatchCmdAddItem(ctx context.Context, BatchList []kmip.RequestBatchItem, BatchItems BatchListItem, batchnum []byte, batchcount byte) ([]kmip.RequestBatchItem, []byte, error) {
+	logger := klog.FromContext(ctx)
+
+	batchnum = append(batchnum, byte(batchcount+1))
+	BatchList = append(BatchList, kmip.RequestBatchItem{
+		UniqueBatchItemID: batchnum[batchcount : batchcount+1],
+		Operation:         kmip14.Operation(BatchItems.Operation),
+		RequestPayload:    BatchItems.RequestPayload,
+	},
+	)
+	logger.V(2).Info("++ batch cmd add item", "BatchList", BatchList)
+
+	return BatchList, batchnum, nil
+}

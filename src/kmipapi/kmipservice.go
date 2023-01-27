@@ -20,6 +20,8 @@ type KMIPOperations interface {
 	Discover(context.Context, *ConfigurationSettings, *DiscoverRequest) (*DiscoverResponse, error)
 	ReKey(context.Context, *ConfigurationSettings, *ReKeyRequest) (*ReKeyResponse, error)
 	GetAttribute(context.Context, *ConfigurationSettings, *GetAttributeRequest) (*GetAttributeResponse, error)
+	GenerateCreateKeyPayload(context.Context, *ConfigurationSettings, *CreateKeyRequest) interface{}
+	GenerateLocatePayload(context.Context, *ConfigurationSettings, *LocateRequest) interface{}
 }
 
 type commonservice struct {

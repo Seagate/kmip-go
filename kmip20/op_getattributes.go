@@ -2,6 +2,7 @@ package kmip20
 
 import (
 	"context"
+
 	"github.com/Seagate/kmip-go"
 )
 
@@ -10,15 +11,15 @@ import (
 // Table 196
 
 type GetAttributesRequestPayload struct {
-	UniqueIdentifier   *UniqueIdentifierValue // Required: No
-	Attributes         interface{}            // Required: No
+	UniqueIdentifier *UniqueIdentifierValue // Required: No
+	Attributes       interface{}            // Required: No
 }
 
 // Table 197
 
 type GetAttributesResponsePayload struct {
-	UniqueIdentifier  string      // Required: Yes
-	Attributes        interface{} // Required: No
+	UniqueIdentifier string      // Required: Yes
+	Attributes       interface{} // Required: No
 }
 
 type GetAttributesHandler struct {
