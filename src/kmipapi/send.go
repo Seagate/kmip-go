@@ -114,21 +114,22 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 			return nil, nil, fmt.Errorf("failed to decode response message, error: %v", err)
 		}
 
-		// TODO: Need to handle more than more batch item in the future.
-		i := respMsg.ResponseHeader.BatchCount - 1
 		logger.V(4).Info("(6) extract batch item from response message", "BatchCount", respMsg.ResponseHeader.BatchCount)
 		logger.V(5).Info("response", "message", respMsg)
 		if len(respMsg.BatchItem) == 0 {
 			return nil, nil, fmt.Errorf("response message had not batch items")
 		}
 
-		// Check the status of the batch item
-		if respMsg.ResponseHeader.BatchCount >= 0 {
-			if respMsg.BatchItem[i].ResultStatus != kmip14.ResultStatusSuccess {
-				logger.V(4).Info("send message results", "ResultStatus", respMsg.BatchItem[i].ResultStatus, "ResultReason",
-					respMsg.BatchItem[i].ResultReason, "ResultMessage", respMsg.BatchItem[i].ResultMessage)
-				return nil, nil, fmt.Errorf("send operation (%s) status (%s) reason (%s) message (%s)",
-					operation, respMsg.BatchItem[i].ResultStatus, respMsg.BatchItem[i].ResultReason, respMsg.BatchItem[i].ResultMessage)
+		// Check the status of the each batch item
+		i := respMsg.ResponseHeader.BatchCount - 1
+		for j := 0; j <= i; j++ {
+			if respMsg.ResponseHeader.BatchCount >= 0 {
+				if respMsg.BatchItem[j].ResultStatus != kmip14.ResultStatusSuccess {
+					logger.V(4).Info("send message results", "ResultStatus", respMsg.BatchItem[j].ResultStatus, "ResultReason",
+						respMsg.BatchItem[j].ResultReason, "ResultMessage", respMsg.BatchItem[j].ResultMessage)
+					return nil, nil, fmt.Errorf("send operation (%s) status (%s) reason (%s) message (%s)",
+						operation, respMsg.BatchItem[j].ResultStatus, respMsg.BatchItem[j].ResultReason, respMsg.BatchItem[j].ResultMessage)
+				}
 			}
 		}
 
