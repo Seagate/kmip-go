@@ -7,6 +7,7 @@ import (
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
+	"github.com/awnumar/memguard"
 )
 
 // Protocol
@@ -62,7 +63,7 @@ type GetKeyResponse struct {
 	// Contains all attributes of the get key operation that are relevant to the caller.
 	Type             kmip14.ObjectType
 	UniqueIdentifier string
-	KeyValue         string
+	KeyValue         *memguard.LockedBuffer
 }
 
 type DestroyKeyRequest struct {
