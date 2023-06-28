@@ -227,10 +227,10 @@ func (kmips *kmip20service) GetKey(ctx context.Context, settings *ConfigurationS
 		if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
 			if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
 				// convert byes to an encoded string
-				response.KeyValue = hex.EncodeToString(bytes)
+				response.KeyValue.Copy([]byte(hex.EncodeToString(bytes)))
 			} else {
 				// No bytes to to encode
-				response.KeyValue = ""
+				response.KeyValue.Copy([]byte(""))
 			}
 		}
 	}
