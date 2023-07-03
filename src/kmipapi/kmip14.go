@@ -10,6 +10,7 @@ import (
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
 	"github.com/Seagate/kmip-go/ttlv"
+	"github.com/awnumar/memguard"
 	"k8s.io/klog/v2"
 )
 
@@ -221,12 +222,15 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 	if response.Type == kmip14.ObjectTypeSymmetricKey {
 		if respPayload.SymmetricKey != nil {
 			if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
+				keybytes := memguard.NewBuffer(64)
 				if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
 					// convert byes to an encoded string
-					response.KeyValue.Copy([]byte(hex.EncodeToString(bytes)))
+					keybytes.Move([]byte(hex.EncodeToString(bytes)))
+					response.KeyValue = keybytes
 				} else {
 					// No bytes to to encode
-					response.KeyValue.Copy([]byte(""))
+					keybytes.Move([]byte(""))
+					response.KeyValue = keybytes
 				}
 			}
 		}
@@ -236,12 +240,15 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 		if response.Type == kmip14.ObjectTypeSecretData {
 			if respPayload.SecretData != nil {
 				if respPayload.SecretData.KeyBlock.KeyValue != nil {
+					keybytes := memguard.NewBuffer(64)
 					if bytes, ok := respPayload.SecretData.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
 						// convert byes to an encoded string
-						response.KeyValue.Copy([]byte(hex.EncodeToString(bytes)))
+						keybytes.Move([]byte(hex.EncodeToString(bytes)))
+						response.KeyValue = keybytes
 					} else {
 						// No bytes to to encode
-						response.KeyValue.Copy([]byte(""))
+						keybytes.Move([]byte(""))
+						response.KeyValue = keybytes
 					}
 				}
 			}
