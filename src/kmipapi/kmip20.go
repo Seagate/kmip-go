@@ -231,10 +231,13 @@ func (kmips *kmip20service) GetKey(ctx context.Context, settings *ConfigurationS
 				// convert byes to an encoded string
 				keybytes.Move([]byte(hex.EncodeToString(bytes)))
 				response.KeyValue = keybytes
+				ZeroizeMemory(bytes)
+				ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 			} else {
 				// No bytes to to encode
 				keybytes.Move([]byte(""))
 				response.KeyValue = keybytes
+				ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 			}
 		}
 	}

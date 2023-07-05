@@ -182,6 +182,13 @@ func (kmips *kmip14service) GenerateLocatePayload(ctx context.Context, settings 
 	return payload
 }
 
+// ZeroizeMemory: Write '0' to a memory location
+func ZeroizeMemory(data []byte) {
+	for i := range data {
+		data[i] = 0
+	}
+}
+
 // GetKey: Send a KMIP OperationGet message
 func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationSettings, req *GetKeyRequest) (*GetKeyResponse, error) {
 	logger := klog.FromContext(ctx)
@@ -227,10 +234,13 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 					// convert byes to an encoded string
 					keybytes.Move([]byte(hex.EncodeToString(bytes)))
 					response.KeyValue = keybytes
+					ZeroizeMemory(bytes)
+					ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 				} else {
 					// No bytes to to encode
 					keybytes.Move([]byte(""))
 					response.KeyValue = keybytes
+					ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 				}
 			}
 		}
@@ -245,10 +255,13 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 						// convert byes to an encoded string
 						keybytes.Move([]byte(hex.EncodeToString(bytes)))
 						response.KeyValue = keybytes
+						ZeroizeMemory(bytes)
+						ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 					} else {
 						// No bytes to to encode
 						keybytes.Move([]byte(""))
 						response.KeyValue = keybytes
+						ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 					}
 				}
 			}
