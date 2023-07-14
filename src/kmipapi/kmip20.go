@@ -11,7 +11,6 @@ import (
 	"github.com/Seagate/kmip-go/kmip14"
 	"github.com/Seagate/kmip-go/kmip20"
 	"github.com/Seagate/kmip-go/ttlv"
-	"github.com/awnumar/memguard"
 	"k8s.io/klog/v2"
 )
 
@@ -226,17 +225,17 @@ func (kmips *kmip20service) GetKey(ctx context.Context, settings *ConfigurationS
 
 	if respPayload.SymmetricKey != nil {
 		if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
-			keybytes := memguard.NewBuffer(64)
+			//keybytes := memguard.NewBuffer(64)
 			if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
 				// convert byes to an encoded string
-				keybytes.Move([]byte(hex.EncodeToString(bytes)))
-				response.KeyValue = keybytes
-				ZeroizeMemory(bytes)
+				keybytes := hex.EncodeToString(bytes)
+				response.KeyValue = &keybytes
+				//ZeroizeMemory(bytes)
 				ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 			} else {
 				// No bytes to to encode
-				keybytes.Move([]byte(""))
-				response.KeyValue = keybytes
+				//keybytes.Move([]byte(""))
+				response.KeyValue = nil
 				ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 			}
 		}

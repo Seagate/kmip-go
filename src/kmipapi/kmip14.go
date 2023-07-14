@@ -10,7 +10,6 @@ import (
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
 	"github.com/Seagate/kmip-go/ttlv"
-	"github.com/awnumar/memguard"
 	"k8s.io/klog/v2"
 )
 
@@ -229,17 +228,17 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 	if response.Type == kmip14.ObjectTypeSymmetricKey {
 		if respPayload.SymmetricKey != nil {
 			if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
-				keybytes := memguard.NewBuffer(64)
+				//keybytes := memguard.NewBuffer(64)
 				if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
 					// convert byes to an encoded string
-					keybytes.Move([]byte(hex.EncodeToString(bytes)))
-					response.KeyValue = keybytes
-					ZeroizeMemory(bytes)
+					keybytes := hex.EncodeToString(bytes)
+					response.KeyValue = &keybytes
+					//ZeroizeMemory(bytes)
 					ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 				} else {
 					// No bytes to to encode
-					keybytes.Move([]byte(""))
-					response.KeyValue = keybytes
+					//keybytes.Move([]byte(""))
+					response.KeyValue = nil
 					ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 				}
 			}
@@ -250,17 +249,17 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 		if response.Type == kmip14.ObjectTypeSecretData {
 			if respPayload.SecretData != nil {
 				if respPayload.SecretData.KeyBlock.KeyValue != nil {
-					keybytes := memguard.NewBuffer(64)
+					//keybytes := memguard.NewBuffer(64)
 					if bytes, ok := respPayload.SecretData.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
 						// convert byes to an encoded string
-						keybytes.Move([]byte(hex.EncodeToString(bytes)))
-						response.KeyValue = keybytes
-						ZeroizeMemory(bytes)
+						keybytes := hex.EncodeToString(bytes)
+						response.KeyValue = &keybytes
+						//ZeroizeMemory(bytes)
 						ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 					} else {
 						// No bytes to to encode
-						keybytes.Move([]byte(""))
-						response.KeyValue = keybytes
+						//keybytes.Move([]byte(""))
+						response.KeyValue = nil
 						ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 					}
 				}

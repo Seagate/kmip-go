@@ -13,7 +13,6 @@ import (
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
-	"github.com/awnumar/memguard"
 	"k8s.io/klog/v2"
 )
 
@@ -214,7 +213,7 @@ func ActivateKey(ctx context.Context, settings *ConfigurationSettings, uid strin
 }
 
 // GetKey: Retrieve a key for a specified UID
-func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (key *memguard.LockedBuffer, err error) {
+func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (key *string, err error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ get key", "uid", uid)
 
