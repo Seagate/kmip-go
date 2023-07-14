@@ -233,12 +233,12 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 					// convert byes to an encoded string
 					keybytes := hex.EncodeToString(bytes)
 					response.KeyValue = &keybytes
-					//ZeroizeMemory(bytes)
+					ZeroizeMemory(bytes)
 					ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 				} else {
 					// No bytes to to encode
-					//keybytes.Move([]byte(""))
-					response.KeyValue = nil
+					nullkey := ""
+					response.KeyValue = &nullkey
 					ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 				}
 			}
@@ -254,12 +254,12 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 						// convert byes to an encoded string
 						keybytes := hex.EncodeToString(bytes)
 						response.KeyValue = &keybytes
-						//ZeroizeMemory(bytes)
+						ZeroizeMemory(bytes)
 						ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 					} else {
 						// No bytes to to encode
-						//keybytes.Move([]byte(""))
-						response.KeyValue = nil
+						nullkey := ""
+						response.KeyValue = &nullkey
 						ZeroizeMemory(respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte))
 					}
 				}
