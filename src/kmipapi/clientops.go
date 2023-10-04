@@ -62,7 +62,7 @@ type GetKeyResponse struct {
 	// Contains all attributes of the get key operation that are relevant to the caller.
 	Type             kmip14.ObjectType
 	UniqueIdentifier string
-	KeyValue         string
+	KeyValue         *string
 }
 
 type DestroyKeyRequest struct {

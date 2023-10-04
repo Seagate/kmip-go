@@ -76,7 +76,7 @@ func GetKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line s
 		return
 	}
 
-	fmt.Printf("get key for uid (%s) key is (%v)\n", uid, key)
+	fmt.Printf("get key for uid (%s)\n", uid)
 }
 
 // LocateKey: usage 'locate id=<value>' to return the uid of the id, where id is required

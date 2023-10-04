@@ -213,13 +213,13 @@ func ActivateKey(ctx context.Context, settings *ConfigurationSettings, uid strin
 }
 
 // GetKey: Retrieve a key for a specified UID
-func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (key string, err error) {
+func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (key *string, err error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ get key", "uid", uid)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
-		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+		return nil, fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
 	}
 
 	req := GetKeyRequest{
@@ -228,14 +228,14 @@ func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (k
 
 	kmipResp, err := kmipops.GetKey(ctx, settings, &req)
 	if err != nil {
-		return "", fmt.Errorf("failed to get key using (%s), err: %v", settings.ServiceType, err)
+		return nil, fmt.Errorf("failed to get key using (%s), err: %v", settings.ServiceType, err)
 	}
 
 	if kmipResp == nil {
-		return "", errors.New("failed to get key, KMIP Response was null")
+		return nil, errors.New("failed to get key, KMIP Response was null")
 	}
 
-	logger.V(3).Info("++ get key success", "uid", uid, "key", kmipResp.KeyValue)
+	logger.V(3).Info("++ get key success", "uid", uid)
 	return kmipResp.KeyValue, nil
 }
 
