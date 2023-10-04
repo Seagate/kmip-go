@@ -235,7 +235,7 @@ func GetKey(ctx context.Context, settings *ConfigurationSettings, uid string) (k
 		return nil, errors.New("failed to get key, KMIP Response was null")
 	}
 
-	logger.V(3).Info("++ get key success", "uid", uid, "key", kmipResp.KeyValue)
+	logger.V(3).Info("++ get key success", "uid", uid)
 	return kmipResp.KeyValue, nil
 }
 
