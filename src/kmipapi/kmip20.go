@@ -197,7 +197,7 @@ func (kmips *kmip20service) GetKey(ctx context.Context, settings *ConfigurationS
 	// Extract the GetResponsePayload type of message
 	var respPayload kmip20.GetResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-	logger.V(5).Info("get key decode value", "response", respPayload)
+	logger.V(5).Info("get key decode value")
 
 	if err != nil {
 		return nil, fmt.Errorf("get key decode value failed, error: %v", err)
