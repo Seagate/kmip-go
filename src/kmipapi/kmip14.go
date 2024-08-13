@@ -182,7 +182,7 @@ func (kmips *kmip14service) GenerateLocatePayload(ctx context.Context, settings 
 	return payload
 }
 
-// ZeroizeMemory: Write '0' to a memory location
+// ZeroizeMemory: Write random numbers to a memory location
 func ZeroizeMemory(data []byte) {
 	for i := range data {
 		data[i] = byte(rand.Intn(255))
