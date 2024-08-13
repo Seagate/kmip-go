@@ -229,7 +229,6 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 	if response.Type == kmip14.ObjectTypeSymmetricKey {
 		if respPayload.SymmetricKey != nil {
 			if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
-				//keybytes := memguard.NewBuffer(64)
 				if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
 					// convert byes to an encoded string
 					keybytes := hex.EncodeToString(bytes)
@@ -250,7 +249,6 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 		if response.Type == kmip14.ObjectTypeSecretData {
 			if respPayload.SecretData != nil {
 				if respPayload.SecretData.KeyBlock.KeyValue != nil {
-					//keybytes := memguard.NewBuffer(64)
 					if bytes, ok := respPayload.SecretData.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
 						// convert byes to an encoded string
 						keybytes := hex.EncodeToString(bytes)
