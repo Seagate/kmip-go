@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
@@ -22,7 +22,7 @@ func OpenSession(ctx context.Context, settings *ConfigurationSettings) error {
 	logger.V(2).Info("Open TLS session", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
 
 	// Open a session
-	certificate, err := ioutil.ReadFile(settings.CertAuthFile)
+	certificate, err := os.ReadFile(settings.CertAuthFile)
 	if err != nil {
 		return fmt.Errorf("Failed to read CA (%s)", settings.CertAuthFile)
 	}

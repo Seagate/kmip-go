@@ -1,6 +1,6 @@
 module github.com/Seagate/kmip-go
 
-go 1.20
+go 1.21
 
 require (
 	github.com/ansel1/merry v1.7.0
