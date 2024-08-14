@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"math/rand"
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
@@ -181,10 +182,10 @@ func (kmips *kmip14service) GenerateLocatePayload(ctx context.Context, settings 
 	return payload
 }
 
-// ZeroizeMemory: Write '0' to a memory location
+// ZeroizeMemory: Write random numbers to a memory location
 func ZeroizeMemory(data []byte) {
 	for i := range data {
-		data[i] = 0
+		data[i] = byte(rand.Intn(255))
 	}
 }
 
@@ -210,7 +211,7 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 	// Extract the GetResponsePayload type of message
 	var respPayload kmip.GetResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-	logger.V(5).Info("get key decode value", "response", respPayload)
+	logger.V(5).Info("get key decode value")
 
 	if err != nil {
 		logger.Error(err, "get key decode value failed")
@@ -228,7 +229,6 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 	if response.Type == kmip14.ObjectTypeSymmetricKey {
 		if respPayload.SymmetricKey != nil {
 			if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
-				//keybytes := memguard.NewBuffer(64)
 				if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
 					// convert byes to an encoded string
 					keybytes := hex.EncodeToString(bytes)
@@ -249,7 +249,6 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 		if response.Type == kmip14.ObjectTypeSecretData {
 			if respPayload.SecretData != nil {
 				if respPayload.SecretData.KeyBlock.KeyValue != nil {
-					//keybytes := memguard.NewBuffer(64)
 					if bytes, ok := respPayload.SecretData.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
 						// convert byes to an encoded string
 						keybytes := hex.EncodeToString(bytes)
