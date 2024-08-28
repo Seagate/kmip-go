@@ -58,6 +58,26 @@ func ActivateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, l
 	fmt.Printf("key activated for uid (%s)\n", uid)
 }
 
+// ReKey: usage 'activate uid=<value>' to activate unique identifier
+func ReKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := klog.FromContext(ctx)
+	logger.V(2).Info("ReKey", "line", line)
+
+	uid := kmipapi.GetValue(line, "uid")
+	if uid == "" {
+		fmt.Printf("rekey uid=value is required, example: rekey uid=6201\n")
+		return
+	}
+
+	uid, err := kmipapi.ReKey(ctx, settings, uid)
+	if err != nil {
+		fmt.Printf("rekey key failed for uid (%s) with error: %v\n", uid, err)
+		return
+	}
+
+	fmt.Printf("rekey for uid (%s)\n", uid)
+}
+
 // GetKey: usage 'get uid=<value>' to retrieve kmip cryptographic key material
 func GetKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
 	logger := klog.FromContext(ctx)
@@ -76,7 +96,7 @@ func GetKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line s
 		return
 	}
 
-	fmt.Printf("get key for uid (%s)\n", uid)
+	fmt.Printf("get key for uid (%s)\n", *key)
 }
 
 // LocateKey: usage 'locate id=<value>' to return the uid of the id, where id is required
@@ -102,7 +122,7 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 	}
 
 	// Store the returned uid in ${lastuid} for use in other commands with that variable
-	kmipapi.SetValue(kmipapi.LastUID, uid)
+	kmipapi.SetValue(kmipapi.LastUID, uid[0])
 
 	fmt.Printf("locate key for id (%s) returned uid (%s)\n", id, uid)
 }
@@ -161,14 +181,15 @@ func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 	success := true
 
 	uid, err := kmipapi.LocateUid(ctx, settings, id, "", "", "", "")
-	if err != nil || uid == "" {
+	//if err != nil || uid == "" {
+	if err != nil {
 		fmt.Printf("locate failed for id (%s), uid (%d), error: %v\n", id, uid, err)
 		success = false
 	} else {
 		fmt.Printf("locate key for id (%s) returned uid (%s)\n", id, uid)
 		fmt.Printf("\n")
 
-		uid, err = kmipapi.RevokeKey(ctx, settings, uid, uint32(kmip14.RevocationReasonCodeCessationOfOperation))
+		uid[0], err = kmipapi.RevokeKey(ctx, settings, uid[0], uint32(kmip14.RevocationReasonCodeCessationOfOperation))
 		if err != nil {
 			fmt.Printf("revoke key failed for uid (%s) with error: %v\n", uid, err)
 			success = false
@@ -177,7 +198,7 @@ func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 		}
 		fmt.Printf("\n")
 
-		uid, err = kmipapi.DestroyKey(ctx, settings, uid)
+		uid[0], err = kmipapi.DestroyKey(ctx, settings, uid[0])
 		if err != nil {
 			fmt.Printf("destroy key failed for uid (%s) with error: %v\n", uid, err)
 			success = false

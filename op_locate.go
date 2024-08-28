@@ -19,7 +19,7 @@ type LocateRequestPayload struct {
 // Table 191
 
 type LocateResponsePayload struct {
-	UniqueIdentifier string // Required: No
+	UniqueIdentifier []string // Required: No
 }
 
 type LocateHandler struct {
@@ -39,7 +39,11 @@ func (h *LocateHandler) HandleItem(ctx context.Context, req *Request) (*Response
 		return nil, err
 	}
 
-	req.IDPlaceholder = respPayload.UniqueIdentifier
+	var luid LocateResponsePayload
+	for _, cv := range respPayload.UniqueIdentifier {
+		luid.UniqueIdentifier = append(luid.UniqueIdentifier, cv)
+	}
+	//req.IDPlaceholder = respPayload.UniqueIdentifier
 
 	return &ResponseBatchItem{
 		ResponsePayload: respPayload,

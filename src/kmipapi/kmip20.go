@@ -507,12 +507,12 @@ func (kmips *kmip20service) Locate(ctx context.Context, settings *ConfigurationS
 	uids := respPayload.UniqueIdentifier
 	logger.V(4).Info("XXX Locate response payload", "uid", respPayload.UniqueIdentifier)
 
-	uid := ""
+	/*uid := ""
 	if len(uids) > 0 {
 		uid = uids[0]
-	}
+	}*/
 
-	return &LocateResponse{UniqueIdentifier: uid}, nil
+	return &LocateResponse{UniqueIdentifier: uids}, nil
 }
 
 // SetAttribute:
