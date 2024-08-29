@@ -523,7 +523,7 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 	logger.V(4).Info("XXX Locate response payload", "uid", respPayload.UniqueIdentifier)
 
 	//return &LocateResponse{UniqueIdentifier: uid}, nil
-	return &LocateResponse{UniqueIdentifier: respPayload.UniqueIdentifier}, nil
+	return &LocateResponse{UniqueIdentifier: respPayload.UniqueIdentifier, Items: respPayload.Items}, nil
 }
 
 // SetAttribute: Not Supported

@@ -18,6 +18,7 @@ type LocateRequestPayload struct {
 
 type LocateResponsePayload struct {
 	UniqueIdentifier []string
+	Items            uint32
 }
 
 type LocateHandler struct {

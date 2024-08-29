@@ -115,7 +115,7 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 		return
 	}
 
-	uid, err := kmipapi.LocateUid(ctx, settings, id, attribname1, attribvalue1, attribname2, attribvalue2)
+	uid, item, err := kmipapi.LocateUid(ctx, settings, id, attribname1, attribvalue1, attribname2, attribvalue2)
 	if err != nil {
 		fmt.Printf("locate failed for id (%s) with error: %v\n", id, err)
 		return
@@ -124,7 +124,7 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 	// Store the returned uid in ${lastuid} for use in other commands with that variable
 	kmipapi.SetValue(kmipapi.LastUID, uid[0])
 
-	fmt.Printf("locate key for id (%s) returned uid (%s)\n", id, uid)
+	fmt.Printf("locate key for id (%s) returned uid (%s) item (%d)\n", id, uid, item)
 }
 
 // RevokeKey: usage 'revoke uid=<value>' to revoke a key based on uid
@@ -180,13 +180,13 @@ func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 
 	success := true
 
-	uid, err := kmipapi.LocateUid(ctx, settings, id, "", "", "", "")
+	uid, item, err := kmipapi.LocateUid(ctx, settings, id, "", "", "", "")
 	//if err != nil || uid == "" {
 	if err != nil {
 		fmt.Printf("locate failed for id (%s), uid (%d), error: %v\n", id, uid, err)
 		success = false
 	} else {
-		fmt.Printf("locate key for id (%s) returned uid (%s)\n", id, uid)
+		fmt.Printf("locate key for id (%s) returned uid (%s) item (%d)\n", id, uid, item)
 		fmt.Printf("\n")
 
 		uid[0], err = kmipapi.RevokeKey(ctx, settings, uid[0], uint32(kmip14.RevocationReasonCodeCessationOfOperation))

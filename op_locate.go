@@ -20,6 +20,7 @@ type LocateRequestPayload struct {
 
 type LocateResponsePayload struct {
 	UniqueIdentifier []string // Required: No
+	Items            uint32
 }
 
 type LocateHandler struct {
