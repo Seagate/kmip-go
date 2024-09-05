@@ -122,7 +122,9 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 	}
 
 	// Store the returned uid in ${lastuid} for use in other commands with that variable
-	kmipapi.SetValue(kmipapi.LastUID, uid[0])
+	if len(uid) != 0 {
+		kmipapi.SetValue(kmipapi.LastUID, uid[0])
+	}
 
 	fmt.Printf("locate key for id (%s) returned uid (%s) item (%d)\n", id, uid, item)
 }
