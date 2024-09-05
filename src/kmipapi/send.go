@@ -138,7 +138,7 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 			return decoder, &respMsg.BatchItem[i], nil
 		} else {
 			return nil, nil, fmt.Errorf(
-				"Server status (%s) reason (%s) message (%s)",
+				"server status (%s) reason (%s) message (%s)",
 				respMsg.BatchItem[i].ResultStatus, respMsg.BatchItem[i].ResultReason, respMsg.BatchItem[i].ResultMessage)
 		}
 
