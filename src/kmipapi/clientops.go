@@ -136,7 +136,7 @@ type GetAttributeRequest struct {
 type GetAttributeResponse struct {
 	// Contains all attributes of the revoke key operation that are relevant to the caller.
 	UniqueIdentifier string
-	Attribute        string
+	Attribute        []kmip.Attribute
 }
 
 type LocateRequest struct {

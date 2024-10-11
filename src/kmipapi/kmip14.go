@@ -474,9 +474,10 @@ func (kmips *kmip14service) GetAttribute(ctx context.Context, settings *Configur
 	logger.V(4).Info("XXX GetAttribute response payload", "respPayload", respPayload)
 
 	uid := respPayload.UniqueIdentifier
+	attrib := respPayload.Attribute
 	logger.V(4).Info("XXX GetAttribute response payload", "uid", respPayload.UniqueIdentifier)
 
-	return &GetAttributeResponse{UniqueIdentifier: uid}, nil
+	return &GetAttributeResponse{UniqueIdentifier: uid, Attribute: attrib}, nil
 }
 
 // Locate:
