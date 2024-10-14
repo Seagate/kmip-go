@@ -279,13 +279,13 @@ func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymateri
 }
 
 // GetAttribute: Register a key
-func GetAttribute(ctx context.Context, settings *ConfigurationSettings, uid string, attribname1 string) (string, error) {
+func GetAttribute(ctx context.Context, settings *ConfigurationSettings, uid string, attribname1 string) (*GetAttributeResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(2).Info("++ get attribute ", "uid", uid)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
-		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+		return nil, fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
 	}
 
 	req := GetAttributeRequest{
@@ -295,14 +295,14 @@ func GetAttribute(ctx context.Context, settings *ConfigurationSettings, uid stri
 
 	kmipResp, err := kmipops.GetAttribute(ctx, settings, &req)
 	if err != nil {
-		return "", fmt.Errorf("failed to get attribute using (%s), err: %v", settings.ServiceType, err)
+		return nil, fmt.Errorf("failed to get attribute using (%s), err: %v", settings.ServiceType, err)
 	}
 
 	if kmipResp == nil {
-		return "", errors.New("failed to get attribute, KMIP Response was null")
+		return nil, errors.New("failed to get attribute, KMIP Response was null")
 	}
 
-	return kmipResp.UniqueIdentifier, nil
+	return kmipResp, nil
 }
 
 // LocateUid: retrieve a UID for a ID
