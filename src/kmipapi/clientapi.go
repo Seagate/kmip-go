@@ -9,17 +9,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
-	"k8s.io/klog/v2"
+	"github.com/Seagate/kmip-go/pkg/common"
 )
 
 // OpenSession: Read PEM files and establish a TLS connection with the KMS server
 func OpenSession(ctx context.Context, settings *ConfigurationSettings) (*tls.Conn, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("Open TLS session", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("Open TLS session", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
 
 	// Open a session
 	certificate, err := os.ReadFile(settings.CertAuthFile)
@@ -75,13 +76,13 @@ func OpenSession(ctx context.Context, settings *ConfigurationSettings) (*tls.Con
 		return nil, fmt.Errorf("TLS Dial failure: %v", err)
 	}
 
-	logger.V(2).Info("TLS Connection opened", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
+	logger.Debug("TLS Connection opened", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
 	return connection, nil
 }
 
 // CloseSession: Close the TLS connection with the KMS Server
 func CloseSession(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings) error {
-	logger := klog.FromContext(ctx)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 
 	if connection != nil {
 		err := connection.Close()
@@ -90,14 +91,14 @@ func CloseSession(ctx context.Context, connection *tls.Conn, settings *Configura
 		}
 	}
 
-	logger.V(2).Info("TLS Connection closed", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
+	logger.Debug("TLS Connection closed", "KmsServerIp", settings.KmsServerIp, "KmsServerPort", settings.KmsServerPort)
 	return nil
 }
 
 // Discover: Perform a discover operation to retrieve KMIP protocol versions supported.
 func DiscoverServer(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, clientVersions []kmip.ProtocolVersion) ([]kmip.ProtocolVersion, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("   ++ discover server", "clientVersions", clientVersions)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("   ++ discover server", "clientVersions", clientVersions)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -109,7 +110,7 @@ func DiscoverServer(ctx context.Context, connection *tls.Conn, settings *Configu
 	}
 
 	kmipResp, err := kmipops.Discover(ctx, connection, settings, &req)
-	logger.V(4).Info("discover response", "kmipResp", kmipResp, "error", err)
+	logger.Debug("discover response", "kmipResp", kmipResp, "error", err)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to discover server using (%s), err: %v", settings.ServiceType, err)
@@ -124,8 +125,8 @@ func DiscoverServer(ctx context.Context, connection *tls.Conn, settings *Configu
 
 // QueryServer: Perform a query operation.
 func QueryServer(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, queryops []kmip14.QueryFunction) (string, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("   ++ querying server", "queryops", queryops)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("   ++ querying server", "queryops", queryops)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -156,8 +157,8 @@ func QueryServer(ctx context.Context, connection *tls.Conn, settings *Configurat
 
 // CreateKey: Create a unique identifier for a id and return that uid
 func CreateKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, id string) (string, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ create key", "id", id)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("++ create key", "id", id)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -187,8 +188,8 @@ func CreateKey(ctx context.Context, connection *tls.Conn, settings *Configuratio
 
 // ActivateKey: Activate a key created using a unique identifier
 func ActivateKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, uid string) (string, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ activate key", "uid", uid)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("++ activate key", "uid", uid)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -213,8 +214,8 @@ func ActivateKey(ctx context.Context, connection *tls.Conn, settings *Configurat
 
 // GetKey: Retrieve a key for a specified UID
 func GetKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, uid string) (key *string, err error) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ get key", "uid", uid)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("++ get key", "uid", uid)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -234,14 +235,14 @@ func GetKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSe
 		return nil, errors.New("failed to get key, KMIP Response was null")
 	}
 
-	logger.V(3).Info("++ get key success", "uid", uid)
+	logger.Debug("++ get key success", "uid", uid)
 	return kmipResp.KeyValue, nil
 }
 
 // RegisterKey: Register a key
 func RegisterKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, keymaterial string, keyformat string, datatype string, objgrp string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string, attribname3 string, attribvalue3 string, attribname4 string, attribvalue4 string, objtype string, name string) (string, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ register key ", "name", name)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("++ register key ", "name", name)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -279,8 +280,8 @@ func RegisterKey(ctx context.Context, connection *tls.Conn, settings *Configurat
 
 // GetAttribute: Register a key
 func GetAttribute(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, uid string, attribname1 string) (*GetAttributeResponse, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(0).Info("++ get attribute ", "uid", uid, "attribute", attribname1)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("++ get attribute ", "uid", uid, "attribute", attribname1)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -306,8 +307,8 @@ func GetAttribute(ctx context.Context, connection *tls.Conn, settings *Configura
 
 // LocateUid: retrieve a UID for a ID
 func LocateUid(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, id string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string) (string, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ locate uid", "id", id)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("++ locate uid", "id", id)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -336,8 +337,8 @@ func LocateUid(ctx context.Context, connection *tls.Conn, settings *Configuratio
 
 // RevokeKey: revoke a key based on UID
 func RevokeKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, uid string, reason uint32) (string, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ revoke key", "uid", uid)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("++ revoke key", "uid", uid)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -363,8 +364,8 @@ func RevokeKey(ctx context.Context, connection *tls.Conn, settings *Configuratio
 
 // DestroyKey: destroy a key based on UID
 func DestroyKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, uid string) (string, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ destroy key", "uid", uid)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("++ destroy key", "uid", uid)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -389,8 +390,8 @@ func DestroyKey(ctx context.Context, connection *tls.Conn, settings *Configurati
 
 // SetAttribute: Set an attribute name and value for an uid
 func SetAttribute(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, uid, attributeName, attributeValue string) (string, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ set attribute", "uid", uid, "name", attributeName, "value", attributeValue)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("++ set attribute", "uid", uid, "name", attributeName, "value", attributeValue)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -413,8 +414,8 @@ func SetAttribute(ctx context.Context, connection *tls.Conn, settings *Configura
 
 // ReKey: Assign a new KMIP key for a uid
 func ReKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, uid string) (string, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ rekey", "uid", uid)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("++ rekey", "uid", uid)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -455,7 +456,7 @@ func BatchCmdCreateList() []kmip.RequestBatchItem {
 }
 
 func BatchCmdAddItem(ctx context.Context, BatchList []kmip.RequestBatchItem, BatchItems BatchListItem, batchnum []byte, batchcount byte) ([]kmip.RequestBatchItem, []byte, error) {
-	logger := klog.FromContext(ctx)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 
 	batchnum = append(batchnum, byte(batchcount+1))
 	BatchList = append(BatchList, kmip.RequestBatchItem{
@@ -464,7 +465,7 @@ func BatchCmdAddItem(ctx context.Context, BatchList []kmip.RequestBatchItem, Bat
 		RequestPayload:    BatchItems.RequestPayload,
 	},
 	)
-	logger.V(2).Info("++ batch cmd add item", "BatchList", BatchList)
+	logger.Debug("++ batch cmd add item", "BatchList", BatchList)
 
 	return BatchList, batchnum, nil
 }

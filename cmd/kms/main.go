@@ -31,7 +31,6 @@ func init() {
 
 // main: the main application
 func main() {
-
 	flag.Usage = func() {
 		_, _ = fmt.Fprintf(flag.CommandLine.Output(), "[] kms (version=%s) usage:\n", version)
 		_, _ = fmt.Fprintln(flag.CommandLine.Output(), "")

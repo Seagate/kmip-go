@@ -40,7 +40,7 @@ func Env(ctx context.Context, connection **tls.Conn, settings *kmipapi.Configura
 	}
 
 	if *connection == nil {
-		fmt.Printf("  %*s  %-v\n", col1, key("Connection"), value(connection))
+		fmt.Printf("  %*s  %-v\n", col1, key("Connection"), value(*connection))
 	} else {
 		fmt.Printf("  %*s  %-v\n", col1, key("Connection"), value((*connection).RemoteAddr()))
 	}
@@ -211,6 +211,7 @@ func Load(ctx context.Context, connection **tls.Conn, settings *kmipapi.Configur
 		err := kmipapi.Restore(ctx, settings, filename)
 		if err == nil {
 			fmt.Printf("configuration settings read from (%s)\n", filename)
+			kmipapi.Store(ctx, settings)
 		}
 	}
 }
