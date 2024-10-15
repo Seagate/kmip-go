@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"time"
 
 	"github.com/Seagate/kmip-go/src/kmipapi"
 )
 
-type CommandHandler func(context.Context, *kmipapi.ConfigurationSettings, string)
+type CommandHandler func(context.Context, **tls.Conn, *kmipapi.ConfigurationSettings, string)
 
 var g_handlers map[string]CommandHandler
 
@@ -40,11 +41,11 @@ func Initialize() {
 }
 
 // Execute: execute a handler with the text line
-func Execute(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
+func Execute(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
 	f, ok := g_handlers[kmipapi.GetCommand(line)]
 	if ok {
 		start := time.Now()
-		f(ctx, settings, line)
+		f(ctx, connection, settings, line)
 		if settings.ShowElapsed {
 			duration := time.Since(start)
 			fmt.Printf("[elapsed=%s] %s\n", duration, kmipapi.GetCommand(line))

@@ -3,16 +3,26 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 
+	"github.com/Seagate/kmip-go/pkg/common"
 	"github.com/Seagate/kmip-go/src/handlers"
 	"github.com/Seagate/kmip-go/src/kmipapi"
-	"k8s.io/klog/v2"
 )
 
-const version string = "1.2.0"
+const version string = "1.3.0"
+
+// This variable is filled in during the linker step - -ldflags "-X main.buildTime=`date -u '+%Y-%m-%dT%H:%M:%S'`"
+var buildTime = ""
+
+var programLevel = new(slog.LevelVar) // Info by default
+
+// This variable is used to store the TLS connection for an open session with a KMS server
+var tlsConnection *tls.Conn = nil
 
 // init: called once during program execution
 func init() {
@@ -21,8 +31,6 @@ func init() {
 
 // main: the main application
 func main() {
-	klog.InitFlags(nil)
-	klog.EnableContextualLogging(true)
 
 	flag.Usage = func() {
 		_, _ = fmt.Fprintf(flag.CommandLine.Output(), "[] kms (version=%s) usage:\n", version)
@@ -35,8 +43,10 @@ func main() {
 	}
 
 	var usage bool
+	var debug bool
 
 	flag.BoolVar(&usage, "h", false, "Show usage message.")
+	flag.BoolVar(&debug, "d", false, "Enable debug log level.")
 	flag.Parse()
 
 	if usage {
@@ -44,7 +54,13 @@ func main() {
 		os.Exit(0)
 	}
 
-	fmt.Printf("[] kms (version=%s)\n\n", version)
+	// Initialize the slog logger
+	logger := slog.Default()
+	if debug {
+		slog.SetLogLoggerLevel(slog.LevelDebug)
+	}
+
+	fmt.Printf("\n[] kms (version=%s %s)\n\n", version, buildTime)
 
 	settings := kmipapi.ConfigurationSettings{
 		ProtocolVersionMajor: 1,
@@ -52,16 +68,13 @@ func main() {
 		ServiceType:          kmipapi.KMIP14Service,
 	}
 
-	ctx := context.Background()
+	ctx := context.WithValue(context.Background(), common.LoggerKey, logger)
 
 	// Restore any previously stored configuration settings
-	filename := "kms.json"
-	if _, err := os.Stat(filename); err == nil {
-		err = kmipapi.Restore(ctx, &settings, filename)
-		if err != nil {
-			fmt.Printf("ERROR: restoring kms configuration data, filename: %s, error: %v", filename, err)
-			os.Exit(1)
-		}
+	err := kmipapi.Restore(ctx, &settings, "")
+	if err != nil {
+		fmt.Printf("ERROR: restoring kms configuration data, error: %v", err)
+		os.Exit(1)
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -74,7 +87,7 @@ func main() {
 				os.Exit(0)
 			}
 			if line != "" {
-				handlers.Execute(ctx, &settings, line)
+				handlers.Execute(ctx, &tlsConnection, &settings, line)
 				fmt.Println("")
 			}
 		}

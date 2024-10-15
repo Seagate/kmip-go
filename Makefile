@@ -18,7 +18,8 @@ help:
 	@echo "make lint         - golangci-lint run"
 	@echo "make vet          - go vet ./..."
 	@echo "make fmt          - gofumpt -w -l ."
-	@echo "make kms          - build $(APP_NAME) executable"
+	@echo "make kms          - build $(APP_NAME)"
+	@echo "make installkms   - install $(APP_NAME)"
 	@echo ""
 
 all: fmt build up test lint
@@ -32,7 +33,6 @@ builddir:
 install:
 	go install ./cmd/ppkmip
 	go install ./cmd/kmipgen
-	install ./$(APP_NAME) /usr/local/bin
 
 ppkmip: builddir
 	GOOS=darwin GOARCH=amd64 go build -o build/ppkmip-macos ./cmd/ppkmip
@@ -123,7 +123,10 @@ pykmip-server: up
 gen-certs:
 	openssl req -x509 -newkey rsa:4096 -keyout pykmip-server/server.key -out pykmip-server/server.cert -days 3650 -nodes -subj '/CN=localhost'
 
-kms:
+kms: cmd/$(APP_NAME)/main.go
 	@echo "Build local $(APP_NAME)..."
 	go build -o $(APP_NAME) -ldflags "-X main.buildTime=`date -u '+%Y-%m-%dT%H:%M:%S'`" ./cmd/$(APP_NAME)/main.go
 	ls -lh $(APP_NAME)
+
+installkms:
+	install ./$(APP_NAME) /usr/local/bin

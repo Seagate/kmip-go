@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 
 	"github.com/Seagate/kmip-go"
@@ -39,7 +40,7 @@ func BatchCmdGenerateMessage(ctx context.Context, settings *ConfigurationSetting
 }
 
 // SendRequestMessage: Send a KMIP request message
-func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, operation uint32, payload interface{}, dobatch bool) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
+func SendRequestMessage(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, operation uint32, payload interface{}, dobatch bool) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
 	logger := klog.FromContext(ctx)
 	biID := uuid.New()
 
@@ -82,17 +83,17 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 	}
 	logger.V(5).Info("KMIP message", "request", kmipreq)
 
-	if settings.Connection != nil {
+	if connection != nil {
 
 		logger.V(4).Info("(3) write message")
-		_, err = settings.Connection.Write(kmipreq)
+		_, err = connection.Write(kmipreq)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to write message, error: %v", err)
 		}
 
 		logger.V(4).Info("(4) read response 1")
 		buf := make([]byte, DefaultBufferSize)
-		_, err = bufio.NewReader(settings.Connection).Read(buf)
+		_, err = bufio.NewReader(connection).Read(buf)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to read buffer from response, error: %v", err)
 		}

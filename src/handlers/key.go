@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"log/slog"
 
 	"github.com/Seagate/kmip-go/kmip14"
+	"github.com/Seagate/kmip-go/pkg/common"
 	"github.com/Seagate/kmip-go/src/kmipapi"
-	"k8s.io/klog/v2"
 )
 
 //
@@ -16,9 +18,9 @@ import (
 //
 
 // CreateKey: usage 'create id=<value>' to create a new kmip cryptographic key
-func CreateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("CreateKey", "line", line)
+func CreateKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("CreateKey", "line", line)
 
 	id := kmipapi.GetValue(line, "id")
 	if id == "" {
@@ -26,7 +28,7 @@ func CreateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 		return
 	}
 
-	uid, err := kmipapi.CreateKey(ctx, settings, id)
+	uid, err := kmipapi.CreateKey(ctx, *connection, settings, id)
 	if err != nil {
 		fmt.Printf("create key failed for id (%s) with error: %v\n", id, err)
 		return
@@ -39,9 +41,9 @@ func CreateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 }
 
 // ActivateKey: usage 'activate uid=<value>' to activate unique identifier
-func ActivateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("ActivateKey", "line", line)
+func ActivateKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("ActivateKey", "line", line)
 
 	uid := kmipapi.GetValue(line, "uid")
 	if uid == "" {
@@ -49,7 +51,7 @@ func ActivateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, l
 		return
 	}
 
-	uid, err := kmipapi.ActivateKey(ctx, settings, uid)
+	uid, err := kmipapi.ActivateKey(ctx, *connection, settings, uid)
 	if err != nil {
 		fmt.Printf("activate key failed for uid (%s) with error: %v\n", uid, err)
 		return
@@ -59,9 +61,9 @@ func ActivateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, l
 }
 
 // GetKey: usage 'get uid=<value>' to retrieve kmip cryptographic key material
-func GetKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("GetKey", "line", line)
+func GetKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("GetKey", "line", line)
 
 	uid := kmipapi.GetValue(line, "uid")
 
@@ -70,7 +72,7 @@ func GetKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line s
 		return
 	}
 
-	_, err := kmipapi.GetKey(ctx, settings, uid)
+	_, err := kmipapi.GetKey(ctx, *connection, settings, uid)
 	if err != nil {
 		fmt.Printf("get key failed for uid (%s) with error: %v\n", uid, err)
 		return
@@ -80,9 +82,9 @@ func GetKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line s
 }
 
 // LocateKey: usage 'locate id=<value>' to return the uid of the id, where id is required
-func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("LocateKey", "line", line)
+func LocateKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("LocateKey", "line", line)
 
 	id := kmipapi.GetValue(line, "id")
 	attribname1 := kmipapi.GetValue(line, "attribname1")
@@ -95,7 +97,7 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 		return
 	}
 
-	uid, err := kmipapi.LocateUid(ctx, settings, id, attribname1, attribvalue1, attribname2, attribvalue2)
+	uid, err := kmipapi.LocateUid(ctx, *connection, settings, id, attribname1, attribvalue1, attribname2, attribvalue2)
 	if err != nil {
 		fmt.Printf("locate failed for id (%s) with error: %v\n", id, err)
 		return
@@ -108,9 +110,9 @@ func LocateKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 }
 
 // RevokeKey: usage 'revoke uid=<value>' to revoke a key based on uid
-func RevokeKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("RevokeKey", "line", line)
+func RevokeKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("RevokeKey", "line", line)
 
 	uid := kmipapi.GetValue(line, "uid")
 	if uid == "" {
@@ -118,7 +120,7 @@ func RevokeKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 		return
 	}
 
-	uid, err := kmipapi.RevokeKey(ctx, settings, uid, uint32(kmip14.RevocationReasonCodeCessationOfOperation))
+	uid, err := kmipapi.RevokeKey(ctx, *connection, settings, uid, uint32(kmip14.RevocationReasonCodeCessationOfOperation))
 
 	if err != nil {
 		fmt.Printf("revoke key failed for uid (%s) with error: %v\n", uid, err)
@@ -128,9 +130,9 @@ func RevokeKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, lin
 }
 
 // DestroyKey: usage 'destroy uid=<value>' to destroy a key based on uid
-func DestroyKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("DestroyKey", "line", line)
+func DestroyKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("DestroyKey", "line", line)
 
 	uid := kmipapi.GetValue(line, "uid")
 	if uid == "" {
@@ -138,7 +140,7 @@ func DestroyKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, li
 		return
 	}
 
-	uid, err := kmipapi.DestroyKey(ctx, settings, uid)
+	uid, err := kmipapi.DestroyKey(ctx, *connection, settings, uid)
 	if err != nil {
 		fmt.Printf("destroy key failed for uid (%s) with error: %v\n", uid, err)
 		return
@@ -148,9 +150,9 @@ func DestroyKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, li
 }
 
 // ClearKey: usage 'clear id=<value>' to locate, revoke, and destroy a key based on id and uid
-func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("ClearKey", "line", line)
+func ClearKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("ClearKey", "line", line)
 
 	id := kmipapi.GetValue(line, "id")
 	if id == "" {
@@ -160,7 +162,7 @@ func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 
 	success := true
 
-	uid, err := kmipapi.LocateUid(ctx, settings, id, "", "", "", "")
+	uid, err := kmipapi.LocateUid(ctx, *connection, settings, id, "", "", "", "")
 	if err != nil || uid == "" {
 		fmt.Printf("locate failed for id (%s), uid (%s), error: %v\n", id, uid, err)
 		success = false
@@ -168,7 +170,7 @@ func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 		fmt.Printf("locate key for id (%s) returned uid (%s)\n", id, uid)
 		fmt.Printf("\n")
 
-		uid, err = kmipapi.RevokeKey(ctx, settings, uid, uint32(kmip14.RevocationReasonCodeCessationOfOperation))
+		uid, err = kmipapi.RevokeKey(ctx, *connection, settings, uid, uint32(kmip14.RevocationReasonCodeCessationOfOperation))
 		if err != nil {
 			fmt.Printf("revoke key failed for uid (%s) with error: %v\n", uid, err)
 			success = false
@@ -177,7 +179,7 @@ func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 		}
 		fmt.Printf("\n")
 
-		uid, err = kmipapi.DestroyKey(ctx, settings, uid)
+		uid, err = kmipapi.DestroyKey(ctx, *connection, settings, uid)
 		if err != nil {
 			fmt.Printf("destroy key failed for uid (%s) with error: %v\n", uid, err)
 			success = false
@@ -195,9 +197,9 @@ func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 }
 
 // Register:
-func RegisterKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("Register:", "line", line)
+func RegisterKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("Register:", "line", line)
 
 	// Read command line arguments
 	objtype := kmipapi.GetValue(line, "objtype") // example: secretdata
@@ -227,7 +229,7 @@ func RegisterKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, l
 	}
 
 	// Execute the Register command
-	uid, err := kmipapi.RegisterKey(ctx, settings, keymaterial, keyformat, datatype, objgrp, attribname1, attribvalue1, attribname2, attribvalue2, attribname3, attribvalue3, attribname4, attribvalue4, objtype, name)
+	uid, err := kmipapi.RegisterKey(ctx, *connection, settings, keymaterial, keyformat, datatype, objgrp, attribname1, attribvalue1, attribname2, attribvalue2, attribname3, attribvalue3, attribname4, attribvalue4, objtype, name)
 	if err != nil {
 		fmt.Printf("register key failed with error: %v\n", err)
 		return
@@ -236,9 +238,9 @@ func RegisterKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, l
 }
 
 // GetAttribute: Return the Attribute details based on uid and attribute name
-func GetAttribute(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("GetAttribute", "line", line)
+func GetAttribute(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("GetAttribute", "line", line)
 
 	uid := kmipapi.GetValue(line, "uid")
 	if uid == "" {
@@ -247,7 +249,7 @@ func GetAttribute(ctx context.Context, settings *kmipapi.ConfigurationSettings, 
 	}
 	attribname1 := kmipapi.GetValue(line, "attribname1")
 
-	resp, err := kmipapi.GetAttribute(ctx, settings, uid, attribname1)
+	resp, err := kmipapi.GetAttribute(ctx, *connection, settings, uid, attribname1)
 	if err != nil {
 		fmt.Printf("get attribute failed for uid (%s) with error: %v\n", uid, err)
 		return

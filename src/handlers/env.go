@@ -3,22 +3,23 @@ package handlers
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"errors"
-	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/Seagate/kmip-go/pkg/common"
 	"github.com/Seagate/kmip-go/src/kmipapi"
 	"github.com/fatih/color"
-	"k8s.io/klog/v2"
 )
 
 // Env: usage 'env' to display all configuration settings
-func Env(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("Env:", "line", line)
+func Env(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("Env:", "line", line)
 
 	key := color.New(color.FgWhite).SprintFunc()
 	value := color.New(color.FgGreen).SprintFunc()
@@ -26,19 +27,25 @@ func Env(ctx context.Context, settings *kmipapi.ConfigurationSettings, line stri
 	col1 := 30
 
 	fmt.Println("")
-	fmt.Printf("  %*s  %-v\n", col1, key("SaveSettingsToFile"), value(settings.SaveSettingsToFile))
-	fmt.Printf("  %*s  %-v\n", col1, key("SettingsFile"), value(settings.SettingsFile))
 	fmt.Printf("  %*s  %-v\n", col1, key("ShowElapsed"), value(settings.ShowElapsed))
 
-	fmt.Println("")
-	if settings.Connection == nil {
-		fmt.Printf("  %*s  %-v\n", col1, key("Connection"), value(settings.Connection))
+	if logger.Enabled(ctx, slog.LevelDebug) {
+		fmt.Printf("  %*s  %-v\n", col1, key("LogLevel"), value("DEBUG"))
+	} else if logger.Enabled(ctx, slog.LevelInfo) {
+		fmt.Printf("  %*s  %-v\n", col1, key("LogLevel"), value("INFO"))
+	} else if logger.Enabled(ctx, slog.LevelWarn) {
+		fmt.Printf("  %*s  %-v\n", col1, key("LogLevel"), value("WARN"))
+	} else if logger.Enabled(ctx, slog.LevelError) {
+		fmt.Printf("  %*s  %-v\n", col1, key("LogLevel"), value("ERROR"))
+	}
+
+	if *connection == nil {
+		fmt.Printf("  %*s  %-v\n", col1, key("Connection"), value(connection))
 	} else {
-		fmt.Printf("  %*s  %-v\n", col1, key("Connection"), value(settings.Connection.RemoteAddr()))
+		fmt.Printf("  %*s  %-v\n", col1, key("Connection"), value((*connection).RemoteAddr()))
 	}
 
 	fmt.Println("")
-	fmt.Printf("  %*s  %-v\n", col1, key("KmsServerName"), value(settings.KmsServerName))
 	fmt.Printf("  %*s  %-v\n", col1, key("KmsServerIp"), value(settings.KmsServerIp))
 	fmt.Printf("  %*s  %-v\n", col1, key("KmsServerPort"), value(settings.KmsServerPort))
 	fmt.Printf("  %*s  %-v\n", col1, key("CertAuthFile"), value(settings.CertAuthFile))
@@ -52,9 +59,9 @@ func Env(ctx context.Context, settings *kmipapi.ConfigurationSettings, line stri
 }
 
 // Version: usage 'version [major=<value>] [minor=<value>]' to set KMIP protocol version
-func Version(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("Version:", "line", line)
+func Version(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("Version:", "line", line)
 
 	major := kmipapi.GetValue(line, "major")
 	if major == "" {
@@ -80,9 +87,9 @@ func Version(ctx context.Context, settings *kmipapi.ConfigurationSettings, line 
 }
 
 // Certs: usage 'certs [ca=<value>] [key=<value>] [cert=<value>]' to set certificate PEM files
-func Certs(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("Certs:", "line", line)
+func Certs(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("Certs:", "line", line)
 
 	updated := false
 	keys := [3]string{"ca", "key", "cert"}
@@ -113,9 +120,9 @@ func Certs(ctx context.Context, settings *kmipapi.ConfigurationSettings, line st
 }
 
 // Run: usage 'run file=<value>' to execute all commands in a file
-func Run(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("Run:", "line", line)
+func Run(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("Run:", "line", line)
 
 	filename := kmipapi.GetValue(line, "file")
 
@@ -134,30 +141,34 @@ func Run(ctx context.Context, settings *kmipapi.ConfigurationSettings, line stri
 	for scanner.Scan() {
 		line := strings.TrimSuffix(scanner.Text(), "\n")
 		if len(line) > 0 {
-			logger.V(2).Info("process >>>", "line", line)
-			Execute(ctx, settings, line)
+			logger.Debug("process >>>", "line", line)
+			Execute(ctx, connection, settings, line)
 		}
 	}
 
 	file.Close()
 }
 
-// Set: usage 'set [level=<value>] [ip=<value>] [port=<value>] [name=<value>]' to change a configuration setting
-func Set(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("Set:", "line", line)
+// Set: usage 'set [level=<value>] [ip=<value>] [port=<value>]' to change a configuration setting
+func Set(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("Set:", "line", line)
 
 	// set the log level
 	level := kmipapi.GetValue(line, "level")
 	if level != "" {
-		flag.Lookup("v").Value.Set(level)
-	}
-
-	// set the KMS Server name
-	name := kmipapi.GetValue(line, "name")
-	if name != "" {
-		settings.KmsServerName = name
-		fmt.Printf("KmsServerName set to: %s\n", name)
+		if strings.EqualFold(level, "debug") {
+			slog.SetLogLoggerLevel(slog.LevelDebug)
+		}
+		if strings.EqualFold(level, "info") {
+			slog.SetLogLoggerLevel(slog.LevelInfo)
+		}
+		if strings.EqualFold(level, "warn") {
+			slog.SetLogLoggerLevel(slog.LevelWarn)
+		}
+		if strings.EqualFold(level, "error") {
+			slog.SetLogLoggerLevel(slog.LevelError)
+		}
 	}
 
 	// set the KMS Server IP Address
@@ -191,24 +202,23 @@ func Set(ctx context.Context, settings *kmipapi.ConfigurationSettings, line stri
 }
 
 // Load: usage 'load file=<value>' to load configuration settings from a file
-func Load(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("Load:", "line", line)
+func Load(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("Load:", "line", line)
 
 	filename := kmipapi.GetValue(line, "file")
 	if filename != "" {
 		err := kmipapi.Restore(ctx, settings, filename)
 		if err == nil {
-			settings.SettingsFile = filename
-			fmt.Printf("configuration settings read from (%s)\n", settings.SettingsFile)
+			fmt.Printf("configuration settings read from (%s)\n", filename)
 		}
 	}
 }
 
 // Banner: usage 'banner title=<value>' to print a separator banner with a title
-func Banner(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("Banner:", "line", line)
+func Banner(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("Banner:", "line", line)
 
 	title := kmipapi.GetValue(line, "title")
 	fmt.Printf("\n%s %s %s\n\n", strings.Repeat("=", 40), title, strings.Repeat("=", 40))

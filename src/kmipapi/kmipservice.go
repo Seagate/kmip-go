@@ -4,22 +4,23 @@ package kmipapi
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 )
 
 type KMIPOperations interface {
-	CreateKey(context.Context, *ConfigurationSettings, *CreateKeyRequest) (*CreateKeyResponse, error)
-	GetKey(context.Context, *ConfigurationSettings, *GetKeyRequest) (*GetKeyResponse, error)
-	DestroyKey(context.Context, *ConfigurationSettings, *DestroyKeyRequest) (*DestroyKeyResponse, error)
-	ActivateKey(context.Context, *ConfigurationSettings, *ActivateKeyRequest) (*ActivateKeyResponse, error)
-	RevokeKey(context.Context, *ConfigurationSettings, *RevokeKeyRequest) (*RevokeKeyResponse, error)
-	Register(context.Context, *ConfigurationSettings, *RegisterRequest) (*RegisterResponse, error)
-	Locate(context.Context, *ConfigurationSettings, *LocateRequest) (*LocateResponse, error)
-	Query(context.Context, *ConfigurationSettings, *QueryRequest) (*QueryResponse, error)
-	SetAttribute(context.Context, *ConfigurationSettings, *SetAttributeRequest) (*SetAttributeResponse, error)
-	Discover(context.Context, *ConfigurationSettings, *DiscoverRequest) (*DiscoverResponse, error)
-	ReKey(context.Context, *ConfigurationSettings, *ReKeyRequest) (*ReKeyResponse, error)
-	GetAttribute(context.Context, *ConfigurationSettings, *GetAttributeRequest) (*GetAttributeResponse, error)
+	CreateKey(context.Context, *tls.Conn, *ConfigurationSettings, *CreateKeyRequest) (*CreateKeyResponse, error)
+	GetKey(context.Context, *tls.Conn, *ConfigurationSettings, *GetKeyRequest) (*GetKeyResponse, error)
+	DestroyKey(context.Context, *tls.Conn, *ConfigurationSettings, *DestroyKeyRequest) (*DestroyKeyResponse, error)
+	ActivateKey(context.Context, *tls.Conn, *ConfigurationSettings, *ActivateKeyRequest) (*ActivateKeyResponse, error)
+	RevokeKey(context.Context, *tls.Conn, *ConfigurationSettings, *RevokeKeyRequest) (*RevokeKeyResponse, error)
+	Register(context.Context, *tls.Conn, *ConfigurationSettings, *RegisterRequest) (*RegisterResponse, error)
+	Locate(context.Context, *tls.Conn, *ConfigurationSettings, *LocateRequest) (*LocateResponse, error)
+	Query(context.Context, *tls.Conn, *ConfigurationSettings, *QueryRequest) (*QueryResponse, error)
+	SetAttribute(context.Context, *tls.Conn, *ConfigurationSettings, *SetAttributeRequest) (*SetAttributeResponse, error)
+	Discover(context.Context, *tls.Conn, *ConfigurationSettings, *DiscoverRequest) (*DiscoverResponse, error)
+	ReKey(context.Context, *tls.Conn, *ConfigurationSettings, *ReKeyRequest) (*ReKeyResponse, error)
+	GetAttribute(context.Context, *tls.Conn, *ConfigurationSettings, *GetAttributeRequest) (*GetAttributeResponse, error)
 	GenerateCreateKeyPayload(context.Context, *ConfigurationSettings, *CreateKeyRequest) interface{}
 	GenerateLocatePayload(context.Context, *ConfigurationSettings, *LocateRequest) interface{}
 }

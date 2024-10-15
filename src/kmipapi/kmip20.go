@@ -4,6 +4,7 @@ package kmipapi
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/hex"
 	"fmt"
 
@@ -15,7 +16,7 @@ import (
 )
 
 // Discover: Send a KMIP OperationDiscoverVersion message
-func (kmips *kmip20service) Discover(ctx context.Context, settings *ConfigurationSettings, req *DiscoverRequest) (*DiscoverResponse, error) {
+func (kmips *kmip20service) Discover(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *DiscoverRequest) (*DiscoverResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== kmips discover ======")
 
@@ -24,7 +25,7 @@ func (kmips *kmip20service) Discover(ctx context.Context, settings *Configuratio
 		ProtocolVersion: req.ClientVersions,
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationDiscoverVersions), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationDiscoverVersions), &payload, false)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +43,7 @@ func (kmips *kmip20service) Discover(ctx context.Context, settings *Configuratio
 }
 
 // Query: Retrieve info about KMIP server
-func (kmips *kmip20service) Query(ctx context.Context, settings *ConfigurationSettings, req *QueryRequest) (*QueryResponse, error) {
+func (kmips *kmip20service) Query(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *QueryRequest) (*QueryResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== query server ======", "id", req.Id)
 
@@ -53,7 +54,7 @@ func (kmips *kmip20service) Query(ctx context.Context, settings *ConfigurationSe
 	payload := kmip.QueryRequestPayload{
 		QueryFunction: req.QueryFunction,
 	}
-	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload, false)
+	decoder, item, err = SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationQuery), &payload, false)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +77,7 @@ func (kmips *kmip20service) Query(ctx context.Context, settings *ConfigurationSe
 }
 
 // CreateKey: Send a KMIP OperationCreate message
-func (kmips *kmip20service) CreateKey(ctx context.Context, settings *ConfigurationSettings, req *CreateKeyRequest) (*CreateKeyResponse, error) {
+func (kmips *kmip20service) CreateKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *CreateKeyRequest) (*CreateKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 
 	type createReqAttrs struct {
@@ -105,7 +106,7 @@ func (kmips *kmip20service) CreateKey(ctx context.Context, settings *Configurati
 		},
 	}
 
-	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip20.OperationCreate), &payload, false)
+	decoder, item, err = SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationCreate), &payload, false)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +175,7 @@ func (kmips *kmip20service) GenerateLocatePayload(ctx context.Context, settings 
 }
 
 // GetKey: Send a KMIP OperationGet message to retrieve key material based on a uid
-func (kmips *kmip20service) GetKey(ctx context.Context, settings *ConfigurationSettings, req *GetKeyRequest) (*GetKeyResponse, error) {
+func (kmips *kmip20service) GetKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *GetKeyRequest) (*GetKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== get key ======", "uid", req.UniqueIdentifier)
 
@@ -186,7 +187,7 @@ func (kmips *kmip20service) GetKey(ctx context.Context, settings *ConfigurationS
 		},
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationGet), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationGet), &payload, false)
 	logger.V(5).Info("get key response item", "item", item)
 
 	// Extract the GetResponsePayload type of message
@@ -240,7 +241,7 @@ func (kmips *kmip20service) GetKey(ctx context.Context, settings *ConfigurationS
 }
 
 // DestroyKey:
-func (kmips *kmip20service) DestroyKey(ctx context.Context, settings *ConfigurationSettings, req *DestroyKeyRequest) (*DestroyKeyResponse, error) {
+func (kmips *kmip20service) DestroyKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *DestroyKeyRequest) (*DestroyKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== destroy key ======", "uid", req.UniqueIdentifier)
 
@@ -252,7 +253,7 @@ func (kmips *kmip20service) DestroyKey(ctx context.Context, settings *Configurat
 		},
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationDestroy), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationDestroy), &payload, false)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +272,7 @@ func (kmips *kmip20service) DestroyKey(ctx context.Context, settings *Configurat
 }
 
 // ActivateKey:
-func (kmips *kmip20service) ActivateKey(ctx context.Context, settings *ConfigurationSettings, req *ActivateKeyRequest) (*ActivateKeyResponse, error) {
+func (kmips *kmip20service) ActivateKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *ActivateKeyRequest) (*ActivateKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== activate key ======", "uid", req.UniqueIdentifier)
 
@@ -283,7 +284,7 @@ func (kmips *kmip20service) ActivateKey(ctx context.Context, settings *Configura
 		},
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationActivate), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationActivate), &payload, false)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +303,7 @@ func (kmips *kmip20service) ActivateKey(ctx context.Context, settings *Configura
 }
 
 // RevokeKey:
-func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *ConfigurationSettings, req *RevokeKeyRequest) (*RevokeKeyResponse, error) {
+func (kmips *kmip20service) RevokeKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *RevokeKeyRequest) (*RevokeKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== revoke key ======", "uid", req.UniqueIdentifier)
 
@@ -317,7 +318,7 @@ func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *Configurati
 		},
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationRevoke), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationRevoke), &payload, false)
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +337,7 @@ func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *Configurati
 }
 
 // Register:
-func (kmips *kmip20service) Register(ctx context.Context, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
+func (kmips *kmip20service) Register(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
 	logger := klog.FromContext(ctx)
 
 	type Attribute struct {
@@ -401,7 +402,7 @@ func (kmips *kmip20service) Register(ctx context.Context, settings *Configuratio
 
 	payload.Attributes = attributes
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationRegister), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationRegister), &payload, false)
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
@@ -420,7 +421,7 @@ func (kmips *kmip20service) Register(ctx context.Context, settings *Configuratio
 	return &RegisterResponse{UniqueIdentifier: uid}, nil
 }
 
-func (kmips *kmip20service) GetAttribute(ctx context.Context, settings *ConfigurationSettings, req *GetAttributeRequest) (*GetAttributeResponse, error) {
+func (kmips *kmip20service) GetAttribute(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *GetAttributeRequest) (*GetAttributeResponse, error) {
 	// return &GetAttributeResponse{}, fmt.Errorf("ERROR command is not implemented")
 
 	logger := klog.FromContext(ctx)
@@ -444,7 +445,7 @@ func (kmips *kmip20service) GetAttribute(ctx context.Context, settings *Configur
 		},
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationGetAttributes), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationGetAttributes), &payload, false)
 	if err != nil {
 		logger.Error(err, "The call to SendRequestMessage failed")
 		return nil, err
@@ -464,7 +465,7 @@ func (kmips *kmip20service) GetAttribute(ctx context.Context, settings *Configur
 }
 
 // Locate:
-func (kmips *kmip20service) Locate(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) (*LocateResponse, error) {
+func (kmips *kmip20service) Locate(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *LocateRequest) (*LocateResponse, error) {
 	type createReqAttrs struct {
 		Name kmip.Name
 	}
@@ -481,7 +482,7 @@ func (kmips *kmip20service) Locate(ctx context.Context, settings *ConfigurationS
 		},
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationLocate), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationLocate), &payload, false)
 	if err != nil {
 		return nil, err
 	}
@@ -505,7 +506,7 @@ func (kmips *kmip20service) Locate(ctx context.Context, settings *ConfigurationS
 }
 
 // SetAttribute:
-func (kmips *kmip20service) SetAttribute(ctx context.Context, settings *ConfigurationSettings, req *SetAttributeRequest) (*SetAttributeResponse, error) {
+func (kmips *kmip20service) SetAttribute(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *SetAttributeRequest) (*SetAttributeResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== set attribute ======", "uid", req.UniqueIdentifier, "value", req.AttributeValue)
 
@@ -519,7 +520,7 @@ func (kmips *kmip20service) SetAttribute(ctx context.Context, settings *Configur
 		// FIXME		AttributeValue: req.AttributeValue,
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationSetAttribute), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationSetAttribute), &payload, false)
 	if err != nil {
 		return nil, err
 	}
@@ -537,7 +538,7 @@ func (kmips *kmip20service) SetAttribute(ctx context.Context, settings *Configur
 }
 
 // ReKey:
-func (kmips *kmip20service) ReKey(ctx context.Context, settings *ConfigurationSettings, req *ReKeyRequest) (*ReKeyResponse, error) {
+func (kmips *kmip20service) ReKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *ReKeyRequest) (*ReKeyResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(4).Info("====== rekey ======", "uid", req.UniqueIdentifier)
 
@@ -551,7 +552,7 @@ func (kmips *kmip20service) ReKey(ctx context.Context, settings *ConfigurationSe
 	// FIXME		},
 	// FIXME	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip20.OperationReKey), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationReKey), &payload, false)
 	if err != nil {
 		return nil, err
 	}
