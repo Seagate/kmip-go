@@ -1,4 +1,4 @@
-# [1.3.0] (2024-10-14)
+# [1.3.0] (2024-10-15)
 
 ### Features
 - Switch to using the standard package `slog`
