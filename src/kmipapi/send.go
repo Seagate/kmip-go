@@ -127,7 +127,7 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 				if respMsg.BatchItem[j].ResultStatus != kmip14.ResultStatusSuccess {
 					logger.V(4).Info("send message results", "ResultStatus", respMsg.BatchItem[j].ResultStatus, "ResultReason",
 						respMsg.BatchItem[j].ResultReason, "ResultMessage", respMsg.BatchItem[j].ResultMessage)
-					return nil, nil, fmt.Errorf("send operation (%s) status (%s) reason (%s) message (%s)",
+					return nil, nil, fmt.Errorf("send operation (%d) status (%s) reason (%s) message (%s)",
 						operation, respMsg.BatchItem[j].ResultStatus, respMsg.BatchItem[j].ResultReason, respMsg.BatchItem[j].ResultMessage)
 				}
 			}
@@ -138,7 +138,7 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 			return decoder, &respMsg.BatchItem[i], nil
 		} else {
 			return nil, nil, fmt.Errorf(
-				"Server status (%s) reason (%s) message (%s)",
+				"server status (%s) reason (%s) message (%s)",
 				respMsg.BatchItem[i].ResultStatus, respMsg.BatchItem[i].ResultReason, respMsg.BatchItem[i].ResultMessage)
 		}
 

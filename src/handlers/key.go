@@ -70,7 +70,7 @@ func GetKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line s
 		return
 	}
 
-	key, err := kmipapi.GetKey(ctx, settings, uid)
+	_, err := kmipapi.GetKey(ctx, settings, uid)
 	if err != nil {
 		fmt.Printf("get key failed for uid (%s) with error: %v\n", uid, err)
 		return
@@ -162,7 +162,7 @@ func ClearKey(ctx context.Context, settings *kmipapi.ConfigurationSettings, line
 
 	uid, err := kmipapi.LocateUid(ctx, settings, id, "", "", "", "")
 	if err != nil || uid == "" {
-		fmt.Printf("locate failed for id (%s), uid (%d), error: %v\n", id, uid, err)
+		fmt.Printf("locate failed for id (%s), uid (%s), error: %v\n", id, uid, err)
 		success = false
 	} else {
 		fmt.Printf("locate key for id (%s) returned uid (%s)\n", id, uid)

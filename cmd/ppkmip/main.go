@@ -13,8 +13,6 @@ import (
 	"os"
 	"strings"
 
-	_ "github.com/Seagate/kmip-go/kmip14"
-	_ "github.com/Seagate/kmip-go/kmip20"
 	"github.com/Seagate/kmip-go/ttlv"
 )
 
@@ -187,6 +185,7 @@ xml format:
 			}
 
 			printTTLV(outFormat, raw, count)
+
 			count++
 		}
 	case FormatHex:

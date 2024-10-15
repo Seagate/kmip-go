@@ -17,7 +17,6 @@ import (
 	"github.com/ansel1/merry"
 )
 
-//nolint:deadcode,varcheck
 const (
 	lenTag         = 3
 	lenLen         = 4

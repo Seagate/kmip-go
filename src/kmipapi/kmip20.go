@@ -34,7 +34,6 @@ func (kmips *kmip20service) Discover(ctx context.Context, settings *Configuratio
 		ProtocolVersion []kmip.ProtocolVersion
 	}
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode DiscoverResponsePayload, error: %v", err)
 	}
@@ -55,7 +54,6 @@ func (kmips *kmip20service) Query(ctx context.Context, settings *ConfigurationSe
 		QueryFunction: req.QueryFunction,
 	}
 	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload, false)
-
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +66,6 @@ func (kmips *kmip20service) Query(ctx context.Context, settings *ConfigurationSe
 		CapabilityInformation kmip20.CapabilityInformation
 	}
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode QueryResponsePayload, error: %v", err)
 	}
@@ -109,7 +106,6 @@ func (kmips *kmip20service) CreateKey(ctx context.Context, settings *Configurati
 	}
 
 	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip20.OperationCreate), &payload, false)
-
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +113,6 @@ func (kmips *kmip20service) CreateKey(ctx context.Context, settings *Configurati
 	// Extract the CreateResponsePayload type of message
 	var respPayload kmip20.CreateResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("create key decode value failed, error:%v", err)
 	}
@@ -225,7 +220,7 @@ func (kmips *kmip20service) GetKey(ctx context.Context, settings *ConfigurationS
 
 	if respPayload.SymmetricKey != nil {
 		if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
-			//keybytes := memguard.NewBuffer(64)
+			// keybytes := memguard.NewBuffer(64)
 			if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
 				// convert byes to an encoded string
 				keybytes := hex.EncodeToString(bytes)
@@ -265,7 +260,6 @@ func (kmips *kmip20service) DestroyKey(ctx context.Context, settings *Configurat
 	// Extract the DestroyResponsePayload type of message
 	var respPayload kmip20.DestroyResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
@@ -297,7 +291,6 @@ func (kmips *kmip20service) ActivateKey(ctx context.Context, settings *Configura
 	// Extract the ActivateResponsePayload type of message
 	var respPayload kmip20.ActivateResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("activate key decode value failed, error: %v", err)
 	}
@@ -332,7 +325,6 @@ func (kmips *kmip20service) RevokeKey(ctx context.Context, settings *Configurati
 	// Extract the RevokeResponsePayload type of message
 	var respPayload kmip20.RevokeResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
@@ -418,7 +410,6 @@ func (kmips *kmip20service) Register(ctx context.Context, settings *Configuratio
 	// Extract the RegisterResponsePayload type of message
 	var respPayload kmip20.RegisterResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		logger.Error(err, "register key decode value failed")
 		return nil, fmt.Errorf("register key decode value failed, error:%v", err)
@@ -462,7 +453,6 @@ func (kmips *kmip20service) GetAttribute(ctx context.Context, settings *Configur
 	// Extract the GetAttributeResponsePayload type of message
 	var respPayload kmip20.GetAttributesResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		logger.Error(err, "get attribute decode value failed")
 		return nil, fmt.Errorf("get attribute decode value failed, error:%v", err)
@@ -499,7 +489,6 @@ func (kmips *kmip20service) Locate(ctx context.Context, settings *ConfigurationS
 	// Extract the LocateResponsePayload type of message
 	var respPayload kmip20.LocateResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
@@ -538,7 +527,6 @@ func (kmips *kmip20service) SetAttribute(ctx context.Context, settings *Configur
 	// Extract the RevokeResponsePayload type of message
 	var respPayload kmip20.RevokeResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
@@ -571,7 +559,6 @@ func (kmips *kmip20service) ReKey(ctx context.Context, settings *ConfigurationSe
 	// Extract the RekeyResponsePayload type of message
 	var respPayload kmip.ReKeyResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}

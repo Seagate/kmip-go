@@ -57,7 +57,11 @@ func main() {
 	// Restore any previously stored configuration settings
 	filename := "kms.json"
 	if _, err := os.Stat(filename); err == nil {
-		kmipapi.Restore(ctx, &settings, filename)
+		err = kmipapi.Restore(ctx, &settings, filename)
+		if err != nil {
+			fmt.Printf("ERROR: restoring kms configuration data, filename: %s, error: %v", filename, err)
+			os.Exit(1)
+		}
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)

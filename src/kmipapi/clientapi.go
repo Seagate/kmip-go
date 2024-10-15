@@ -281,7 +281,7 @@ func RegisterKey(ctx context.Context, settings *ConfigurationSettings, keymateri
 // GetAttribute: Register a key
 func GetAttribute(ctx context.Context, settings *ConfigurationSettings, uid string, attribname1 string) (*GetAttributeResponse, error) {
 	logger := klog.FromContext(ctx)
-	logger.V(2).Info("++ get attribute ", "uid", uid)
+	logger.V(0).Info("++ get attribute ", "uid", uid, "attribute", attribname1)
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
@@ -290,7 +290,7 @@ func GetAttribute(ctx context.Context, settings *ConfigurationSettings, uid stri
 
 	req := GetAttributeRequest{
 		UniqueIdentifier: uid,
-		AttributeName:    attribname1,
+		AttributeName:    "Original Creation Date",
 	}
 
 	kmipResp, err := kmipops.GetAttribute(ctx, settings, &req)
