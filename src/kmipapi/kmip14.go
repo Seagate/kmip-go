@@ -4,27 +4,29 @@ package kmipapi
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"math/rand"
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
+	"github.com/Seagate/kmip-go/pkg/common"
 	"github.com/Seagate/kmip-go/ttlv"
-	"k8s.io/klog/v2"
 )
 
 // Discover: Send a KMIP OperationDiscoverVersion message
-func (kmips *kmip14service) Discover(ctx context.Context, settings *ConfigurationSettings, req *DiscoverRequest) (*DiscoverResponse, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== kmip discover ======")
+func (kmips *kmip14service) Discover(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *DiscoverRequest) (*DiscoverResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== kmip discover ======")
 
 	// Leave the payload empty to get all supported versions from server
 	payload := kmip.DiscoverVersionsRequestPayload{
 		ProtocolVersion: req.ClientVersions,
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationDiscoverVersions), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationDiscoverVersions), &payload, false)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +36,6 @@ func (kmips *kmip14service) Discover(ctx context.Context, settings *Configuratio
 		ProtocolVersion []kmip.ProtocolVersion
 	}
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode DiscoverResponsePayload, error: %v", err)
 	}
@@ -43,9 +44,9 @@ func (kmips *kmip14service) Discover(ctx context.Context, settings *Configuratio
 }
 
 // Query: Retrieve info about KMIP server
-func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSettings, req *QueryRequest) (*QueryResponse, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== query server ======", "id", req.Id)
+func (kmips *kmip14service) Query(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *QueryRequest) (*QueryResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== query server ======", "id", req.Id)
 
 	var err error
 	var decoder *ttlv.Decoder
@@ -54,8 +55,7 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSe
 	payload := kmip.QueryRequestPayload{
 		QueryFunction: req.QueryFunction,
 	}
-	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationQuery), &payload, false)
-
+	decoder, item, err = SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationQuery), &payload, false)
 	if err != nil {
 		return nil, err
 	}
@@ -78,14 +78,14 @@ func (kmips *kmip14service) Query(ctx context.Context, settings *ConfigurationSe
 		return nil, fmt.Errorf("unable to decode QueryResponsePayload, error: %v", err)
 	}
 
-	logger.V(4).Info("Query", "Payload", respPayload)
+	logger.Debug("Query", "Payload", respPayload)
 
 	return &QueryResponse{Operation: respPayload.Operation, ObjectType: respPayload.ObjectType, VendorIdentification: respPayload.VendorIdentification, CapabilityInformation: respPayload.CapabilityInformation}, nil
 }
 
 // CreateKey: Send a KMIP OperationCreate message
-func (kmips *kmip14service) CreateKey(ctx context.Context, settings *ConfigurationSettings, req *CreateKeyRequest) (*CreateKeyResponse, error) {
-	logger := klog.FromContext(ctx)
+func (kmips *kmip14service) CreateKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *CreateKeyRequest) (*CreateKeyResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 
 	type createReqAttrs struct {
 		CryptographicAlgorithm kmip14.CryptographicAlgorithm
@@ -94,7 +94,7 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, settings *Configurati
 		Name                   kmip.Name
 	}
 
-	logger.V(4).Info("====== create key ======", "id", req.Id)
+	logger.Debug("====== create key ======", "id", req.Id)
 
 	var err error
 	var decoder *ttlv.Decoder
@@ -112,32 +112,30 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, settings *Configurati
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	})
 
-	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationCreate), &payload, false)
-
+	decoder, item, err = SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationCreate), &payload, false)
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
+		logger.Error("The call to SendRequestMessage failed", "error", err)
 		return nil, err
 	}
 
 	// Extract the CreateResponsePayload type of message
 	var respPayload kmip.CreateResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
-		logger.Error(err, "create key decode value failed")
+		logger.Error("create key decode value failed", "error", err)
 		return nil, fmt.Errorf("create key decode value failed, error:%v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
-	logger.V(4).Info("create key success", "uid", uid)
+	logger.Debug("create key success", "uid", uid)
 
 	return &CreateKeyResponse{UniqueIdentifier: uid}, nil
 }
 
 // CreateKey: Send a KMIP OperationCreate message
 func (kmips *kmip14service) GenerateCreateKeyPayload(ctx context.Context, settings *ConfigurationSettings, req *CreateKeyRequest) interface{} {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== batch create key payload ======", "id", req.Id)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== batch create key payload ======", "id", req.Id)
 
 	payload := kmip.CreateRequestPayload{
 		ObjectType: kmip14.ObjectTypeSymmetricKey,
@@ -151,14 +149,14 @@ func (kmips *kmip14service) GenerateCreateKeyPayload(ctx context.Context, settin
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	})
 
-	logger.V(4).Info("create", "Payload", payload)
+	logger.Debug("create", "Payload", payload)
 	return payload
 }
 
 // GenerateLocatePayload:
 func (kmips *kmip14service) GenerateLocatePayload(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) interface{} {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== batch locate ======", "name", req.Name)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== batch locate ======", "name", req.Name)
 
 	Name := kmip.Name{
 		NameValue: req.Name,
@@ -190,9 +188,9 @@ func ZeroizeMemory(data []byte) {
 }
 
 // GetKey: Send a KMIP OperationGet message
-func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationSettings, req *GetKeyRequest) (*GetKeyResponse, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== get key ======", "uid", req.UniqueIdentifier)
+func (kmips *kmip14service) GetKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *GetKeyRequest) (*GetKeyResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== get key ======", "uid", req.UniqueIdentifier)
 
 	payload := kmip.GetRequestPayload{}
 
@@ -200,26 +198,26 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 		payload = kmip.GetRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationGet), &payload, false)
-	logger.V(5).Info("get key response item", "item", item)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationGet), &payload, false)
+	logger.Debug("get key response item", "item", item)
 
 	if err != nil {
-		logger.Error(err, "get key call to SendRequestMessage failed")
+		logger.Error("get key call to SendRequestMessage failed", "error", err)
 		return nil, err
 	}
 
 	// Extract the GetResponsePayload type of message
 	var respPayload kmip.GetResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-	logger.V(5).Info("get key decode value")
+	logger.Debug("get key decode value")
 
 	if err != nil {
-		logger.Error(err, "get key decode value failed")
+		logger.Error("get key decode value failed", "error", err)
 		return nil, fmt.Errorf("get key decode value failed, error: %v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
-	logger.V(4).Info("get key success", "uid", uid)
+	logger.Debug("get key success", "uid", uid)
 
 	response := GetKeyResponse{
 		Type:             respPayload.ObjectType,
@@ -270,9 +268,9 @@ func (kmips *kmip14service) GetKey(ctx context.Context, settings *ConfigurationS
 }
 
 // DestroyKey:
-func (kmips *kmip14service) DestroyKey(ctx context.Context, settings *ConfigurationSettings, req *DestroyKeyRequest) (*DestroyKeyResponse, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== destroy key ======", "uid", req.UniqueIdentifier)
+func (kmips *kmip14service) DestroyKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *DestroyKeyRequest) (*DestroyKeyResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== destroy key ======", "uid", req.UniqueIdentifier)
 
 	payload := kmip.DestroyRequestPayload{}
 
@@ -280,30 +278,29 @@ func (kmips *kmip14service) DestroyKey(ctx context.Context, settings *Configurat
 		payload = kmip.DestroyRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationDestroy), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationDestroy), &payload, false)
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
+		logger.Error("The call to SendRequestMessage failed", "error", err)
 		return nil, err
 	}
 
 	// Extract the DestroyResponsePayload type of message
 	var respPayload kmip.DestroyResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
-	logger.V(4).Info("XXX DestroyKey response payload", "uid", uid)
+	logger.Debug("XXX DestroyKey response payload", "uid", uid)
 
 	return &DestroyKeyResponse{UniqueIdentifier: uid}, nil
 }
 
 // ActivateKey:
-func (kmips *kmip14service) ActivateKey(ctx context.Context, settings *ConfigurationSettings, req *ActivateKeyRequest) (*ActivateKeyResponse, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== activate key ======", "uid", req.UniqueIdentifier)
+func (kmips *kmip14service) ActivateKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *ActivateKeyRequest) (*ActivateKeyResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== activate key ======", "uid", req.UniqueIdentifier)
 
 	// payload := kmip.ActivateRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 	payload := kmip.ActivateRequestPayload{}
@@ -312,30 +309,29 @@ func (kmips *kmip14service) ActivateKey(ctx context.Context, settings *Configura
 		payload = kmip.ActivateRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationActivate), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationActivate), &payload, false)
 	if err != nil {
-		logger.Error(err, "activate key call to SendRequestMessage failed")
+		logger.Error("activate key call to SendRequestMessage failed", "error", err)
 		return nil, err
 	}
 
 	// Extract the ActivateResponsePayload type of message
 	var respPayload kmip.ActivateResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
-	logger.V(4).Info("activate key success", "uid", uid)
+	logger.Debug("activate key success", "uid", uid)
 
 	return &ActivateKeyResponse{UniqueIdentifier: uid}, nil
 }
 
 // RevokeKey:
-func (kmips *kmip14service) RevokeKey(ctx context.Context, settings *ConfigurationSettings, req *RevokeKeyRequest) (*RevokeKeyResponse, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== revoke key ======", "uid", req.UniqueIdentifier)
+func (kmips *kmip14service) RevokeKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *RevokeKeyRequest) (*RevokeKeyResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== revoke key ======", "uid", req.UniqueIdentifier)
 
 	payload := kmip.RevokeRequestPayload{
 		UniqueIdentifier: req.UniqueIdentifier,
@@ -344,30 +340,29 @@ func (kmips *kmip14service) RevokeKey(ctx context.Context, settings *Configurati
 		},
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationRevoke), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationRevoke), &payload, false)
 	if err != nil {
-		logger.Error(err, "revoke key call to SendRequestMessage failed")
+		logger.Error("revoke key call to SendRequestMessage failed", "error", err)
 		return nil, err
 	}
 
 	// Extract the RevokeResponsePayload type of message
 	var respPayload kmip.RevokeResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
-	logger.V(4).Info("XXX RevokeKey response payload", "uid", uid)
+	logger.Debug("XXX RevokeKey response payload", "uid", uid)
 
 	return &RevokeKeyResponse{UniqueIdentifier: uid}, nil
 }
 
 // Register: Register a key
-func (kmips *kmip14service) Register(ctx context.Context, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== register key ======")
+func (kmips *kmip14service) Register(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *RegisterRequest) (*RegisterResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== register key ======")
 
 	var err error
 	var decoder *ttlv.Decoder
@@ -425,65 +420,62 @@ func (kmips *kmip14service) Register(ctx context.Context, settings *Configuratio
 		})
 	}
 
-	decoder, item, err = SendRequestMessage(ctx, settings, uint32(kmip14.OperationRegister), &payload, false)
-
+	decoder, item, err = SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationRegister), &payload, false)
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
+		logger.Error("The call to SendRequestMessage failed", "error", err)
 		return nil, err
 	}
 
 	// Extract the RegisterResponsePayload type of message
 	var respPayload kmip.RegisterResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
-		logger.Error(err, "register key decode value failed")
+		logger.Error("register key decode value failed", "error", err)
 		return nil, fmt.Errorf("register key decode value failed, error:%v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
-	logger.V(4).Info("register key success", "uid", uid)
+	logger.Debug("register key success", "uid", uid)
 
 	return &RegisterResponse{UniqueIdentifier: uid}, nil
 }
 
 // GetAttribute:
-func (kmips *kmip14service) GetAttribute(ctx context.Context, settings *ConfigurationSettings, req *GetAttributeRequest) (*GetAttributeResponse, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== get attribute ======", "uid", req.UniqueIdentifier)
+func (kmips *kmip14service) GetAttribute(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *GetAttributeRequest) (*GetAttributeResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== get attribute ======", "req", req)
 
 	payload := kmip.GetAttributesRequestPayload{
 		UniqueIdentifier: req.UniqueIdentifier,
 		AttributeName:    req.AttributeName,
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationGetAttributes), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationGetAttributes), &payload, false)
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
+		logger.Error("The call to SendRequestMessage failed", "error", err)
 		return nil, err
 	}
 
 	// Extract the GetAttributesResponsePayload type of message
 	var respPayload kmip.GetAttributesResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetAttributesResponsePayload, error: %v", err)
 	}
 
-	logger.V(4).Info("XXX GetAttribute response payload", "respPayload", respPayload)
+	logger.Debug("XXX GetAttribute response payload", "respPayload", respPayload)
 
 	uid := respPayload.UniqueIdentifier
 	attrib := respPayload.Attribute
-	logger.V(4).Info("XXX GetAttribute response payload", "uid", respPayload.UniqueIdentifier)
+	logger.Debug("XXX GetAttribute response payload", "uid", respPayload.UniqueIdentifier)
 
 	return &GetAttributeResponse{UniqueIdentifier: uid, Attribute: attrib}, nil
 }
 
 // Locate:
-func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) (*LocateResponse, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== locate ======", "name", req.Name)
+func (kmips *kmip14service) Locate(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *LocateRequest) (*LocateResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== locate ======", "name", req.Name)
 
 	Name := kmip.Name{
 		NameValue: req.Name,
@@ -504,56 +496,54 @@ func (kmips *kmip14service) Locate(ctx context.Context, settings *ConfigurationS
 		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
 	}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationLocate), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationLocate), &payload, false)
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
+		logger.Error("The call to SendRequestMessage failed", "error", err)
 		return nil, err
 	}
 
 	// Extract the LocateResponsePayload type of message
 	var respPayload kmip.LocateResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
 
-	logger.V(4).Info("XXX Locate response payload", "respPayload", respPayload)
+	logger.Debug("XXX Locate response payload", "respPayload", respPayload)
 
 	uid := respPayload.UniqueIdentifier
-	logger.V(4).Info("XXX Locate response payload", "uid", respPayload.UniqueIdentifier)
+	logger.Debug("XXX Locate response payload", "uid", respPayload.UniqueIdentifier)
 
 	return &LocateResponse{UniqueIdentifier: uid}, nil
 }
 
 // SetAttribute: Not Supported
-func (kmips *kmip14service) SetAttribute(ctx context.Context, settings *ConfigurationSettings, req *SetAttributeRequest) (*SetAttributeResponse, error) {
+func (kmips *kmip14service) SetAttribute(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *SetAttributeRequest) (*SetAttributeResponse, error) {
 	return &SetAttributeResponse{}, fmt.Errorf("SetAttribute command is not supported")
 }
 
 // ReKey:
-func (kmips *kmip14service) ReKey(ctx context.Context, settings *ConfigurationSettings, req *ReKeyRequest) (*ReKeyResponse, error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("====== rekey ======", "uid", req.UniqueIdentifier)
+func (kmips *kmip14service) ReKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *ReKeyRequest) (*ReKeyResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== rekey ======", "uid", req.UniqueIdentifier)
 
 	payload := kmip.ReKeyRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 
-	decoder, item, err := SendRequestMessage(ctx, settings, uint32(kmip14.OperationReKey), &payload, false)
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationReKey), &payload, false)
 	if err != nil {
-		logger.Error(err, "The call to SendRequestMessage failed")
+		logger.Error("The call to SendRequestMessage failed", "error", err)
 		return nil, err
 	}
 
 	// Extract the RekeyResponsePayload type of message
 	var respPayload kmip.ReKeyResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
 	}
 
 	uid := respPayload.UniqueIdentifier
-	logger.V(4).Info("xxx ReKey Response Payload", "uid", uid)
+	logger.Debug("xxx ReKey Response Payload", "uid", uid)
 
 	return &ReKeyResponse{UniqueIdentifier: uid}, nil
 }

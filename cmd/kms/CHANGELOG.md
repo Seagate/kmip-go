@@ -1,3 +1,10 @@
+# [1.3.0] (2024-10-15)
+
+### Features
+- Switch to using the standard package `slog`
+- Reduce `kmipapi.ConfigurationSettings` to minimal required settings, remove tls.Conn pointer
+- Modify all interfaces to pass `connection *tls.Conn`
+
 # [1.2.0] (2022-10-10)
 
 ### Features

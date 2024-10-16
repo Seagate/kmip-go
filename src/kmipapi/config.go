@@ -4,15 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 
-	"k8s.io/klog/v2"
+	"github.com/Seagate/kmip-go/pkg/common"
 )
+
+var kmsConfigurationFile = "kms.json"
 
 // Store: Save all configuration settings to a JSON file
 func Store(ctx context.Context, settings *ConfigurationSettings) (err error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("Store configuration settings", "config", settings.SettingsFile)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Info("Store configuration settings", "config", kmsConfigurationFile)
 
 	// Convert object into JSON format
 	js, err := json.MarshalIndent(settings, "", " ")
@@ -23,35 +26,61 @@ func Store(ctx context.Context, settings *ConfigurationSettings) (err error) {
 
 	// Write report to file
 	// Set permissions so that owner can read/write (6), group can read (first 4), all others can read (second 4)
-	err = os.WriteFile(settings.SettingsFile, js, 0o644)
+	err = os.WriteFile(kmsConfigurationFile, js, 0o644)
 	if err != nil {
-		fmt.Printf("unable to write configuration settings to storage, error: %v\n", err)
-		return fmt.Errorf("unable to write configuration settings to storage, error: %v", err)
+		fmt.Printf("store unable to write configuration settings to storage, error: %v\n", err)
+		return fmt.Errorf("store unable to write configuration settings to storage, error: %v", err)
 	}
 
-	// fmt.Printf("configuration settings written to (%s)\n", settings.SettingsFile)
 	return nil
 }
 
 // Restore: Read all configuration settings from a JSON file
 func Restore(ctx context.Context, settings *ConfigurationSettings, filename string) (err error) {
-	logger := klog.FromContext(ctx)
-	logger.V(4).Info("Restore configuration settings", "config", filename)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("Restore configuration settings", "filename", filename)
 
-	file2, err := os.ReadFile(filename)
-	if err != nil {
-		fmt.Printf("unable to restore configuration settings from (%s), error: %v\n", filename, err)
-		return fmt.Errorf("unable to restore configuration settings from (%s), error: %v", filename, err)
+	if filename == "" {
+		filename = kmsConfigurationFile
 	}
 
-	err = json.Unmarshal([]byte(file2), settings)
-	if err != nil {
-		fmt.Printf("unable to unmarshal configuration settings from (%s), error: %v\n", filename, err)
-		return fmt.Errorf("unable to unmarshal configuration settings from (%s), error: %v", filename, err)
-	}
+	if _, err := os.Stat(kmsConfigurationFile); err == nil {
+		logger.Debug("configuration file exists", "filename", filename)
+		file2, err := os.ReadFile(filename)
+		if err != nil {
+			fmt.Printf("unable to restore configuration settings from (%s), error: %v\n", filename, err)
+			return fmt.Errorf("unable to restore configuration settings from (%s), error: %v", filename, err)
+		}
 
-	// Set pointers to nil
-	settings.Connection = nil
+		err = json.Unmarshal([]byte(file2), settings)
+		if err != nil {
+			fmt.Printf("unable to unmarshal configuration settings from (%s), error: %v\n", filename, err)
+			return fmt.Errorf("unable to unmarshal configuration settings from (%s), error: %v", filename, err)
+		}
+
+	} else {
+		logger.Debug("configuration file does NOT exist", "filename", filename)
+		file, err := os.Create(filename)
+		if err != nil {
+			return fmt.Errorf("unable to create file, error: %v", err)
+		}
+		defer file.Close()
+
+		// Convert object into JSON format
+		js, err := json.MarshalIndent(settings, "", " ")
+		if err != nil {
+			fmt.Printf("unable to translate configuration settings to JSON, error: %v\n", err)
+			return fmt.Errorf("unable to translate configuration settings to JSON, error: %v", err)
+		}
+
+		// Write report to file
+		// Set permissions so that owner can read/write (6), group can read (first 4), all others can read (second 4)
+		_, err = file.Write(js)
+		if err != nil {
+			fmt.Printf("create unable to write configuration settings to storage, error: %v\n", err)
+			return fmt.Errorf("create unable to write configuration settings to storage, error: %v", err)
+		}
+	}
 
 	return nil
 }

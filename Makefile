@@ -1,7 +1,26 @@
+.PHONY : all build builddir install ppkmip kmipgen lint vet clean fmt generate test cover up down docker bash fish tidy update tools pykmip-server gen-certs
+
 SHELL = bash
 BUILD_FLAGS =
 TEST_FLAGS =
 COMPOSE ?= docker-compose
+APP_NAME := kms
+
+help:
+	@echo ""
+	@echo "-----------------------------------------------------------------------------------"
+	@echo "make all          - remove all"
+	@echo "make build        - build a local executable"
+	@echo "make install      - install the executable"
+	@echo "make clean        - remove build files"
+	@echo "make tidy         - go mod tidy"
+	@echo "make update       - go get -u ./..."
+	@echo "make lint         - golangci-lint run"
+	@echo "make vet          - go vet ./..."
+	@echo "make fmt          - gofumpt -w -l ."
+	@echo "make kms          - build $(APP_NAME)"
+	@echo "make installkms   - install $(APP_NAME)"
+	@echo ""
 
 all: fmt build up test lint
 
@@ -26,8 +45,12 @@ kmipgen:
 lint:
 	golangci-lint run
 
+vet:
+	go vet ./...
+
 clean:
 	rm -rf build/*
+	rm -rf $(APP_NAME)
 
 fmt:
 	gofumpt -w -l .
@@ -100,5 +123,10 @@ pykmip-server: up
 gen-certs:
 	openssl req -x509 -newkey rsa:4096 -keyout pykmip-server/server.key -out pykmip-server/server.cert -days 3650 -nodes -subj '/CN=localhost'
 
-.PHONY: all build builddir run artifacts vet lint clean fmt test testall testreport up down pull builder runc ci bash fish image prep vendor.update vendor.ensure tools buildtools migratetool db.migrate
+kms: cmd/$(APP_NAME)/main.go
+	@echo "Build local $(APP_NAME)..."
+	go build -o $(APP_NAME) -ldflags "-X main.buildTime=`date -u '+%Y-%m-%dT%H:%M:%S'`" ./cmd/$(APP_NAME)/main.go
+	ls -lh $(APP_NAME)
 
+installkms:
+	install ./$(APP_NAME) /usr/local/bin

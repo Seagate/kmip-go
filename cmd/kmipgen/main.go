@@ -307,7 +307,6 @@ func genCode(s *Specifications) (string, error) {
 	template.Must(tmpl.New("mask").Parse(maskTmpl))
 
 	err = tmpl.Execute(buf, in)
-
 	if err != nil {
 		return "", merry.Prepend(err, "executing template")
 	}

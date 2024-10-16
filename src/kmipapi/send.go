@@ -4,13 +4,15 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
+	"log/slog"
 
 	"github.com/Seagate/kmip-go"
 	"github.com/Seagate/kmip-go/kmip14"
+	"github.com/Seagate/kmip-go/pkg/common"
 	"github.com/Seagate/kmip-go/ttlv"
 	"github.com/google/uuid"
-	"k8s.io/klog/v2"
 )
 
 const (
@@ -18,10 +20,10 @@ const (
 )
 
 func BatchCmdGenerateMessage(ctx context.Context, settings *ConfigurationSettings, payload []kmip.RequestBatchItem) (kmip.RequestMessage, error) {
-	logger := klog.FromContext(ctx)
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 
-	logger.V(4).Info("(1) create batch request message")
-	logger.V(5).Info("send batch request message", "CurrentProtocolVersionMajor", settings.ProtocolVersionMajor, "CurrentProtocolVersionMinor", settings.ProtocolVersionMinor)
+	logger.Debug("(1) create batch request message")
+	logger.Debug("send batch request message", "CurrentProtocolVersionMajor", settings.ProtocolVersionMajor, "CurrentProtocolVersionMinor", settings.ProtocolVersionMinor)
 
 	BatchNum := len(payload)
 	msg := kmip.RequestMessage{
@@ -39,8 +41,8 @@ func BatchCmdGenerateMessage(ctx context.Context, settings *ConfigurationSetting
 }
 
 // SendRequestMessage: Send a KMIP request message
-func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, operation uint32, payload interface{}, dobatch bool) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
-	logger := klog.FromContext(ctx)
+func SendRequestMessage(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, operation uint32, payload interface{}, dobatch bool) (*ttlv.Decoder, *kmip.ResponseBatchItem, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 	biID := uuid.New()
 
 	var kmipreq []byte
@@ -53,8 +55,8 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 			return nil, nil, fmt.Errorf("dobatch - failed to marshal message, error: %v", err)
 		}
 	} else {
-		logger.V(4).Info("(1) create request message")
-		logger.V(5).Info("send request message", "CurrentProtocolVersionMajor", settings.ProtocolVersionMajor, "CurrentProtocolVersionMinor", settings.ProtocolVersionMinor)
+		logger.Debug("(1) create request message")
+		logger.Debug("send request message", "CurrentProtocolVersionMajor", settings.ProtocolVersionMajor, "CurrentProtocolVersionMinor", settings.ProtocolVersionMinor)
 
 		msg := kmip.RequestMessage{
 			RequestHeader: kmip.RequestHeader{
@@ -74,32 +76,32 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 			},
 		}
 
-		logger.V(4).Info("(2) marshal message and print request")
+		logger.Debug("(2) marshal message and print request")
 		kmipreq, err = ttlv.Marshal(msg)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to marshal message, error: %v", err)
 		}
 	}
-	logger.V(5).Info("KMIP message", "request", kmipreq)
+	logger.Debug("KMIP message", "request", kmipreq)
 
-	if settings.Connection != nil {
+	if connection != nil {
 
-		logger.V(4).Info("(3) write message")
-		_, err = settings.Connection.Write(kmipreq)
+		logger.Debug("(3) write message")
+		_, err = connection.Write(kmipreq)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to write message, error: %v", err)
 		}
 
-		logger.V(4).Info("(4) read response 1")
+		logger.Debug("(4) read response 1")
 		buf := make([]byte, DefaultBufferSize)
-		_, err = bufio.NewReader(settings.Connection).Read(buf)
+		_, err = bufio.NewReader(connection).Read(buf)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to read buffer from response, error: %v", err)
 		}
 
-		logger.V(4).Info("(5) extract response from TTLV buffer")
+		logger.Debug("(5) extract response from TTLV buffer")
 		resp := ttlv.TTLV(buf)
-		logger.V(5).Info("ttlv", "response", resp)
+		logger.Debug("ttlv", "response", resp)
 
 		// Create a TTLV decoder from a new reader
 		decoder := ttlv.NewDecoder(bytes.NewReader(resp))
@@ -114,8 +116,8 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 			return nil, nil, fmt.Errorf("failed to decode response message, error: %v", err)
 		}
 
-		logger.V(4).Info("(6) extract batch item from response message", "BatchCount", respMsg.ResponseHeader.BatchCount)
-		logger.V(5).Info("response", "message", respMsg)
+		logger.Debug("(6) extract batch item from response message", "BatchCount", respMsg.ResponseHeader.BatchCount)
+		logger.Debug("response", "message", respMsg)
 		if len(respMsg.BatchItem) == 0 {
 			return nil, nil, fmt.Errorf("response message had not batch items")
 		}
@@ -125,20 +127,20 @@ func SendRequestMessage(ctx context.Context, settings *ConfigurationSettings, op
 		for j := 0; j <= i; j++ {
 			if respMsg.ResponseHeader.BatchCount >= 0 {
 				if respMsg.BatchItem[j].ResultStatus != kmip14.ResultStatusSuccess {
-					logger.V(4).Info("send message results", "ResultStatus", respMsg.BatchItem[j].ResultStatus, "ResultReason",
+					logger.Debug("send message results", "ResultStatus", respMsg.BatchItem[j].ResultStatus, "ResultReason",
 						respMsg.BatchItem[j].ResultReason, "ResultMessage", respMsg.BatchItem[j].ResultMessage)
-					return nil, nil, fmt.Errorf("send operation (%s) status (%s) reason (%s) message (%s)",
+					return nil, nil, fmt.Errorf("send operation (%d) status (%s) reason (%s) message (%s)",
 						operation, respMsg.BatchItem[j].ResultStatus, respMsg.BatchItem[j].ResultReason, respMsg.BatchItem[j].ResultMessage)
 				}
 			}
 		}
 
 		if respMsg.ResponseHeader.BatchCount >= 0 && respMsg.BatchItem[i].ResultStatus == kmip14.ResultStatusSuccess {
-			logger.V(4).Info("(7) returning decoder and the first batch item", "items", len(respMsg.BatchItem))
+			logger.Debug("(7) returning decoder and the first batch item", "items", len(respMsg.BatchItem))
 			return decoder, &respMsg.BatchItem[i], nil
 		} else {
 			return nil, nil, fmt.Errorf(
-				"Server status (%s) reason (%s) message (%s)",
+				"server status (%s) reason (%s) message (%s)",
 				respMsg.BatchItem[i].ResultStatus, respMsg.BatchItem[i].ResultReason, respMsg.BatchItem[i].ResultMessage)
 		}
 

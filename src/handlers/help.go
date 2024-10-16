@@ -2,16 +2,18 @@ package handlers
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"log/slog"
 
+	"github.com/Seagate/kmip-go/pkg/common"
 	"github.com/Seagate/kmip-go/src/kmipapi"
 	"github.com/fatih/color"
-	"k8s.io/klog/v2"
 )
 
-func Help(ctx context.Context, settings *kmipapi.ConfigurationSettings, line string) {
-	logger := klog.FromContext(ctx)
-	logger.V(2).Info("Help:", "line", line)
+func Help(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("Help:", "line", line)
 
 	command := color.New(color.FgWhite).SprintFunc()
 	options := color.New(color.FgYellow).SprintFunc()
@@ -26,9 +28,8 @@ func Help(ctx context.Context, settings *kmipapi.ConfigurationSettings, line str
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("run"), col2, options("file=<value>"), comment("// execute all commands contained in a file"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("load"), col2, options("file=<value>"), comment("// load configuration settings from a file"))
 
-	fmt.Printf("  %*s  %-*s  %s\n", col1, command("set"), col2, options("[level=<value>]"), comment("// change the debug log level 0,1,2,3,4,5,etc"))
+	fmt.Printf("  %*s  %-*s  %s\n", col1, command("set"), col2, options("[level=<value>]"), comment("// change the log level error, warn, info, debug"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("set"), col2, options("[ip=<value>] [port=<value>]"), comment("// set the ip and port for the kms server"))
-	fmt.Printf("  %*s  %-*s  %s\n", col1, command("set"), col2, options("[name=<value>]"), comment("// set a name for the kms server"))
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("set"), col2, options("[elapsed=<true|false>]"), comment("// set show elapsed to true or false"))
 
 	fmt.Printf("  %*s  %-*s  %s\n", col1, command("version"), col2, options("[major=<value>] [minor=<value>]"), comment("// change the KMIP protocol version"))
