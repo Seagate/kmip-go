@@ -199,7 +199,6 @@ func (kmips *kmip14service) GetKey(ctx context.Context, connection *tls.Conn, se
 	}
 
 	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationGet), &payload, false)
-	logger.Debug("get key response item", "item", item)
 
 	if err != nil {
 		logger.Error("get key call to SendRequestMessage failed", "error", err)
