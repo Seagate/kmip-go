@@ -49,7 +49,7 @@ func SendRequestMessage(ctx context.Context, connection *tls.Conn, settings *Con
 	var err error
 	// var msg kmip.RequestMessage
 
-	if dobatch == true {
+	if dobatch {
 		kmipreq, err = ttlv.Marshal(payload)
 		if err != nil {
 			return nil, nil, fmt.Errorf("dobatch - failed to marshal message, error: %v", err)
@@ -101,7 +101,6 @@ func SendRequestMessage(ctx context.Context, connection *tls.Conn, settings *Con
 
 		logger.Debug("(5) extract response from TTLV buffer")
 		resp := ttlv.TTLV(buf)
-		logger.Debug("ttlv", "response", resp)
 
 		// Create a TTLV decoder from a new reader
 		decoder := ttlv.NewDecoder(bytes.NewReader(resp))
@@ -117,7 +116,6 @@ func SendRequestMessage(ctx context.Context, connection *tls.Conn, settings *Con
 		}
 
 		logger.Debug("(6) extract batch item from response message", "BatchCount", respMsg.ResponseHeader.BatchCount)
-		logger.Debug("response", "message", respMsg)
 		if len(respMsg.BatchItem) == 0 {
 			return nil, nil, fmt.Errorf("response message had not batch items")
 		}
