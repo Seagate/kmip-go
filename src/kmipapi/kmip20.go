@@ -506,16 +506,22 @@ func (kmips *kmip20service) Locate(ctx context.Context, connection *tls.Conn, se
 // SetAttribute:
 func (kmips *kmip20service) SetAttribute(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *SetAttributeRequest) (*SetAttributeResponse, error) {
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
-	logger.Debug("====== set attribute ======", "uid", req.UniqueIdentifier, "value", req.AttributeValue)
+	logger.Debug("====== set attribute ======", "uid", req.UniqueIdentifier, "name", req.AttributeName, "value", req.AttributeValue)
 
+	type newAttribute struct {
+		AttributeName  string
+		AttributeValue string
+	}
 	payload := kmip20.SetAttributeRequestPayload{
 		UniqueIdentifier: &kmip20.UniqueIdentifierValue{
 			Text:  req.UniqueIdentifier,
 			Enum:  0,
 			Index: 0,
 		},
-		// FIXME		AttributeName:  req.AttributeName,
-		// FIXME		AttributeValue: req.AttributeValue,
+		NewAttribute: newAttribute{
+			AttributeName:  req.AttributeName,
+			AttributeValue: req.AttributeValue,
+		},
 	}
 
 	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationSetAttribute), &payload, false)
