@@ -222,7 +222,6 @@ func (kmips *kmip20service) GetKey(ctx context.Context, connection *tls.Conn, se
 
 	if respPayload.SymmetricKey != nil {
 		if respPayload.SymmetricKey.KeyBlock.KeyValue != nil {
-			// keybytes := memguard.NewBuffer(64)
 			if bytes, ok := respPayload.SymmetricKey.KeyBlock.KeyValue.KeyMaterial.([]byte); ok {
 				// convert byes to an encoded string
 				keybytes := hex.EncodeToString(bytes)
@@ -541,15 +540,13 @@ func (kmips *kmip20service) ReKey(ctx context.Context, connection *tls.Conn, set
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 	logger.Debug("====== rekey ======", "uid", req.UniqueIdentifier)
 
-	payload := kmip.ReKeyRequestPayload{
-		UniqueIdentifier: "FIXME",
+	payload := kmip20.ReKeyRequestPayload{
+		UniqueIdentifier: &kmip20.UniqueIdentifierValue{
+			Text:  req.UniqueIdentifier,
+			Enum:  0,
+			Index: 0,
+		},
 	}
-	// FIXME		UniqueIdentifier: kmip20.UniqueIdentifierValue{
-	// FIXME			Text:  req.UniqueIdentifier,
-	// FIXME			Enum:  0,
-	// FIXME			Index: 0,
-	// FIXME		},
-	// FIXME	}
 
 	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationReKey), &payload, false)
 	if err != nil {
