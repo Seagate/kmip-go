@@ -9,7 +9,7 @@ import (
 
 // 6.1.42 Re-key
 
-// Table 279
+// Table 278
 
 type ReKeyRequestPayload struct {
 	UniqueIdentifier       *UniqueIdentifierValue
