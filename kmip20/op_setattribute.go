@@ -12,7 +12,7 @@ import (
 
 type SetAttributeRequestPayload struct {
 	UniqueIdentifier *UniqueIdentifierValue
-	NewAttribute     Attributes `ttlv:"DerivationData"`
+	NewAttribute     interface{}
 }
 
 // Table 297
