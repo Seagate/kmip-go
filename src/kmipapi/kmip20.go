@@ -541,7 +541,7 @@ func (kmips *kmip20service) ReKey(ctx context.Context, connection *tls.Conn, set
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 	logger.Debug("====== rekey ======", "uid", req.UniqueIdentifier)
 
-	payload := kmip.ReKeyRequestPayload{
+	payload := kmip.UniqueIdentifierRequestPayload{
 		UniqueIdentifier: "FIXME",
 	}
 	// FIXME		UniqueIdentifier: kmip20.UniqueIdentifierValue{
@@ -557,7 +557,7 @@ func (kmips *kmip20service) ReKey(ctx context.Context, connection *tls.Conn, set
 	}
 
 	// Extract the RekeyResponsePayload type of message
-	var respPayload kmip.ReKeyResponsePayload
+	var respPayload kmip.UniqueIdentifierResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)

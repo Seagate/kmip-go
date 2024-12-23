@@ -4,36 +4,21 @@ import (
 	"context"
 )
 
-// ReKeyRequestPayload ////////////////////////////////////////
-type ReKeyRequestPayload struct {
-	UniqueIdentifier string
-}
-
-// ReKeyResponsePayload
-type ReKeyResponsePayload struct {
-	UniqueIdentifier string
-}
-
 type ReKeyHandler struct {
-	ReKey func(ctx context.Context, payload *ReKeyRequestPayload) (*ReKeyResponsePayload, error)
+	Handler
+}
+
+func NewReKeyHandler(rekeyFunc func(ctx context.Context, payload *UniqueIdentifierRequestPayload) (*UniqueIdentifierResponsePayload, error)) *ReKeyHandler {
+	return &ReKeyHandler{
+		Handler: Handler{
+			Process: func(ctx context.Context, payload Payload) (Payload, error) {
+				return rekeyFunc(ctx, payload.(*UniqueIdentifierRequestPayload))
+			},
+		},
+	}
 }
 
 func (h *ReKeyHandler) HandleItem(ctx context.Context, req *Request) (*ResponseBatchItem, error) {
-	var payload ReKeyRequestPayload
-
-	err := req.DecodePayload(&payload)
-	if err != nil {
-		return nil, err
-	}
-
-	respPayload, err := h.ReKey(ctx, &payload)
-	if err != nil {
-		return nil, err
-	}
-
-	// req.Key = respPayload.Key
-
-	return &ResponseBatchItem{
-		ResponsePayload: respPayload,
-	}, nil
+	var payload UniqueIdentifierRequestPayload
+	return h.Handler.HandleItem(ctx, req, &payload)
 }

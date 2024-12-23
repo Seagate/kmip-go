@@ -35,15 +35,16 @@ linters-settings:
     # minimal occurrences count to trigger, 3 by default
     min-occurrences: 3
   depguard:
-    list-type: blacklist
-    include-go-root: false
+    list-type: whitelist
     packages:
-      - github.com/magiconair/properties/assert
-      - gopkg.in/go-playground/assert.v1
-      - github.com/pborman/uuid #replace with github.com/google/uuid
-    inTests:
-      - github.com/davecgh/go-spew/spew
-      - github.com/stretchr/testify
+      - github.com/Seagate/kmip-go/ttlv
+      - github.com/Seagate/kmip-go/internal/kmiputil
+      - github.com/ansel1/merry
+    include-go-tests: true
+    allowed-packages:
+      - github.com/Seagate/kmip-go/ttlv
+      - github.com/Seagate/kmip-go/internal/kmiputil
+      - github.com/ansel1/merry
   misspell:
     # Correct spellings using locale preferences for US or UK.
     # Default is to use a neutral variety of English.

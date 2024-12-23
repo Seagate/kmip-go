@@ -216,8 +216,8 @@ func ParseInt(s string, enumMap EnumMap) (int32, error) {
 	return int32(v), nil
 }
 
-func parseHexOrName(s string, max int, enumMap EnumMap) (uint32, error) {
-	b, err := kmiputil.ParseHexValue(s, max)
+func parseHexOrName(s string, maxhex int, enumMap EnumMap) (uint32, error) {
+	b, err := kmiputil.ParseHexValue(s, maxhex)
 	if err != nil {
 		return 0, err
 	}

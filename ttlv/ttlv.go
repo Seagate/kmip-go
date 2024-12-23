@@ -1009,6 +1009,7 @@ func (t TTLV) MarshalJSON() ([]byte, error) {
 				sb.WriteString(",")
 			}
 		}
+
 		sb.WriteString("]")
 	case TypeDateTime, TypeDateTimeExtended:
 		val, err := t.ValueDateTime().MarshalJSON()

@@ -301,10 +301,10 @@ func (kmips *kmip14service) ActivateKey(ctx context.Context, connection *tls.Con
 	logger.Debug("====== activate key ======", "uid", req.UniqueIdentifier)
 
 	// payload := kmip.ActivateRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
-	payload := kmip.ActivateRequestPayload{}
+	payload := kmip.UniqueIdentifierRequestPayload{}
 
 	if req.UniqueIdentifier != "" {
-		payload = kmip.ActivateRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
+		payload = kmip.UniqueIdentifierRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 	}
 
 	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationActivate), &payload, false)
@@ -314,7 +314,7 @@ func (kmips *kmip14service) ActivateKey(ctx context.Context, connection *tls.Con
 	}
 
 	// Extract the ActivateResponsePayload type of message
-	var respPayload kmip.ActivateResponsePayload
+	var respPayload kmip.UniqueIdentifierResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)
@@ -525,7 +525,7 @@ func (kmips *kmip14service) ReKey(ctx context.Context, connection *tls.Conn, set
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 	logger.Debug("====== rekey ======", "uid", req.UniqueIdentifier)
 
-	payload := kmip.ReKeyRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
+	payload := kmip.UniqueIdentifierRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
 
 	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationReKey), &payload, false)
 	if err != nil {
@@ -534,7 +534,7 @@ func (kmips *kmip14service) ReKey(ctx context.Context, connection *tls.Conn, set
 	}
 
 	// Extract the RekeyResponsePayload type of message
-	var respPayload kmip.ReKeyResponsePayload
+	var respPayload kmip.UniqueIdentifierResponsePayload
 	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode GetResponsePayload, error: %v", err)

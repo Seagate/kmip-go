@@ -154,9 +154,11 @@ func (e *Encoder) EncodeValue(tag Tag, v interface{}) error {
 // Call Flush() to write the data to the writer.
 func (e *Encoder) EncodeStructure(tag Tag, f func(e *Encoder) error) error {
 	e.encodeDepth++
+
 	i := e.encBuf.begin(tag, TypeStructure)
 	err := f(e)
 	e.encBuf.end(i)
+
 	e.encodeDepth--
 
 	return err
@@ -561,12 +563,12 @@ func (e *Encoder) encode(tag Tag, v reflect.Value, fi *fieldInfo) error {
 				// push the currField
 				currField := e.currField
 				e.currField = field.name
-				err := e.encode(TagNone, fv, &field) //nolint:gosec,scopelint
-				// pop the currField
-				e.currField = currField
+				err := e.encode(TagNone, fv, &field)
 				if err != nil {
 					return err
 				}
+				// pop the currField
+				e.currField = currField
 			}
 
 			return nil

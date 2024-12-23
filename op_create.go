@@ -65,6 +65,7 @@ func (h *CreateHandler) HandleItem(ctx context.Context, req *Request) (*Response
 
 	// req.IDPlaceholder, ok = idAttr.AttributeValue.(string)
 	req.IDPlaceholder = respPayload.UniqueIdentifier
+
 	if !ok {
 		return nil, merry.Errorf("invalid response returned by CreateHandler: unique identifier tag in attributes should have been a string, was %t", idAttr.AttributeValue)
 	}

@@ -19,8 +19,6 @@ const version string = "1.3.0"
 // This variable is filled in during the linker step - -ldflags "-X main.buildTime=`date -u '+%Y-%m-%dT%H:%M:%S'`"
 var buildTime = ""
 
-var programLevel = new(slog.LevelVar) // Info by default
-
 // This variable is used to store the TLS connection for an open session with a KMS server
 var tlsConnection *tls.Conn = nil
 
@@ -55,6 +53,7 @@ func main() {
 
 	// Initialize the slog logger
 	logger := slog.Default()
+
 	if debug {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
 	}
@@ -77,6 +76,7 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
+
 	for {
 		fmt.Print("kms) ")
 		if scanner.Scan() {
