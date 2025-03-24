@@ -81,11 +81,18 @@ func (kmips *kmip20service) Query(ctx context.Context, connection *tls.Conn, set
 func (kmips *kmip20service) CreateKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *CreateKeyRequest) (*CreateKeyResponse, error) {
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 
+	type Attribute struct {
+		VendorIdentification string
+		AttributeName        string
+		AttributeValue       interface{}
+	}
+
 	type createReqAttrs struct {
 		CryptographicAlgorithm kmip14.CryptographicAlgorithm
 		CryptographicLength    int
 		CryptographicUsageMask kmip14.CryptographicUsageMask
 		Name                   kmip.Name
+		Attribute              Attribute
 	}
 
 	logger.Debug("====== create key ======", "id", req.Id)
@@ -103,6 +110,11 @@ func (kmips *kmip20service) CreateKey(ctx context.Context, connection *tls.Conn,
 			Name: kmip.Name{
 				NameValue: req.Id,
 				NameType:  kmip14.NameTypeUninterpretedTextString,
+			},
+			Attribute: Attribute{
+				VendorIdentification: "x",
+				AttributeName:        "x-id",
+				AttributeValue:       "143",
 			},
 		},
 	}
@@ -129,11 +141,17 @@ func (kmips *kmip20service) CreateKey(ctx context.Context, connection *tls.Conn,
 func (kmips *kmip20service) GenerateCreateKeyPayload(ctx context.Context, settings *ConfigurationSettings, req *CreateKeyRequest) interface{} {
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 
+	type Attribute struct {
+		VendorIdentification string
+		AttributeName        string
+		AttributeValue       interface{}
+	}
 	type createReqAttrs struct {
 		CryptographicAlgorithm kmip14.CryptographicAlgorithm
 		CryptographicLength    int
 		CryptographicUsageMask kmip14.CryptographicUsageMask
 		Name                   kmip.Name
+		Attribute              Attribute
 	}
 
 	logger.Debug("====== batch create key ======", "id", req.Id)
@@ -148,6 +166,11 @@ func (kmips *kmip20service) GenerateCreateKeyPayload(ctx context.Context, settin
 				NameValue: req.Id,
 				NameType:  kmip14.NameTypeUninterpretedTextString,
 			},
+			Attribute: Attribute{
+				VendorIdentification: "x",
+				AttributeName:        "x-id",
+				AttributeValue:       "143",
+			},
 		},
 	}
 
@@ -159,8 +182,14 @@ func (kmips *kmip20service) GenerateLocatePayload(ctx context.Context, settings 
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 	logger.Debug("====== batch locate ======", "name", req.Name)
 
+	type Attribute struct {
+		VendorIdentification string
+		AttributeName        string
+		AttributeValue       interface{}
+	}
 	type createReqAttrs struct {
-		Name kmip.Name
+		Name      kmip.Name
+		Attribute Attribute
 	}
 
 	payload := kmip20.LocateRequestPayload{
@@ -168,6 +197,11 @@ func (kmips *kmip20service) GenerateLocatePayload(ctx context.Context, settings 
 			Name: kmip.Name{
 				NameValue: req.Name,
 				NameType:  kmip14.NameTypeUninterpretedTextString,
+			},
+			Attribute: Attribute{
+				VendorIdentification: "x",
+				AttributeName:        "x-id",
+				AttributeValue:       "143",
 			},
 		},
 	}
@@ -467,8 +501,14 @@ func (kmips *kmip20service) Locate(ctx context.Context, connection *tls.Conn, se
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 	logger.Debug("====== locate ======", "name", req.Name)
 
+	type Attribute struct {
+		VendorIdentification string
+		AttributeName        string
+		AttributeValue       interface{}
+	}
 	type createReqAttrs struct {
-		Name kmip.Name
+		Name      kmip.Name
+		Attribute Attribute
 	}
 
 	payload := kmip20.LocateRequestPayload{
@@ -476,6 +516,11 @@ func (kmips *kmip20service) Locate(ctx context.Context, connection *tls.Conn, se
 			Name: kmip.Name{
 				NameValue: req.Name,
 				NameType:  kmip14.NameTypeUninterpretedTextString,
+			},
+			Attribute: Attribute{
+				VendorIdentification: "x",
+				AttributeName:        "x-id",
+				AttributeValue:       "143",
 			},
 		},
 	}
