@@ -112,6 +112,11 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, connection *tls.Conn,
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	})
 
+	payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+		AttributeName:  "x-id",
+		AttributeValue: "143",
+	})
+
 	decoder, item, err = SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationCreate), &payload, false)
 	if err != nil {
 		logger.Error("The call to SendRequestMessage failed", "error", err)
@@ -149,34 +154,12 @@ func (kmips *kmip14service) GenerateCreateKeyPayload(ctx context.Context, settin
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	})
 
+	payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+		AttributeName:  "x-id",
+		AttributeValue: "143",
+	})
+
 	logger.Debug("create", "Payload", payload)
-	return payload
-}
-
-// GenerateLocatePayload:
-func (kmips *kmip14service) GenerateLocatePayload(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) interface{} {
-	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
-	logger.Debug("====== batch locate ======", "name", req.Name)
-
-	Name := kmip.Name{
-		NameValue: req.Name,
-		NameType:  kmip14.NameTypeUninterpretedTextString,
-	}
-
-	payload := kmip.LocateRequestPayload{}
-
-	if req.Name != "" {
-		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
-	}
-
-	if req.AttribName1 == "ObjectGroup" {
-		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectGroup, 0, req.AttribValue1))
-	}
-
-	if req.AttribName2 == "ObjectType" && req.AttribValue2 == "SecretData" {
-		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
-	}
-
 	return payload
 }
 
@@ -471,6 +454,42 @@ func (kmips *kmip14service) GetAttribute(ctx context.Context, connection *tls.Co
 	return &GetAttributeResponse{UniqueIdentifier: uid, Attribute: attrib}, nil
 }
 
+// GenerateLocatePayload:
+func (kmips *kmip14service) GenerateLocatePayload(ctx context.Context, settings *ConfigurationSettings, req *LocateRequest) interface{} {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== batch locate ======", "name", req.Name)
+
+	Name := kmip.Name{
+		NameValue: req.Name,
+		NameType:  kmip14.NameTypeUninterpretedTextString,
+	}
+
+	Val := kmip.Attribute{
+		AttributeName:  "x-id",
+		AttributeValue: "143",
+	}
+
+	payload := kmip.LocateRequestPayload{}
+
+	if req.Name != "" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
+	}
+
+	if req.Name != "" {
+		payload.Attribute = append(payload.Attribute, Val)
+	}
+
+	if req.AttribName1 == "ObjectGroup" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectGroup, 0, req.AttribValue1))
+	}
+
+	if req.AttribName2 == "ObjectType" && req.AttribValue2 == "SecretData" {
+		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
+	}
+
+	return payload
+}
+
 // Locate:
 func (kmips *kmip14service) Locate(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *LocateRequest) (*LocateResponse, error) {
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
@@ -481,10 +500,19 @@ func (kmips *kmip14service) Locate(ctx context.Context, connection *tls.Conn, se
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	}
 
+	Val := kmip.Attribute{
+		AttributeName:  "x-id",
+		AttributeValue: "143",
+	}
+
 	payload := kmip.LocateRequestPayload{}
 
 	if req.Name != "" {
 		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
+	}
+
+	if req.Name != "" {
+		payload.Attribute = append(payload.Attribute, Val)
 	}
 
 	if req.AttribName1 == "ObjectGroup" {
