@@ -25,19 +25,19 @@ func OpenSession(ctx context.Context, settings *ConfigurationSettings) (*tls.Con
 	// Open a session
 	certificate, err := os.ReadFile(settings.CertAuthFile)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read CA (%s)", settings.CertAuthFile)
+		return nil, fmt.Errorf("failed to read CA (%s)", settings.CertAuthFile)
 	}
 
 	certificatePool := x509.NewCertPool()
 	ok := certificatePool.AppendCertsFromPEM(certificate)
 	if !ok {
-		return nil, fmt.Errorf("Failed to append certificate from PEM")
+		return nil, fmt.Errorf("failed to append certificate from PEM")
 	}
 
 	// Load client cert
 	cert, err := tls.LoadX509KeyPair(settings.CertFile, settings.KeyFile)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create x509 key pair")
+		return nil, fmt.Errorf("failed to create x509 key pair")
 	}
 
 	tlsConfig := &tls.Config{
@@ -156,7 +156,7 @@ func QueryServer(ctx context.Context, connection *tls.Conn, settings *Configurat
 }
 
 // CreateKey: Create a unique identifier for a id and return that uid
-func CreateKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, id string) (string, error) {
+func CreateKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, id string, attribname string, attribvalue string) (string, error) {
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 	logger.Debug("++ create key", "id", id)
 
@@ -171,6 +171,8 @@ func CreateKey(ctx context.Context, connection *tls.Conn, settings *Configuratio
 		Algorithm:              kmip14.CryptographicAlgorithmAES,
 		CryptographicLength:    256,
 		CryptographicUsageMask: 12,
+		AttribName:             attribname,
+		AttribValue:            attribvalue,
 	}
 
 	kmipResp, err := kmipops.CreateKey(ctx, connection, settings, &req)
@@ -305,8 +307,38 @@ func GetAttribute(ctx context.Context, connection *tls.Conn, settings *Configura
 	return kmipResp, nil
 }
 
+// ModifyAttribute: Modify an attribute
+func ModifyAttribute(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, uid string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string) (*ModifyAttributeResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("++ modify attribute ", "uid", uid, "attribname1", attribname1, "attribvalue1", attribvalue1, "attribname2", attribname2, "attribvalue1", attribvalue2)
+
+	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
+	if err != nil || kmipops == nil {
+		return nil, fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+	}
+
+	req := ModifyAttributeRequest{
+		UniqueIdentifier: uid,
+		AttributeName1:   attribname1,
+		AttributeValue1:  attribvalue1,
+		AttributeName2:   attribname2,  // used by kmip 2.0 as NewAttribute to replace current attribute
+		AttributeValue2:  attribvalue2, // used by kmip 2.0 as NewAttribute to replace current attribute
+	}
+
+	kmipResp, err := kmipops.ModifyAttribute(ctx, connection, settings, &req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to modify attribute using (%s), err: %v", settings.ServiceType, err)
+	}
+
+	if kmipResp == nil {
+		return nil, errors.New("failed to modify attribute, KMIP Response was null")
+	}
+
+	return kmipResp, nil
+}
+
 // LocateUid: retrieve a UID for a ID
-func LocateUid(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, id string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string) (string, error) {
+func LocateUid(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, id string, attribname string, attribvalue string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string) (string, error) {
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 	logger.Debug("++ locate uid", "id", id)
 
@@ -317,6 +349,8 @@ func LocateUid(ctx context.Context, connection *tls.Conn, settings *Configuratio
 
 	req := LocateRequest{
 		Name:         id,
+		AttribName:   attribname,
+		AttribValue:  attribvalue,
 		AttribName1:  attribname1,
 		AttribValue1: attribvalue1,
 		AttribName2:  attribname2,

@@ -87,13 +87,6 @@ func (kmips *kmip14service) Query(ctx context.Context, connection *tls.Conn, set
 func (kmips *kmip14service) CreateKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *CreateKeyRequest) (*CreateKeyResponse, error) {
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 
-	type createReqAttrs struct {
-		CryptographicAlgorithm kmip14.CryptographicAlgorithm
-		CryptographicLength    int
-		CryptographicUsageMask kmip14.CryptographicUsageMask
-		Name                   kmip.Name
-	}
-
 	logger.Debug("====== create key ======", "id", req.Id)
 
 	var err error
@@ -112,10 +105,12 @@ func (kmips *kmip14service) CreateKey(ctx context.Context, connection *tls.Conn,
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	})
 
-	payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-		AttributeName:  "x-id",
-		AttributeValue: "143",
-	})
+	if req.AttribName != "" {
+		payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+			AttributeName:  req.AttribName,
+			AttributeValue: req.AttribValue,
+		})
+	}
 
 	decoder, item, err = SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationCreate), &payload, false)
 	if err != nil {
@@ -154,10 +149,12 @@ func (kmips *kmip14service) GenerateCreateKeyPayload(ctx context.Context, settin
 		NameType:  kmip14.NameTypeUninterpretedTextString,
 	})
 
-	payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
-		AttributeName:  "x-id",
-		AttributeValue: "143",
-	})
+	if req.AttribName != "" {
+		payload.TemplateAttribute.Attribute = append(payload.TemplateAttribute.Attribute, kmip.Attribute{
+			AttributeName:  req.AttribName,
+			AttributeValue: req.AttribValue,
+		})
+	}
 
 	logger.Debug("create", "Payload", payload)
 	return payload
@@ -465,8 +462,8 @@ func (kmips *kmip14service) GenerateLocatePayload(ctx context.Context, settings 
 	}
 
 	Val := kmip.Attribute{
-		AttributeName:  "x-id",
-		AttributeValue: "143",
+		AttributeName:  req.AttribName,  //"x-id",
+		AttributeValue: req.AttribValue, //"143",
 	}
 
 	payload := kmip.LocateRequestPayload{}
@@ -501,8 +498,8 @@ func (kmips *kmip14service) Locate(ctx context.Context, connection *tls.Conn, se
 	}
 
 	Val := kmip.Attribute{
-		AttributeName:  "x-id",
-		AttributeValue: "143",
+		AttributeName:  req.AttribName,  //"x-id",
+		AttributeValue: req.AttribValue, //"143",
 	}
 
 	payload := kmip.LocateRequestPayload{}
@@ -511,7 +508,7 @@ func (kmips *kmip14service) Locate(ctx context.Context, connection *tls.Conn, se
 		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagName, 0, Name))
 	}
 
-	if req.Name != "" {
+	if req.AttribName != "" {
 		payload.Attribute = append(payload.Attribute, Val)
 	}
 
@@ -522,7 +519,7 @@ func (kmips *kmip14service) Locate(ctx context.Context, connection *tls.Conn, se
 	if req.AttribName2 == "ObjectType" && req.AttribValue2 == "SecretData" {
 		payload.Attribute = append(payload.Attribute, kmip.NewAttributeFromTag(kmip14.TagObjectType, 0, kmip14.ObjectTypeSecretData))
 	}
-
+	logger.Debug("XXX Locate request payload", "respPayload", payload)
 	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationLocate), &payload, false)
 	if err != nil {
 		logger.Error("The call to SendRequestMessage failed", "error", err)
@@ -547,6 +544,40 @@ func (kmips *kmip14service) Locate(ctx context.Context, connection *tls.Conn, se
 // SetAttribute: Not Supported
 func (kmips *kmip14service) SetAttribute(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *SetAttributeRequest) (*SetAttributeResponse, error) {
 	return &SetAttributeResponse{}, fmt.Errorf("SetAttribute command is not supported")
+}
+
+func (kmips *kmip14service) ModifyAttribute(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *ModifyAttributeRequest) (*ModifyAttributeResponse, error) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("====== modify attribute ======", "req", req)
+
+	payload := kmip.ModifyAttributesRequestPayload{
+		UniqueIdentifier: req.UniqueIdentifier,
+		Attribute: kmip.Attribute{
+			AttributeName:  req.AttributeName1,
+			AttributeValue: req.AttributeValue1,
+		},
+	}
+
+	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationModifyAttribute), &payload, false)
+	if err != nil {
+		logger.Error("The call to SendRequestMessage failed", "error", err)
+		return nil, err
+	}
+
+	// Extract the GetAttributesResponsePayload type of message
+	var respPayload kmip.ModifyAttributesResponsePayload
+	err = decoder.DecodeValue(&respPayload, item.ResponsePayload.(ttlv.TTLV))
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode ModifyAttributesResponsePayload, error: %v", err)
+	}
+
+	logger.Debug("XXX ModifyAttribute response payload", "respPayload", respPayload)
+
+	uid := respPayload.UniqueIdentifier
+	attrib := respPayload.Attribute
+	logger.Debug("XXX ModifyAttribute response payload", "uid", respPayload.UniqueIdentifier)
+
+	return &ModifyAttributeResponse{UniqueIdentifier: uid, Attribute: attrib}, nil
 }
 
 // ReKey:

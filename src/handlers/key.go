@@ -27,8 +27,10 @@ func CreateKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.Con
 		fmt.Printf("create id=value is required, example: create id=ZAD0YA320000C7300BYS\n")
 		return
 	}
+	attribname := kmipapi.GetValue(line, "attribname")
+	attribvalue := kmipapi.GetValue(line, "attribvalue")
 
-	uid, err := kmipapi.CreateKey(ctx, *connection, settings, id)
+	uid, err := kmipapi.CreateKey(ctx, *connection, settings, id, attribname, attribvalue)
 	if err != nil {
 		fmt.Printf("create key failed for id (%s) with error: %v\n", id, err)
 		return
@@ -87,6 +89,8 @@ func LocateKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.Con
 	logger.Debug("LocateKey", "line", line)
 
 	id := kmipapi.GetValue(line, "id")
+	attribname := kmipapi.GetValue(line, "attribname")
+	attribvalue := kmipapi.GetValue(line, "attribvalue")
 	attribname1 := kmipapi.GetValue(line, "attribname1")
 	attribvalue1 := kmipapi.GetValue(line, "attribvalue1")
 	attribname2 := kmipapi.GetValue(line, "attribname2")
@@ -97,7 +101,7 @@ func LocateKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.Con
 		return
 	}
 
-	uid, err := kmipapi.LocateUid(ctx, *connection, settings, id, attribname1, attribvalue1, attribname2, attribvalue2)
+	uid, err := kmipapi.LocateUid(ctx, *connection, settings, id, attribname, attribvalue, attribname1, attribvalue1, attribname2, attribvalue2)
 	if err != nil {
 		fmt.Printf("locate failed for id (%s) with error: %v\n", id, err)
 		return
@@ -162,7 +166,7 @@ func ClearKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.Conf
 
 	success := true
 
-	uid, err := kmipapi.LocateUid(ctx, *connection, settings, id, "", "", "", "")
+	uid, err := kmipapi.LocateUid(ctx, *connection, settings, id, "", "", "", "", "", "")
 	if err != nil || uid == "" {
 		fmt.Printf("locate failed for id (%s), uid (%s), error: %v\n", id, uid, err)
 		success = false
@@ -276,4 +280,28 @@ func Rekey(ctx context.Context, connection **tls.Conn, settings *kmipapi.Configu
 	} else {
 		fmt.Printf("rekey succeeded for uid (%s)\n", uid)
 	}
+}
+
+// ModifyAttribute: Modify the Attribute details based on uid and attribute name
+func ModifyAttribute(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("GetAttribute", "line", line)
+
+	uid := kmipapi.GetValue(line, "uid")
+	if uid == "" {
+		fmt.Printf("modify attribute uid=value is required, example: get attribute uid=6307 attribname1=x-CustomAttribute4\n")
+		return
+	}
+	attribname1 := kmipapi.GetValue(line, "attribname1")
+	attribvalue1 := kmipapi.GetValue(line, "attribvalue1")
+	attribname2 := kmipapi.GetValue(line, "attribname2")
+	attribvalue2 := kmipapi.GetValue(line, "attribvalue2")
+
+	resp, err := kmipapi.ModifyAttribute(ctx, *connection, settings, uid, attribname1, attribvalue1, attribname2, attribvalue2)
+	if err != nil {
+		fmt.Printf("modify attribute failed for uid (%s) with error: %v\n", uid, err)
+		return
+	}
+
+	fmt.Printf("modify attribute succeeded for uid (%s) with attribute: %v\n", uid, resp)
 }

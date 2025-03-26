@@ -26,6 +26,8 @@ type CreateKeyRequest struct {
 	CryptographicLength    uint32
 	CryptographicUsageMask uint32
 	Operation              kmip14.Operation
+	AttribName             string
+	AttribValue            string
 }
 
 type CreateKeyResponse struct {
@@ -139,9 +141,26 @@ type GetAttributeResponse struct {
 	Attribute        []kmip.Attribute
 }
 
+type ModifyAttributeRequest struct {
+	// Contains all attributes of a caller request to revoke a KMIP key.
+	UniqueIdentifier string
+	AttributeName1   string
+	AttributeValue1  string
+	AttributeName2   string
+	AttributeValue2  string
+}
+
+type ModifyAttributeResponse struct {
+	// Contains all attributes of the revoke key operation that are relevant to the caller.
+	UniqueIdentifier string
+	Attribute        kmip.Attribute
+}
+
 type LocateRequest struct {
 	// Contains all attributes of a caller request to revoke a KMIP key.
 	Name         string
+	AttribName   string
+	AttribValue  string
 	AttribName1  string
 	AttribValue1 string
 	AttribName2  string

@@ -23,6 +23,7 @@ type KMIPOperations interface {
 	GetAttribute(context.Context, *tls.Conn, *ConfigurationSettings, *GetAttributeRequest) (*GetAttributeResponse, error)
 	GenerateCreateKeyPayload(context.Context, *ConfigurationSettings, *CreateKeyRequest) interface{}
 	GenerateLocatePayload(context.Context, *ConfigurationSettings, *LocateRequest) interface{}
+	ModifyAttribute(context.Context, *tls.Conn, *ConfigurationSettings, *ModifyAttributeRequest) (*ModifyAttributeResponse, error)
 }
 
 type commonservice struct {
