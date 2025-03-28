@@ -338,13 +338,14 @@ func ModifyAttribute(ctx context.Context, connection *tls.Conn, settings *Config
 }
 
 // LocateUid: retrieve a UID for a ID
-func LocateUid(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, id string, attribname string, attribvalue string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string) (string, error) {
+func LocateUid(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, id string, attribname string, attribvalue string, attribname1 string, attribvalue1 string, attribname2 string, attribvalue2 string) ([]string, error) {
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
 	logger.Debug("++ locate uid", "id", id)
+	emptySlice := []string{}
 
 	kmipops, err := NewKMIPInterface(settings.ServiceType, nil)
 	if err != nil || kmipops == nil {
-		return "", fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
+		return emptySlice, fmt.Errorf("failed to initialize KMIP service (%s)", settings.ServiceType)
 	}
 
 	req := LocateRequest{
@@ -359,11 +360,11 @@ func LocateUid(ctx context.Context, connection *tls.Conn, settings *Configuratio
 
 	kmipResp, err := kmipops.Locate(ctx, connection, settings, &req)
 	if err != nil {
-		return "", fmt.Errorf("failed to locate using (%s), err: %v", settings.ServiceType, err)
+		return emptySlice, fmt.Errorf("failed to locate using (%s), err: %v", settings.ServiceType, err)
 	}
 
 	if kmipResp == nil {
-		return "", errors.New("failed to locate, KMIP Response was null")
+		return emptySlice, errors.New("failed to locate, KMIP Response was null")
 	}
 
 	return kmipResp.UniqueIdentifier, nil

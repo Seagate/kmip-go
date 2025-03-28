@@ -95,22 +95,23 @@ func LocateKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.Con
 	attribvalue1 := kmipapi.GetValue(line, "attribvalue1")
 	attribname2 := kmipapi.GetValue(line, "attribname2")
 	attribvalue2 := kmipapi.GetValue(line, "attribvalue2")
-
-	if id == "" && attribvalue2 == "" {
-		fmt.Printf("locate id, attribname2, and attribvalue2 are required, example: locate id=SASED-M-2-14-name attribname2=ObjectType attribvalue2=SecretData\n")
-		return
-	}
-
-	uid, err := kmipapi.LocateUid(ctx, *connection, settings, id, attribname, attribvalue, attribname1, attribvalue1, attribname2, attribvalue2)
+	/*
+		if id == "" && attribvalue2 == "" {
+			fmt.Printf("locate id, attribname2, and attribvalue2 are required, example: locate id=SASED-M-2-14-name attribname2=ObjectType attribvalue2=SecretData\n")
+			return
+		}
+	*/
+	uids, err := kmipapi.LocateUid(ctx, *connection, settings, id, attribname, attribvalue, attribname1, attribvalue1, attribname2, attribvalue2)
 	if err != nil {
 		fmt.Printf("locate failed for id (%s) with error: %v\n", id, err)
 		return
 	}
+	if len(uids) > 0 {
+		// Store the returned uid in ${lastuid} for use in other commands with that variable
+		kmipapi.SetValue(kmipapi.LastUID, uids[0])
+	}
 
-	// Store the returned uid in ${lastuid} for use in other commands with that variable
-	kmipapi.SetValue(kmipapi.LastUID, uid)
-
-	fmt.Printf("locate key for id (%s) returned uid (%s)\n", id, uid)
+	fmt.Printf("locate key for id (%s) returned uid (%s)\n", id, uids)
 }
 
 // RevokeKey: usage 'revoke uid=<value>' to revoke a key based on uid
@@ -166,15 +167,15 @@ func ClearKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.Conf
 
 	success := true
 
-	uid, err := kmipapi.LocateUid(ctx, *connection, settings, id, "", "", "", "", "", "")
-	if err != nil || uid == "" {
-		fmt.Printf("locate failed for id (%s), uid (%s), error: %v\n", id, uid, err)
+	uids, err := kmipapi.LocateUid(ctx, *connection, settings, id, "", "", "", "", "", "")
+	if err != nil || uids[0] == "" {
+		fmt.Printf("locate failed for id (%s), uids (%s), error: %v\n", id, uids, err)
 		success = false
 	} else {
-		fmt.Printf("locate key for id (%s) returned uid (%s)\n", id, uid)
+		fmt.Printf("locate key for id (%s) returned uids (%s)\n", id, uids)
 		fmt.Printf("\n")
 
-		uid, err = kmipapi.RevokeKey(ctx, *connection, settings, uid, uint32(kmip14.RevocationReasonCodeCessationOfOperation))
+		uid, err := kmipapi.RevokeKey(ctx, *connection, settings, uids[0], uint32(kmip14.RevocationReasonCodeCessationOfOperation))
 		if err != nil {
 			fmt.Printf("revoke key failed for uid (%s) with error: %v\n", uid, err)
 			success = false

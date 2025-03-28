@@ -535,10 +535,14 @@ func (kmips *kmip14service) Locate(ctx context.Context, connection *tls.Conn, se
 
 	logger.Debug("XXX Locate response payload", "respPayload", respPayload)
 
-	uid := respPayload.UniqueIdentifier
-	logger.Debug("XXX Locate response payload", "uid", respPayload.UniqueIdentifier)
-
-	return &LocateResponse{UniqueIdentifier: uid}, nil
+	uids := respPayload.UniqueIdentifier
+	if len(uids) == 0 {
+		logger.Debug("XXX Locate response payload is empty")
+		return &LocateResponse{UniqueIdentifier: []string{}}, nil
+	} else {
+		logger.Debug("XXX Locate response payload", "uids", respPayload.UniqueIdentifier)
+		return &LocateResponse{UniqueIdentifier: uids}, nil
+	}
 }
 
 // SetAttribute: Not Supported

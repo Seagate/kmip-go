@@ -170,7 +170,7 @@ type LocateRequest struct {
 
 type LocateResponse struct {
 	// Contains all attributes of the revoke key operation that are relevant to the caller.
-	UniqueIdentifier string
+	UniqueIdentifier []string
 }
 
 const (

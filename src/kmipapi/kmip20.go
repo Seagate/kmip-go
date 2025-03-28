@@ -119,7 +119,7 @@ func (kmips *kmip20service) CreateKey(ctx context.Context, connection *tls.Conn,
 		attributes.Attribute = append(attributes.Attribute, Attribute{
 			VendorIdentification: "x",
 			AttributeName:        req.AttribName,  //"x-id",
-			AttributeValue:       req.AttribValue, //"143",
+			AttributeValue:       req.AttribValue, //DriveSN,
 		})
 	}
 
@@ -179,7 +179,7 @@ func (kmips *kmip20service) GenerateCreateKeyPayload(ctx context.Context, settin
 		attributes.Attribute = append(attributes.Attribute, Attribute{
 			VendorIdentification: "x",
 			AttributeName:        req.AttribName,  //"x-id",
-			AttributeValue:       req.AttribValue, //"143",
+			AttributeValue:       req.AttribValue, //DriveSN,
 		})
 	}
 	return payload
@@ -214,7 +214,7 @@ func (kmips *kmip20service) GenerateLocatePayload(ctx context.Context, settings 
 		attributes.Attribute = append(attributes.Attribute, Attribute{
 			VendorIdentification: "x",
 			AttributeName:        req.AttribName,  //"x-id",
-			AttributeValue:       req.AttribValue, //"143",
+			AttributeValue:       req.AttribValue, //DriveSN,
 		})
 	}
 
@@ -538,7 +538,7 @@ func (kmips *kmip20service) Locate(ctx context.Context, connection *tls.Conn, se
 		attributes.Attribute = append(attributes.Attribute, Attribute{
 			VendorIdentification: "x",
 			AttributeName:        req.AttribName,  //"x-id",
-			AttributeValue:       req.AttribValue, //"143",
+			AttributeValue:       req.AttribValue, //DriveSN,
 		})
 	}
 
@@ -555,14 +555,14 @@ func (kmips *kmip20service) Locate(ctx context.Context, connection *tls.Conn, se
 	}
 
 	uids := respPayload.UniqueIdentifier
-	logger.Debug("XXX Locate response payload", "uid", respPayload.UniqueIdentifier)
-
-	uid := ""
-	if len(uids) > 0 {
-		uid = uids[0]
+	if len(uids) == 0 {
+		logger.Debug("XXX Locate response payload is empty")
+		return &LocateResponse{UniqueIdentifier: []string{}}, nil
+	} else {
+		logger.Debug("XXX Locate response payload", "uids", respPayload.UniqueIdentifier)
+		return &LocateResponse{UniqueIdentifier: uids}, nil
 	}
 
-	return &LocateResponse{UniqueIdentifier: uid}, nil
 }
 
 // SetAttribute:
