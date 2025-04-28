@@ -40,10 +40,13 @@ func OpenSession(ctx context.Context, settings *ConfigurationSettings) (*tls.Con
 		return nil, fmt.Errorf("Failed to create x509 key pair")
 	}
 
+	skipVerify := settings.ServerName == ""
+
 	tlsConfig := &tls.Config{
 		Certificates:             []tls.Certificate{cert},
 		RootCAs:                  certificatePool,
-		InsecureSkipVerify:       true,
+		InsecureSkipVerify:       skipVerify,
+		ServerName:               settings.ServerName,
 		PreferServerCipherSuites: true,
 		CipherSuites: []uint16{
 			tls.TLS_RSA_WITH_RC4_128_SHA,
