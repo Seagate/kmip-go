@@ -25,19 +25,19 @@ func OpenSession(ctx context.Context, settings *ConfigurationSettings) (*tls.Con
 	// Open a session
 	certificate, err := os.ReadFile(settings.CertAuthFile)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read CA (%s)", settings.CertAuthFile)
+		return nil, fmt.Errorf("failed to read CA (%s)", settings.CertAuthFile)
 	}
 
 	certificatePool := x509.NewCertPool()
 	ok := certificatePool.AppendCertsFromPEM(certificate)
 	if !ok {
-		return nil, fmt.Errorf("Failed to append certificate from PEM")
+		return nil, fmt.Errorf("failed to append certificate from PEM")
 	}
 
 	// Load client cert
 	cert, err := tls.LoadX509KeyPair(settings.CertFile, settings.KeyFile)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create x509 key pair")
+		return nil, fmt.Errorf("failed to create x509 key pair")
 	}
 
 	skipVerify := settings.ServerName == ""
