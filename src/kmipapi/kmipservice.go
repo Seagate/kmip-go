@@ -30,8 +30,9 @@ type commonservice struct {
 }
 
 type kmip14service struct {
-	service commonservice
-	kmip    KMIPOperations
+	service          commonservice
+	kmip             KMIPOperations
+	useRekeyTemplate bool
 }
 
 type kmip20service struct {

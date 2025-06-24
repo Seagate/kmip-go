@@ -257,3 +257,24 @@ func GetAttribute(ctx context.Context, connection **tls.Conn, settings *kmipapi.
 
 	fmt.Printf("get attribute succeeded for uid (%s) with attribute: %v\n", uid, resp)
 }
+
+// ReKey: usage 'rekey uid=<value>' to change kmip cryptographic key material
+func ReKey(ctx context.Context, connection **tls.Conn, settings *kmipapi.ConfigurationSettings, line string) {
+	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
+	logger.Debug("ReKey", "line", line)
+
+	uid := kmipapi.GetValue(line, "uid")
+
+	if uid == "" {
+		fmt.Printf("rekey uid=value is required, example: get uid=6201\n")
+		return
+	}
+
+	newuid, err := kmipapi.ReKey(ctx, *connection, settings, uid)
+	if err != nil {
+		fmt.Printf("rekey key failed for uid (%s) with error: %v\n", uid, err)
+		return
+	}
+
+	fmt.Printf("rekey key new uid (%s)\n", newuid)
+}

@@ -80,6 +80,12 @@ func (kmips *kmip14service) Query(ctx context.Context, connection *tls.Conn, set
 
 	logger.Debug("Query", "Payload", respPayload)
 
+	if respPayload.VendorIdentification == "Fortanix" {
+		kmips.useRekeyTemplate = true
+	} else {
+		kmips.useRekeyTemplate = false
+	}
+
 	return &QueryResponse{Operation: respPayload.Operation, ObjectType: respPayload.ObjectType, VendorIdentification: respPayload.VendorIdentification, CapabilityInformation: respPayload.CapabilityInformation}, nil
 }
 
@@ -527,6 +533,11 @@ func (kmips *kmip14service) ReKey(ctx context.Context, connection *tls.Conn, set
 	logger.Debug("====== rekey ======", "uid", req.UniqueIdentifier)
 
 	payload := kmip.ReKeyRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
+	if kmips.useRekeyTemplate {
+		payload.TemplateAttribute.Append(kmip14.TagCryptographicAlgorithm, kmip14.CryptographicAlgorithmAES)
+		payload.TemplateAttribute.Append(kmip14.TagCryptographicLength, 256)
+		payload.TemplateAttribute.Append(kmip14.TagCryptographicUsageMask, kmip14.CryptographicUsageMaskEncrypt|kmip14.CryptographicUsageMaskDecrypt)
+	}
 
 	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationReKey), &payload, false)
 	if err != nil {

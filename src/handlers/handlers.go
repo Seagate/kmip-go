@@ -37,6 +37,7 @@ func Initialize() {
 		"clear":        ClearKey,
 		"register":     RegisterKey,
 		"getattribute": GetAttribute,
+		"rekey":        ReKey,
 	}
 }
 
