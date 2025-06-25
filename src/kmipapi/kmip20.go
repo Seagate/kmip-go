@@ -189,7 +189,7 @@ func (kmips *kmip20service) GetKey(ctx context.Context, connection *tls.Conn, se
 	}
 
 	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip20.OperationGet), &payload, false)
-	logger.Debug("get key response item", "item", item)
+	logger.Debug("get key response item", "err", err)
 
 	// Extract the GetResponsePayload type of message
 	var respPayload kmip20.GetResponsePayload
