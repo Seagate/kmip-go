@@ -59,7 +59,7 @@ func (h *CreateHandler) HandleItem(ctx context.Context, req *Request) (*Response
 		return nil, err
 	}
 
-	var ok bool
+	const ok = true
 
 	idAttr := respPayload.TemplateAttribute.GetTag(kmip14.TagUniqueIdentifier)
 

@@ -11,4 +11,5 @@ type ConfigurationSettings struct {
 	ProtocolVersionMinor int    `json:"protocol_version_minor"` // Minor version for 1.4 or 2.0
 	ServiceType          string `json:"service_type"`           // The KMIP version service string, kmip14, kmip20, etc
 	ShowElapsed          bool   `json:"show_elapsed"`           // Display the elapsed time for each command executed.
+	ServerName           string `json:"server_name"`            // ServerName of the KMS server. Normally from CN.
 }

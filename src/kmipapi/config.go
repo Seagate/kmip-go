@@ -26,7 +26,7 @@ func Store(ctx context.Context, settings *ConfigurationSettings) (err error) {
 
 	// Write report to file
 	// Set permissions so that owner can read/write (6), group can read (first 4), all others can read (second 4)
-	err = os.WriteFile(kmsConfigurationFile, js, 0o644)
+	err = os.WriteFile(kmsConfigurationFile, js, 0o600)
 	if err != nil {
 		fmt.Printf("store unable to write configuration settings to storage, error: %v\n", err)
 		return fmt.Errorf("store unable to write configuration settings to storage, error: %v", err)
