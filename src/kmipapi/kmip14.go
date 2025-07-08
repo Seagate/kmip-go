@@ -80,19 +80,18 @@ func (kmips *kmip14service) Query(ctx context.Context, connection *tls.Conn, set
 
 	logger.Debug("Query", "Payload", respPayload)
 
+	//if respPayload.VendorIdentification == "Fortanix" {
+	//	kmips.useRekeyTemplate = true
+	//} else {
+	//	kmips.useRekeyTemplate = false
+	//}
+
 	return &QueryResponse{Operation: respPayload.Operation, ObjectType: respPayload.ObjectType, VendorIdentification: respPayload.VendorIdentification, CapabilityInformation: respPayload.CapabilityInformation}, nil
 }
 
 // CreateKey: Send a KMIP OperationCreate message
 func (kmips *kmip14service) CreateKey(ctx context.Context, connection *tls.Conn, settings *ConfigurationSettings, req *CreateKeyRequest) (*CreateKeyResponse, error) {
 	logger := ctx.Value(common.LoggerKey).(*slog.Logger)
-
-	type createReqAttrs struct {
-		CryptographicAlgorithm kmip14.CryptographicAlgorithm
-		CryptographicLength    int
-		CryptographicUsageMask kmip14.CryptographicUsageMask
-		Name                   kmip.Name
-	}
 
 	logger.Debug("====== create key ======", "id", req.Id)
 
@@ -527,6 +526,9 @@ func (kmips *kmip14service) ReKey(ctx context.Context, connection *tls.Conn, set
 	logger.Debug("====== rekey ======", "uid", req.UniqueIdentifier)
 
 	payload := kmip.ReKeyRequestPayload{UniqueIdentifier: req.UniqueIdentifier}
+	//if kmips.useRekeyTemplate {
+	//	payload.TemplateAttribute = kmip.TemplateAttribute{}
+	//}
 
 	decoder, item, err := SendRequestMessage(ctx, connection, settings, uint32(kmip14.OperationReKey), &payload, false)
 	if err != nil {
